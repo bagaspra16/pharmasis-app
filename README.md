@@ -18,13 +18,13 @@
 A powerful safety-checking tool that analyzes the combinatorial risks of up to 10 different medications simultaneously.
 - **Dynamic Risk Assessment:** Flags combinations as Minor, Moderate, Major, or Unknown risk.
 - **AI Summarization:** Condenses dense medical interaction records into easy-to-read safety warnings.
-- **AI Inference Fallback:** If direct database records are missing, the system uses Google Gemini to infer potential risks based on pharmacological drug classes.
+- **AI Inference Fallback:** If direct database records are missing, the system uses Scaleway AI to infer potential risks based on pharmacological drug classes.
 - **Interactive UI:** Features a premium, card-free interface with debounced autocomplete, selectable drug chips, risk-color-coded badges, and pairwise accordion breakdowns.
 
 ### 2. AI Medical Content Simplifier
 Medical jargon from sources like the FDA can be incredibly difficult for the average person to understand.
 - **Jargon Translation:** Users can click a button on any drug detail page to get an instant, plain-language summary of complex concepts (like Boxed Warnings, Adverse Reactions, or Indications).
-- **Powered by Gemini:** Uses the latest Google Gemini language models to provide structured, safe, and easily digestible bullet points.
+- **Powered by Scaleway:** Uses high-performance Open-Weight language models (like Meta's Llama 3) via the Scaleway AI endpoint to provide structured, safe, and easily digestible bullet points.
 
 ### 3. High-Performance Instant Search
 - **Fuzzy Matching:** Built on PostgreSQL's `pg_trgm` extension for ultra-fast, typo-tolerant full-text search across thousands of drug names and generics.
@@ -51,7 +51,7 @@ Medical jargon from sources like the FDA can be incredibly difficult for the ave
 - **Icons:** Inline SVG icons tailored for a modern look.
 
 ### Artificial Intelligence
-- **LLM Provider:** Google Gemini API (`gemini-1.5-flash` / `gemini-2.0-flash`)
+- **LLM Provider:** Scaleway AI Inference (`llama-3.3-70b-instruct`)
 - **Integration:** API consumed securely via backend Services (`AiInteractionService.php`, `AiSimplifierService.php`) with 30-day response caching to optimize quota usage and speed.
 
 ---
@@ -63,8 +63,8 @@ Medical jargon from sources like the FDA can be incredibly difficult for the ave
 2. **Combinatorics:** Backend generates all unique $N(N-1)/2$ pairs.
 3. **Database Check:** For each pair, queries local PostgreSQL interactions table using trigram similarity.
 4. **AI Processing:**
-   - *If Match Found (Summarization Mode):* Passes raw medical text to Gemini to summarize simply and assign a risk level.
-   - *If No Match (Inference Mode):* Passes the two drug classes to Gemini to infer a conservative, hypothetical safety risk.
+   - *If Match Found (Summarization Mode):* Passes raw medical text to Scaleway AI to summarize simply and assign a risk level.
+   - *If No Match (Inference Mode):* Passes the two drug classes to Scaleway AI to infer a conservative, hypothetical safety risk.
 5. **Output Aggregation:** Calculates overall maximum risk level across all pairs and streams a structured JSON response to the Alpine.js frontend.
 
 ---
@@ -106,10 +106,11 @@ Medical jargon from sources like the FDA can be incredibly difficult for the ave
    ```
 
 4. **Configure AI Providers**
-   Add your Gemini API key to `.env` to enable the Simplifier and Interaction features:
+   Add your Scaleway API key to `.env` to enable the AI Simplifier and Interaction inference features:
    ```env
-   GEMINI_API_KEY=your_gemini_api_key_here
-   GEMINI_MODEL=gemini-1.5-flash
+   OPENAI_API_KEY=your_scaleway_iam_secret_key_here
+   OPENAI_API_BASE=https://api.scaleway.ai/72d6b375-b838-47b0-9fbb-ccf253147079/v1
+   OPENAI_MODEL=llama-3.3-70b-instruct
    ```
 
 5. **Run Migrations & Seeders**
