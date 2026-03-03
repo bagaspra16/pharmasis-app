@@ -4,22 +4,65 @@ namespace App\Services;
 
 use App\Models\Drug;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class InteractionService
 {
     private AiInteractionService $aiService;
+    private OpenFdaService $openFdaService;
 
-    public function __construct(AiInteractionService $aiService)
+    public function __construct(AiInteractionService $aiService, OpenFdaService $openFdaService)
     {
         $this->aiService = $aiService;
+        $this->openFdaService = $openFdaService;
     }
 
     /**
      * Check interactions between 2 to 10 drugs.
+     * Supports both local DB UUIDs and "fda-..." IDs from OpenFDA.
      */
     public function check(array $drugIds): array
     {
-        $drugs = Drug::whereIn('id', $drugIds)->get()->keyBy('id');
+        $drugs = collect();
+
+        // 1. Resolve drugs (Local DB or OpenFDA)
+        foreach ($drugIds as $id) {
+            if (Str::startsWith($id, 'fda-')) {
+                // Remove 'fda-' prefix to get the slug
+                $slug = substr($id, 4);
+                $fdaData = $this->openFdaService->getBySlug($slug);
+                if ($fdaData) {
+                    // Create a simulated Drug model so AiInteractionService can process it normally
+                    $drug = new Drug([
+                        'id' => $fdaData['id'],
+                        'name' => $fdaData['name'],
+                        'generic_name' => $fdaData['generic_name'],
+                        'drug_class' => $fdaData['drug_class'],
+                    ]);
+                    // Temporarily store the clean interactions string for lookup
+                    $drug->setAttribute('clean_interactions', $fdaData['interactions'] ?? '');
+                    $drugs->push($drug);
+                }
+            }
+            else {
+                // Local DB fallback
+                $dbDrug = Drug::find($id);
+                if ($dbDrug) {
+                    $drugs->push($dbDrug);
+                }
+            }
+        }
+
+        // Must have at least 2 resolved drugs to compare
+        if ($drugs->count() < 2) {
+            return [
+                'pairs' => [],
+                'overall_risk' => 'unknown',
+                'coverage_status' => 'none',
+                'disclaimer_required' => true,
+                'error' => 'Not enough valid drugs found to check interactions.'
+            ];
+        }
 
         $pairs = $this->generatePairs($drugs);
 
@@ -38,25 +81,25 @@ class InteractionService
             $drugA = $pair[0];
             $drugB = $pair[1];
 
-            // Database lookup
+            // Database/OpenFDA text lookup
             $foundInteractions = $this->lookupInteractions($drugA, $drugB);
 
             if ($foundInteractions) {
-                // Mode 1: Summarize
+                // Mode 1: Summarize existing FDA interaction text
                 $aiResult = $this->aiService->summarize($drugA, $drugB, $foundInteractions);
                 $coverage = 'database';
                 $confidence = 'high';
                 $coverageCount++;
             }
             else {
-                // Mode 2: Inference Fallback
+                // Mode 2: Inference Fallback by drug class
                 $aiResult = $this->aiService->infer($drugA, $drugB);
                 $coverage = 'ai_inferred';
                 $confidence = 'low';
             }
 
             $riskLevel = $aiResult['risk_level'] ?? 'unknown';
-            $maxRiskValue = max($maxRiskValue, $riskScores[$riskLevel]);
+            $maxRiskValue = max($maxRiskValue, $riskScores[$riskLevel] ?? 0);
 
             $results[] = [
                 'drug_a' => $drugA->name,
@@ -113,20 +156,21 @@ class InteractionService
         $aInteractions = strip_tags($drugA->clean_interactions ?? '');
         $bInteractions = strip_tags($drugB->clean_interactions ?? '');
 
-        $nameA = preg_quote(strtolower($drugA->name), '/');
+        // Safe regex quote handles potential nulls and weird characters
+        $nameA = preg_quote(strtolower($drugA->name ?? ''), '/');
         $genericA = preg_quote(strtolower($drugA->generic_name ?? ''), '/');
 
-        $nameB = preg_quote(strtolower($drugB->name), '/');
+        $nameB = preg_quote(strtolower($drugB->name ?? ''), '/');
         $genericB = preg_quote(strtolower($drugB->generic_name ?? ''), '/');
 
-        $patternA = "/\b($nameB" . ($genericB ? "|$genericB" : "") . ")\b/i";
-        $patternB = "/\b($nameA" . ($genericA ? "|$genericA" : "") . ")\b/i";
+        $patternA = "/\b(" . trim("$nameB" . ($genericB ? "|$genericB" : ""), '|') . ")\b/i";
+        $patternB = "/\b(" . trim("$nameA" . ($genericA ? "|$genericA" : ""), '|') . ")\b/i";
 
-        if (!empty($aInteractions) && preg_match($patternA, $aInteractions)) {
+        if (!empty($aInteractions) && !empty($nameB) && preg_match($patternA, $aInteractions)) {
             $combinedText .= "Interactions on {$drugA->name} label: " . $this->extractContext($aInteractions, $patternA) . "\n";
         }
 
-        if (!empty($bInteractions) && preg_match($patternB, $bInteractions)) {
+        if (!empty($bInteractions) && !empty($nameA) && preg_match($patternB, $bInteractions)) {
             $combinedText .= "Interactions on {$drugB->name} label: " . $this->extractContext($bInteractions, $patternB) . "\n";
         }
 
