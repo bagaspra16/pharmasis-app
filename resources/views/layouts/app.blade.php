@@ -48,6 +48,8 @@
 
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Markdown renderer for AI output -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     {{-- Google Fonts: Plus Jakarta Sans (body) + Syne (brand/heading) --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -173,6 +175,30 @@
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.18);
         }
+
+        /* ── AI Markdown Styling ── */
+        .ai-markdown {
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .ai-markdown p {
+            margin-bottom: 0.35rem;
+        }
+
+        .ai-markdown ul {
+            list-style-type: disc;
+            padding-left: 1.25rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .ai-markdown li {
+            margin-bottom: 0.15rem;
+        }
+
+        .ai-markdown strong {
+            font-weight: 600;
+        }
     </style>
 
     @stack('head')
@@ -204,11 +230,6 @@
                             placeholder="Search medicines, generics, drug classes..."
                             class="w-full pl-10 pr-4 py-2.5 text-sm border-2 border-slate-100/80 rounded-full bg-slate-50/50 hover:bg-white focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 shadow-sm"
                             autocomplete="off" />
-                        <svg class="absolute left-3 top-2.5 w-4 h-4 text-slate-400" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
                         <div x-show="loading" class="absolute right-3 top-2.5">
                             <svg class="animate-spin w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"

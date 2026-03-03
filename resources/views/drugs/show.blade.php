@@ -145,7 +145,7 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
                 @foreach($sections as $section)
                 @if($section['content'])
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
-                    x-data="{ open: {{ in_array($section['id'], ['uses']) ? 'true' : 'false' }}, aiText: '', aiLoading: false, aiError: '' }">
+                    x-data="{ open: {{ in_array($section['id'], ['uses']) ? 'true' : 'false' }}, aiText: '', aiHtml: '', aiLoading: false, aiError: '' }">
                     <button @click="open = !open"
                         class="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-slate-50 transition-colors">
                         <div class="flex items-center gap-3">
@@ -209,9 +209,8 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
                                             Explanation</span>
                                         <span class="text-xs text-slate-400 ml-auto">Educational use only</span>
                                     </div>
-                                    <p class="text-sm text-slate-700 leading-relaxed whitespace-pre-line"
-                                        x-text="aiText"></p>
-                                    <button @click="aiText = ''"
+                                    <div class="ai-markdown text-sm text-slate-700 leading-relaxed" x-html="aiHtml"></div>
+                                    <button @click="aiText = ''; aiHtml = ''"
                                         class="text-xs text-slate-400 hover:text-slate-600 mt-2 transition-colors">Hide</button>
                                 </div>
                             </div>
@@ -373,6 +372,8 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
         return async function () {
             this.aiLoading = true;
             this.aiError = '';
+            this.aiText = '';
+            this.aiHtml = '';
             try {
                 const res = await fetch('/api/v1/ai/simplify', {
                     method: 'POST',
@@ -380,7 +381,16 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
                     body: JSON.stringify({ drug_id: drugId, field: field, text: text.substring(0, 2000) })
                 });
                 const data = await res.json();
-                if (data.success) { this.aiText = data.text; }
+                if (data.success) {
+                    this.aiText = data.text || '';
+                    if (window.marked && typeof window.marked.parse === 'function') {
+                        this.aiHtml = window.marked.parse(this.aiText);
+                    } else if (window.marked && typeof window.marked === 'function') {
+                        this.aiHtml = window.marked(this.aiText);
+                    } else {
+                        this.aiHtml = (this.aiText || '').split('\n').join('<br>');
+                    }
+                }
                 else { this.aiError = data.error || 'Failed to simplify. Try again.'; }
             } catch (e) { this.aiError = 'Network error. Please try again.'; }
             this.aiLoading = false;
