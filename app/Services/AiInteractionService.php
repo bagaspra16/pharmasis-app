@@ -51,7 +51,7 @@ PROMPT;
     }
 
     /**
-     * Mode 2: Inference Fallback – no DB data, reason by drug class.
+     * Mode 2: Inference Fallback – no DB data, reason by drug class and OpenFDA label texts.
      */
     public function infer(Drug $drugA, Drug $drugB): array
     {
@@ -68,16 +68,30 @@ PROMPT;
         $classA = $drugA->drug_class ?? 'Unknown';
         $classB = $drugB->drug_class ?? 'Unknown';
 
+        $warningsA = substr(strip_tags($drugA->warnings ?? 'No specific warnings available.'), 0, 800);
+        $warningsB = substr(strip_tags($drugB->warnings ?? 'No specific warnings available.'), 0, 800);
+
         $prompt = <<<PROMPT
-You are a pharmacology risk analyst. No direct database interaction was found between "{$drugA->name}" (class: {$classA}) and "{$drugB->name}" (class: {$classB}).
-Based only on their drug classes and known pharmacological mechanisms, give a cautious, conservative assessment.
-Clearly state this is an inference. Avoid definitive claims. Default to minor/unknown if no clear concern exists.
+You are a pharmacology risk analyst. No direct database interaction was found between "{$drugA->name}" and "{$drugB->name}".
+However, you have access to their pharmacological classes and key FDA label warnings:
+
+Drug 1: "{$drugA->name}"
+- Class: {$classA}
+- Warnings Extract: {$warningsA}
+
+Drug 2: "{$drugB->name}"
+- Class: {$classB}
+- Warnings Extract: {$warningsB}
+
+Based on these drug classes and their individual warnings, analyze the likelihood of an interaction or compounded adverse effect. 
+Give a cautious, conservative assessment based on the provided data.
+Clearly state this is an inference based on individual drug profiles. Avoid definitive claims. Default to minor/unknown if no clear concern exists.
 
 Respond ONLY in valid JSON (no markdown, no extra text):
-{"risk_level":"minor|moderate|major|unknown","summary":"AI-generated inference (limited evidence): [1-2 sentence explanation]"}
+{"risk_level":"minor|moderate|major|unknown","summary":"AI-generated inference based on individual FDA drug profiles: [2-3 sentence explanation combining reasoning from classes and warnings]"}
 PROMPT;
 
-        return $this->callAI($prompt, $cacheKey, 0.3, 300);
+        return $this->callAI($prompt, $cacheKey, 0.3, 400);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

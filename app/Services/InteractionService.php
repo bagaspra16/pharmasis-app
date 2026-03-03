@@ -38,6 +38,9 @@ class InteractionService
                         'name' => $fdaData['name'],
                         'generic_name' => $fdaData['generic_name'],
                         'drug_class' => $fdaData['drug_class'],
+                        'uses' => $fdaData['uses'] ?? null,
+                        'warnings' => $fdaData['warnings'] ?? null,
+                        'before_taking' => $fdaData['before_taking'] ?? null,
                     ]);
                     // Temporarily store the clean interactions string for lookup
                     $drug->setAttribute('clean_interactions', $fdaData['interactions'] ?? '');
