@@ -128,15 +128,20 @@
                     <div>
                         <h3 class="font-extrabold text-slate-800 text-lg sm:text-lg mb-1"
                             x-text="getRiskTitle(results?.overall_risk)"></h3>
-                        <p class="text-sm text-slate-600 leading-relaxed">
-                            <span x-show="results?.coverage_status === 'full'">We found complete interaction data for
-                                all pairs.</span>
-                            <span x-show="results?.coverage_status === 'partial'">Some interaction data was unavailable,
-                                so our AI provided careful inferences for missing pairs.</span>
-                            <span x-show="results?.coverage_status === 'none'">We didn't find direct database records
-                                for these combinations, so our AI provided cautious inferences based on their drug
-                                classes.</span>
-                        </p>
+                        <div class="text-sm text-slate-600 leading-relaxed">
+                            <p x-show="results?.coverage_status === 'full'">We found complete interaction data for
+                                all pairs.</p>
+                            <p x-show="results?.coverage_status === 'partial'">Some interaction data was unavailable,
+                                so our AI provided careful inferences for missing pairs.</p>
+
+                            {{-- Dynamic AI Explanation for 'none' coverage --}}
+                            <div x-show="results?.coverage_status === 'none'">
+                                <p class="mb-2">No direct database records found. The following is an AI-generated
+                                    inference based on pharmacological drug classes:</p>
+                                <p class="font-medium text-slate-700 p-3 bg-slate-50/80 rounded-lg border border-slate-100"
+                                    x-text="results?.pairs[0]?.summary"></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
