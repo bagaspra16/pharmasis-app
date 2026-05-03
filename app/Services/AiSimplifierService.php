@@ -14,9 +14,9 @@ class AiSimplifierService
 
     public function __construct()
     {
-        $this->apiKey = config('services.openai.key', '');
-        $this->apiBase = config('services.openai.base', 'https://api.scaleway.ai/72d6b375-b838-47b0-9fbb-ccf253147079/v1');
-        $this->model = config('services.openai.model', 'llama-3.3-70b-instruct');
+        $this->apiKey = config('services.groq.key', '');
+        $this->apiBase = config('services.groq.base', 'https://api.groq.com/openai/v1');
+        $this->model = config('services.groq.model', 'llama-3.3-70b-versatile');
     }
 
     /**
@@ -28,7 +28,7 @@ class AiSimplifierService
         if (empty($this->apiKey)) {
             return [
                 'success' => false,
-                'error' => 'AI service is not configured. Please add your OPENAI_API_KEY (Scaleway key) to .env',
+                'error' => 'AI service is not configured. Please add your GROQ_API_KEY to .env',
             ];
         }
 
@@ -72,7 +72,10 @@ PROMPT;
             ]);
 
             if ($response->failed()) {
-                Log::error('AI Simplifier error', ['status' => $response->status()]);
+                Log::error('AI Simplifier (Groq) error', [
+                    'status' => $response->status(),
+                    'body'   => $response->body(),
+                ]);
                 return ['success' => false, 'error' => 'AI service returned an error. Please try again later.'];
             }
 
@@ -85,9 +88,8 @@ PROMPT;
             Cache::put($cacheKey, $simplified, now()->addDays(30));
             return ['success' => true, 'text' => $simplified, 'cached' => false];
 
-        }
-        catch (\Exception $e) {
-            Log::error('AiSimplifierService error', ['error' => $e->getMessage()]);
+        } catch (\Exception $e) {
+            Log::error('AiSimplifierService (Groq) error', ['error' => $e->getMessage()]);
             return ['success' => false, 'error' => 'Failed to reach AI service. Please try again later.'];
         }
     }

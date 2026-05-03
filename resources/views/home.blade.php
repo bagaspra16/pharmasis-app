@@ -1,8 +1,9 @@
 @extends('layouts.app')
 
 @section('title', 'Pharmasis — Know Your Medicine')
-@section('meta_description', 'Search 16,000+ medicines. Find drug information, warnings, dosage, and side effects in
-plain language. Powered by AI for easy understanding.')
+@section('meta_description', (!empty($dbOffline) || !empty($fdaMode))
+    ? 'Search 67,000+ medicines via OpenFDA. Find drug information, warnings, dosage, and side effects in plain language. Powered by AI for easy understanding.'
+    : 'Search 16,000+ medicines. Find drug information, warnings, dosage, and side effects in plain language. Powered by AI for easy understanding.')
 
 @push('head')
 <style>
@@ -139,14 +140,16 @@ plain language. Powered by AI for easy understanding.')
 
 {{-- ── DB Offline Banner ── --}}
 @if(!empty($dbOffline))
-<div class="bg-amber-50 border-b border-amber-200" x-data="{ show: true }" x-show="show">
+<div class="bg-amber-50 border-b border-amber-200" x-data="{ show: true }" x-init="setTimeout(() => show = false, 8000)"
+    x-show="show" x-transition.opacity>
     <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center gap-3">
         <svg class="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7" />
         </svg>
-        <p class="text-xs text-amber-800 flex-1"><strong>Database temporarily unavailable.</strong> Showing results from
-            OpenFDA.</p>
+        <p class="text-xs text-amber-800 flex-1">
+            <strong>Using OpenFDA data source.</strong> Our local database is temporarily unavailable, so results are being loaded from OpenFDA.
+        </p>
         <button onclick="window.location.reload()"
             class="text-xs text-amber-700 border border-amber-200 px-2.5 py-1 rounded-lg hover:bg-amber-100 transition-colors">Retry</button>
         <button @click="show=false" class="text-amber-400 hover:text-amber-700 ml-1">✕</button>
@@ -183,7 +186,7 @@ plain language. Powered by AI for easy understanding.')
         <div
             class="inline-flex items-center gap-2 bg-white/60 text-slate-600 text-xs font-medium px-4 py-1.5 rounded-full mb-7 border border-white/80 backdrop-blur-sm shadow-sm">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0"></span>
-            16,000+ medicines in our database
+            {{ (!empty($dbOffline) || !empty($fdaMode)) ? '67,000+ medicines via OpenFDA' : '16,000+ medicines in our database' }}
         </div>
 
         {{-- Headline: Mothwing font scoped here, black text --}}
@@ -386,8 +389,9 @@ plain language. Powered by AI for easy understanding.')
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         @foreach([
-        ['icon'=>'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z','title'=>'Smart Search','desc'=>'Search across 16,000+
-        medicines by trade name, generic, or drug class — in seconds.'],
+        ['icon'=>'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z','title'=>'Smart Search','desc'=>(!empty($dbOffline) || !empty($fdaMode))
+            ? 'Search across 67,000+ medicines via OpenFDA by trade name, generic, or drug class — in seconds.'
+            : 'Search across 16,000+ medicines by trade name, generic, or drug class — in seconds.'],
         ['icon'=>'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0
         117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4
         0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z','title'=>'AI Plain Language','desc'=>'Complex medical text

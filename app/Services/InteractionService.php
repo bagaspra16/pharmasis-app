@@ -21,9 +21,10 @@ class InteractionService
      * Check interactions between 2 to 10 drugs.
      * Supports both local DB UUIDs and "fda-..." IDs from OpenFDA.
      */
-    public function check(array $drugIds): array
+    public function check(array $drugIds, array $metaById = []): array
     {
         $drugs = collect();
+        $dbOffline = false;
 
         // 1. Resolve drugs (Local DB or OpenFDA)
         foreach ($drugIds as $id) {
@@ -50,9 +51,44 @@ class InteractionService
             }
             else {
                 // Local DB fallback
-                $dbDrug = Drug::find($id);
-                if ($dbDrug) {
-                    $drugs->push($dbDrug);
+                try {
+                    $dbDrug = Drug::find($id);
+                    if ($dbDrug) {
+                        $drugs->push($dbDrug);
+                        continue;
+                    }
+                }
+                catch (\Throwable $e) {
+                    // DB connection/query error → degrade gracefully and try OpenFDA below
+                    $dbOffline = true;
+                }
+
+                // If DB is unavailable (or ID not found) and UI provided metadata, try OpenFDA
+                $meta = $metaById[(string)$id] ?? null;
+                $fallbackSlug = $meta['slug'] ?? null;
+                if (!$fallbackSlug) {
+                    $name = $meta['name'] ?? null;
+                    if ($name) {
+                        $fallbackSlug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', trim($name)));
+                        $fallbackSlug = trim($fallbackSlug, '-');
+                    }
+                }
+
+                if ($fallbackSlug) {
+                    $fdaData = $this->openFdaService->getBySlug($fallbackSlug);
+                    if ($fdaData) {
+                        $drug = new Drug([
+                            'id' => $fdaData['id'],
+                            'name' => $fdaData['name'],
+                            'generic_name' => $fdaData['generic_name'],
+                            'drug_class' => $fdaData['drug_class'],
+                        ]);
+                        $drug->setAttribute('uses', $fdaData['uses'] ?? null);
+                        $drug->setAttribute('warnings', $fdaData['warnings'] ?? null);
+                        $drug->setAttribute('side_effects', $fdaData['side_effects'] ?? null);
+                        $drug->setAttribute('clean_interactions', $fdaData['interactions'] ?? '');
+                        $drugs->push($drug);
+                    }
                 }
             }
         }
@@ -127,7 +163,9 @@ class InteractionService
             'pairs' => $results,
             'overall_risk' => $overallRisk,
             'coverage_status' => $coverageStatus,
-            'disclaimer_required' => true
+            'disclaimer_required' => true,
+            'data_source' => $coverageCount > 0 ? 'label_text' : 'ai_inferred',
+            'db_offline' => $dbOffline,
         ];
     }
 

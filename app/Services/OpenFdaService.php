@@ -80,6 +80,9 @@ class OpenFdaService
             "openfda.brand_name:{$encoded}",
             "openfda.generic_name:{$encoded}",
             "openfda.substance_name:{$encoded}",
+            // Fallback: allow finding a label by interaction mentions
+            // (example: https://api.fda.gov/drug/label.json?search=drug_interactions:caffeine&limit=5)
+            "drug_interactions:{$encoded}",
             // Keyword search as final fallback
             $encoded,
         ];

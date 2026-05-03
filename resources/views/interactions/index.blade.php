@@ -387,6 +387,15 @@
                 if (this.selectedDrugs.length < 2) return;
                 this.isChecking = true; this.hasChecked = true; this.results = null;
                 try {
+                    const payload = {
+                        drug_ids: this.selectedDrugs.map(d => String(d.id)),
+                        drugs: this.selectedDrugs.map(d => ({
+                            id: String(d.id),
+                            name: d.name || null,
+                            slug: d.slug || null,
+                            generic_name: d.generic_name || null,
+                        })),
+                    };
                     const res = await fetch('/api/v1/interactions/check', {
                         method: 'POST',
                         headers: {
@@ -394,7 +403,7 @@
                             'Accept': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
                         },
-                        body: JSON.stringify({ drug_ids: this.selectedDrugs.map(d => String(d.id)) })
+                        body: JSON.stringify(payload)
                     });
                     const data = await res.json();
                     if (data.success) { this.results = data.data; }
