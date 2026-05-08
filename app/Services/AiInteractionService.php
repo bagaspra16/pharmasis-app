@@ -4,20 +4,18 @@ namespace App\Services;
 
 use App\Models\Drug;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class AiInteractionService
 {
-    private string $apiKey;
-    private string $apiBase;
+    private GroqService $groq;
     private string $model;
 
-    public function __construct()
+    public function __construct(GroqService $groq)
     {
-        $this->apiKey = config('services.openai.key', '');
-        $this->apiBase = config('services.openai.base', 'https://api.scaleway.ai/72d6b375-b838-47b0-9fbb-ccf253147079/v1');
-        $this->model = config('services.openai.model', 'llama-3.3-70b-instruct');
+        $this->groq = $groq;
+        // Use the highly capable Llama 3.3 70B model via Groq for excellent medical reasoning
+        $this->model = 'llama-3.3-70b-versatile';
     }
 
     /**
@@ -25,13 +23,10 @@ class AiInteractionService
      */
     public function summarize(Drug $drugA, Drug $drugB, string $rawInteractionsText): array
     {
-        if (empty($this->apiKey)) {
-            return $this->fallback('moderate', 'Summary unavailable (AI API key not configured). Raw: ' . $rawInteractionsText);
-        }
-
-        $cacheKey = 'ai_interaction_sum_' . md5("{$drugA->id}_{$drugB->id}_{$rawInteractionsText}");
-        if (Cache::has($cacheKey))
+        $cacheKey = 'ai_interaction_sum_v2_' . md5("{$drugA->id}_{$drugB->id}_{$rawInteractionsText}");
+        if (Cache::has($cacheKey)) {
             return Cache::get($cacheKey);
+        }
 
         $prompt = <<<PROMPT
 You are a medical safety summarizer. Summarize the known interaction risks between "{$drugA->name}" and "{$drugB->name}" using ONLY the text below.
@@ -55,15 +50,12 @@ PROMPT;
      */
     public function infer(Drug $drugA, Drug $drugB): array
     {
-        if (empty($this->apiKey)) {
-            return $this->fallback('unknown', 'AI inference unavailable (API key not configured).');
-        }
-
         $ids = [$drugA->id, $drugB->id];
         sort($ids);
-        $cacheKey = 'ai_interaction_inf_' . md5(implode('_', $ids));
-        if (Cache::has($cacheKey))
+        $cacheKey = 'ai_interaction_inf_v2_' . md5(implode('_', $ids));
+        if (Cache::has($cacheKey)) {
             return Cache::get($cacheKey);
+        }
 
         $classA = $drugA->drug_class ?? 'Unknown';
         $classB = $drugB->drug_class ?? 'Unknown';
@@ -99,25 +91,20 @@ PROMPT;
     private function callAI(string $prompt, string $cacheKey, float $temperature, int $maxTokens): array
     {
         try {
-            $response = Http::timeout(30)
-                ->withToken($this->apiKey)
-                ->post("{$this->apiBase}/chat/completions", [
-                'model' => $this->model,
-                'messages' => [
-                    ['role' => 'system', 'content' => 'You are a medical safety API. Always respond with raw JSON only, never markdown code fences.'],
-                    ['role' => 'user', 'content' => $prompt],
-                ],
-                'max_tokens' => $maxTokens,
+            $text = $this->groq->chat($this->model, [
+                ['role' => 'system', 'content' => 'You are a medical safety API. Always respond with raw JSON only. Format: {"risk_level":"...","summary":"..."}'],
+                ['role' => 'user', 'content' => $prompt],
+            ], [
                 'temperature' => $temperature,
+                'max_tokens' => $maxTokens,
+                'response_format' => ['type' => 'json_object'] // Ensure strict JSON output
             ]);
 
-            if ($response->failed()) {
-                Log::error('AI Interaction error', ['status' => $response->status(), 'body' => $response->body()]);
-                return $this->fallback('unknown', 'AI service returned an error.');
+            if (!$text) {
+                return $this->fallback('unknown', 'AI service returned empty response.');
             }
 
-            $text = $response->json('choices.0.message.content', '');
-            // Strip possible markdown fences
+            // Strip possible markdown fences just in case
             $text = preg_replace('/^```(?:json)?\s*|\s*```$/m', '', trim($text));
 
             $parsed = json_decode($text, true);
@@ -131,7 +118,7 @@ PROMPT;
         }
         catch (\Exception $e) {
             Log::error('AiInteractionService error', ['error' => $e->getMessage()]);
-            return $this->fallback('unknown', 'Failed to reach AI service.');
+            return $this->fallback('unknown', 'Failed to reach AI service for interaction checking.');
         }
     }
 

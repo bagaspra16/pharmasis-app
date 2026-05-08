@@ -54,22 +54,23 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
             @endif
 
             {{-- Hero Identity --}}
-            <div class="bg-white rounded-2xl border border-slate-100 p-6 sm:p-8 mb-6 shadow-sm">
+            <div class="glass-card rounded-2xl p-6 sm:p-8 mb-6">
                 <div class="flex items-start gap-5">
                     <div
-                        class="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md">
-                        <span class="text-2xl font-extrabold text-white">{{ strtoupper(substr($drug->alpha_index ??
+                        class="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
+                        style="background: linear-gradient(135deg,#3EAEB1,#1a7a7d); box-shadow: 0 8px 24px rgba(62,174,177,0.30);">
+                        <span class="font-display text-3xl text-white tracking-tight">{{ strtoupper(substr($drug->alpha_index ??
                             $drug->name ?? '?', 0, 2)) }}</span>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <div class="flex flex-wrap items-center gap-2 mb-2">
+                        <div class="flex flex-wrap items-center gap-2 mb-3">
                             @if($drug->alpha_index)
-                            <span class="text-xs bg-primary/10 text-primary font-semibold px-2.5 py-1 rounded-full">{{
+                            <span class="text-[10px] bg-primary/10 text-primary font-medium px-2.5 py-1 rounded-full uppercase tracking-wider">{{
                                 strtoupper($drug->alpha_index) }}</span>
                             @endif
                             @if($drug->translated)
                             <span
-                                class="text-xs bg-green-100 text-green-700 font-medium px-2.5 py-1 rounded-full flex items-center gap-1">
+                                class="text-[10px] bg-emerald-100 text-emerald-700 font-medium px-2.5 py-1 rounded-full flex items-center gap-1 uppercase tracking-wider">
                                 <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -79,17 +80,16 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
                             </span>
                             @endif
                             <span
-                                class="text-xs border {{ $riskColor }} px-2.5 py-1 rounded-full font-semibold capitalize">⚠
+                                class="text-[10px] border {{ $riskColor }} px-2.5 py-1 rounded-full font-medium capitalize uppercase tracking-wider">⚠
                                 {{ $riskLevel }} risk</span>
                         </div>
-                        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight">{{ $drug->name }}
-                        </h1>
+                        <h1 class="font-display text-3xl sm:text-4xl md:text-5xl text-ink-900 leading-[1.05] tracking-tight">{{ $drug->name }}</h1>
                         @if($drug->generic_name)
-                        <p class="text-slate-500 mt-1">Generic: <span class="font-medium text-slate-700">{{
+                        <p class="text-ink-500 mt-2 text-sm">Generic: <span class="display-italic text-base text-ink-700">{{
                                 $drug->generic_name }}</span></p>
                         @endif
                         @if($drug->drug_class)
-                        <p class="text-slate-500 text-sm mt-0.5">Class: <a
+                        <p class="text-ink-500 text-sm mt-1">Class: <a
                                 href="{{ route('drugs.search', ['drug_class' => $drug->drug_class]) }}"
                                 class="text-primary hover:underline font-medium">{{ $drug->drug_class }}</a></p>
                         @endif
@@ -144,7 +144,7 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
 
                 @foreach($sections as $section)
                 @if($section['content'])
-                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
+                <div class="glass-card rounded-2xl overflow-hidden"
                     x-data="{ open: {{ in_array($section['id'], ['uses']) ? 'true' : 'false' }}, aiText: '', aiHtml: '', aiLoading: false, aiError: '' }">
                     <button @click="open = !open"
                         class="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-slate-50 transition-colors">
@@ -224,7 +224,7 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
 
             {{-- Before Taking Checklist --}}
             @if(count($beforeItems) > 0)
-            <div class="mt-4 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
+            <div class="mt-4 glass-card rounded-2xl overflow-hidden"
                 x-data="{ open: false, checkedItems: {}, showWarning: false }">
                 <button @click="open = !open"
                     class="w-full flex items-center justify-between px-6 py-5 hover:bg-slate-50 transition-colors">
@@ -285,7 +285,7 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
             <div class="sticky top-20 space-y-4">
 
                 {{-- Quick Safety Snapshot --}}
-                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                <div class="glass-card rounded-2xl p-5">
                     <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
                         <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -327,7 +327,7 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
                 </div>
 
                 {{-- Sections Navigator --}}
-                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                <div class="glass-card rounded-2xl p-5">
                     <h3 class="font-bold text-slate-800 mb-3 text-sm">On This Page</h3>
                     <ul class="space-y-1.5">
                         @if($cleanUses) <li><a href="#"

@@ -143,16 +143,18 @@ drug class.')
 <div class="max-w-7xl mx-auto px-4 py-8">
 
     {{-- Page Header --}}
-    <div class="mb-5">
-        <h1 class="text-2xl font-bold text-slate-800">
+    <div class="mb-7">
+        <div class="flex items-center gap-2 mb-3">
+            <span class="w-1 h-4 rounded-full" style="background: linear-gradient(to bottom,#3EAEB1,#61BACA);"></span>
+            <p class="text-[11px] font-semibold text-primary uppercase tracking-[0.18em]">{{ $query ? 'Search Results' : 'Library' }}</p>
+        </div>
+        <h1 class="font-display text-3xl md:text-4xl text-ink-900 tracking-tight leading-tight">
             @if($query)
-            Results for "<span class="text-primary">{{ $query }}</span>"
-            <span class="text-base font-normal text-slate-400 ml-1">({{ number_format($results->total()) }}
-                found)</span>
+            Results for <span class="display-italic text-primary">&ldquo;{{ $query }}&rdquo;</span>
+            <span class="block mt-1 text-base font-body font-normal text-ink-400">{{ number_format($results->total()) }} medicines found</span>
             @else
-            Browse Medicines
-            <span class="text-base font-normal text-slate-400 ml-1">({{ number_format($results->total()) }}
-                total)</span>
+            Browse <span class="display-italic text-primary">medicines</span>
+            <span class="block mt-1 text-base font-body font-normal text-ink-400">{{ number_format($results->total()) }} total in our library</span>
             @endif
         </h1>
 
@@ -195,9 +197,9 @@ drug class.')
         <aside class="w-full lg:w-64 xl:w-72 flex-shrink-0">
             <form method="GET" action="{{ route('drugs.search') }}" id="filterForm">
 
-                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div class="glass-card rounded-2xl overflow-hidden">
                     {{-- Sidebar header --}}
-                    <div class="flex items-center justify-between px-4 py-3.5 border-b border-slate-100 bg-slate-50/60">
+                    <div class="flex items-center justify-between px-4 py-3.5" style="border-bottom: 1px solid rgba(62,174,177,0.12); background: linear-gradient(90deg, rgba(62,174,177,0.05), transparent);">
                         <h3 class="text-sm font-bold text-slate-700 flex items-center gap-2">
                             <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -374,7 +376,7 @@ drug class.')
 
             @else
             {{-- True empty state --}}
-            <div class="text-center py-24 bg-white rounded-2xl border border-slate-100 shadow-sm">
+            <div class="text-center py-24 glass-card rounded-2xl">
                 <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -416,7 +418,7 @@ drug class.')
                 $initials = strtoupper(substr($drug->alpha_index ?? $drug->name ?? '?', 0, 2));
                 @endphp
                 <a href="{{ route('drugs.show', $drug->id) }}"
-                    class="group flex flex-col bg-white rounded-xl border border-slate-100 p-4 card-hover cursor-pointer">
+                    class="group flex flex-col glass-card glass-hover rounded-2xl p-4 cursor-pointer">
 
                     {{-- Card top: avatar + badges --}}
                     <div class="flex items-center gap-3 mb-3">

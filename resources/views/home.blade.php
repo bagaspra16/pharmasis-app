@@ -7,131 +7,45 @@
 
 @push('head')
 <style>
-    /* ── Scoped Mothwing: hero title ONLY ── */
-    .hero-title {
-        font-family: 'Mothwing', sans-serif;
-        letter-spacing: 0.03em;
+    /* Hero composite display type — Instrument Serif italic accent + Geist tracking */
+    .display-italic {
+        font-family: 'Instrument Serif', serif;
+        font-style: italic;
+        font-weight: 400;
+        letter-spacing: -0.01em;
+    }
+    .display-roman {
+        font-family: 'Instrument Serif', serif;
+        font-weight: 400;
+        letter-spacing: -0.015em;
     }
 
-    /* ── CSS Animated Gradient (stable, smooth, cross-browser) ── */
-    @keyframes gradientShift {
-        0% {
-            background-position: 0% 30%;
-        }
-
-        25% {
-            background-position: 60% 70%;
-        }
-
-        50% {
-            background-position: 100% 40%;
-        }
-
-        75% {
-            background-position: 40% 90%;
-        }
-
-        100% {
-            background-position: 0% 30%;
-        }
-    }
-
-    .hero-gradient {
-        background: linear-gradient(-55deg,
-                #b2f0f0 0%,
-                #d4f7f7 12%,
-                #e8fffb 22%,
-                #c8ede8 30%,
-                #a8dfe0 40%,
-                #d0f3f4 52%,
-                #e4fbfd 62%,
-                #b8edd0 72%,
-                #cef5f0 82%,
-                #b2f0f0 100%);
-        background-size: 400% 400%;
-        animation: gradientShift 14s ease infinite;
-    }
-
-    /* ── Floating orb ── */
-    @keyframes orbFloat {
-
-        0%,
-        100% {
-            transform: translate(0, 0) scale(1);
-        }
-
-        33% {
-            transform: translate(30px, -40px) scale(1.08);
-        }
-
-        66% {
-            transform: translate(-20px, 30px) scale(0.95);
-        }
-    }
-
-    @keyframes orbFloat2 {
-
-        0%,
-        100% {
-            transform: translate(0, 0) scale(1);
-        }
-
-        40% {
-            transform: translate(-40px, 20px) scale(1.05);
-        }
-
-        70% {
-            transform: translate(25px, -30px) scale(0.92);
-        }
-    }
-
-    .orb-1 {
-        animation: orbFloat 20s ease-in-out infinite;
-    }
-
-    .orb-2 {
-        animation: orbFloat2 16s ease-in-out infinite;
-    }
-
-    .orb-3 {
-        animation: orbFloat 24s ease-in-out infinite reverse;
-    }
-
-    /* ── Hero search frosted card ── */
-    .hero-search-card {
-        background: rgba(255, 255, 255, 0.55);
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
-        border: 1px solid rgba(255, 255, 255, 0.85);
-        box-shadow:
-            0 4px 24px rgba(62, 174, 177, 0.12),
-            0 1px 0 rgba(255, 255, 255, 0.9) inset;
-        transition: box-shadow 0.3s ease;
-    }
-
-    .hero-search-card:focus-within {
-        box-shadow:
-            0 8px 40px rgba(62, 174, 177, 0.2),
-            0 1px 0 rgba(255, 255, 255, 0.9) inset;
-    }
-
-    /* ── Drug card ── */
+    /* Drug card lift */
     .drug-card {
-        transition: transform 0.22s cubic-bezier(.22, 1, .36, 1), box-shadow 0.22s ease;
+        transition: transform 320ms cubic-bezier(.22,1,.36,1), box-shadow 320ms ease;
     }
-
     .drug-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 16px 40px rgba(62, 174, 177, 0.14);
+        box-shadow: 0 18px 44px rgba(11,31,36,0.10);
     }
 
-    /* ── Alpha pill ── */
+    /* Alpha pill */
     .alpha-pill {
-        transition: background 0.18s, color 0.18s, transform 0.18s;
+        transition: background 220ms ease, color 220ms ease, transform 220ms ease, border-color 220ms ease;
+    }
+    .alpha-pill:hover {
+        transform: scale(1.08);
     }
 
-    .alpha-pill:hover {
-        transform: scale(1.12);
+    /* Performance: defer rendering of off-screen sections */
+    .cv-auto {
+        content-visibility: auto;
+        contain-intrinsic-size: 1px 480px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .drug-card, .alpha-pill { transition: none; }
+        .drug-card:hover, .alpha-pill:hover { transform: none; }
     }
 </style>
 @endpush
@@ -140,8 +54,8 @@
 
 {{-- ── DB Offline Banner ── --}}
 @if(!empty($dbOffline))
-<div class="bg-amber-50 border-b border-amber-200" x-data="{ show: true }" x-init="setTimeout(() => show = false, 8000)"
-    x-show="show" x-transition.opacity>
+<div class="border-b border-amber-200/60" style="background: rgba(254,243,199,0.65); backdrop-filter: blur(10px);"
+    x-data="{ show: true }" x-init="setTimeout(() => show = false, 8000)" x-show="show" x-transition.opacity>
     <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center gap-3">
         <svg class="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -157,161 +71,39 @@
 </div>
 @endif
 
-{{-- ════════════════════════════════════════ HERO ════════════════════════════════════════ --}}
-<section class="relative min-h-[92vh] flex items-center justify-center overflow-hidden">
+@include('partials.hero-medicheck')
 
-    {{-- CSS Animated Gradient --}}
-    <div class="hero-gradient absolute inset-0"></div>
-
-    {{-- Floating ambient orbs --}}
-    <div
-        class="orb-1 absolute top-16 left-[15%]  w-72 h-72 bg-teal-300/40  rounded-full blur-[72px] pointer-events-none">
-    </div>
-    <div
-        class="orb-2 absolute top-32 right-[12%] w-96 h-96 bg-cyan-200/35  rounded-full blur-[80px] pointer-events-none">
-    </div>
-    <div
-        class="orb-3 absolute bottom-20 left-1/3  w-64 h-64 bg-emerald-200/30 rounded-full blur-[64px] pointer-events-none">
-    </div>
-
-    {{-- Mesh texture overlay --}}
-    <div class="absolute inset-0 pointer-events-none"
-        style="background-image:radial-gradient(circle,rgba(62,174,177,0.07) 1px,transparent 1px);background-size:28px 28px;">
-    </div>
-
-    {{-- Content --}}
-    <div class="relative z-10 max-w-3xl mx-auto px-4 py-20 text-center w-full" x-data="heroSearch()">
-
-        {{-- Badge --}}
-        <div
-            class="inline-flex items-center gap-2 bg-white/60 text-slate-600 text-xs font-medium px-4 py-1.5 rounded-full mb-7 border border-white/80 backdrop-blur-sm shadow-sm">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0"></span>
-            {{ (!empty($dbOffline) || !empty($fdaMode)) ? '67,000+ medicines via OpenFDA' : '16,000+ medicines in our database' }}
-        </div>
-
-        {{-- Headline: Mothwing font scoped here, black text --}}
-        <h1 class="hero-title text-5xl sm:text-6xl lg:text-7xl text-slate-900 mb-4 leading-[1.05]">
-            Know Your<br><span class="text-primary">Medicine.</span>
-        </h1>
-        <p class="text-sm text-slate-600 mb-10 max-w-md mx-auto leading-relaxed">
-            Clear, reliable drug information in plain language.<br>Search by name, generic, or drug class.
-        </p>
-
-        {{-- ── Search Card ── --}}
-        <div class="hero-search-card rounded-2xl p-2 max-w-2xl mx-auto" @keydown.escape="open=false; results=[]"
-            @click.outside="open=false">
-            <div class="flex items-center gap-2">
-                {{-- Icon --}}
-                <div class="pl-3 flex-shrink-0">
-                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                </div>
-                {{-- Input --}}
-                <input type="text" x-model="query" @input.debounce.300ms="fetch()"
-                    @focus="if(query.length>=2) open=true" @keydown.arrow-down.prevent="focusNext()"
-                    @keydown.arrow-up.prevent="focusPrev()" @keydown.enter.prevent="go()"
-                    placeholder="Search medicines, e.g. Aspirin, Metformin..."
-                    class="flex-1 bg-transparent text-slate-900 placeholder-slate-400 font-medium text-sm py-3.5 focus:outline-none"
-                    autocomplete="off" id="hero-search" />
-                {{-- Spinner --}}
-                <div x-show="loading" class="pr-2 flex-shrink-0">
-                    <svg class="animate-spin w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                </div>
-                {{-- Search Button --}}
-                <a :href="`/search?q=${encodeURIComponent(query)}`"
-                    class="flex-shrink-0 bg-primary text-white font-semibold text-sm px-5 py-3 rounded-xl hover:bg-primary-dark transition-colors shadow-sm">
-                    Search
-                </a>
-            </div>
-
-            {{-- Dropdown Results --}}
-            <div x-show="open && results.length > 0" x-cloak
-                class="mt-1 border-t border-slate-200 divide-y divide-slate-100 overflow-hidden rounded-b-xl">
-                <template x-for="(drug, idx) in results" :key="drug.id">
-                    <a :href="drug.is_fda ? `/drugs/fda/${drug.slug}` : `/drugs/${drug.id}`"
-                        :class="focusedIdx===idx ? 'bg-primary/10' : 'hover:bg-slate-50'"
-                        class="flex items-center gap-3 px-3 py-2.5 transition-colors text-left">
-                        <div class="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0">
-                            <span class="text-xs font-bold text-primary"
-                                x-text="drug.alpha_index||drug.name?.charAt(0)||'?'"></span>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <p class="text-sm font-semibold text-slate-900 truncate" x-text="drug.name"></p>
-                            <p class="text-xs text-slate-500 truncate"
-                                x-text="[drug.generic_name,drug.drug_class].filter(Boolean).join(' · ')"></p>
-                        </div>
-                        <svg class="w-3.5 h-3.5 text-slate-300 flex-shrink-0" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </a>
-                </template>
-                <a :href="`/search?q=${encodeURIComponent(query)}`"
-                    class="flex items-center gap-2 px-3 py-2.5 text-xs text-primary font-semibold hover:bg-primary/5 transition-colors">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 6h16M4 10h16M4 14h10" />
-                    </svg>
-                    See all results for "<span x-text="query"></span>"
-                </a>
-            </div>
-
-            {{-- No results state --}}
-            <div x-show="open && results.length===0 && !loading && query.length>=2" x-cloak
-                class="mt-1 border-t border-slate-200 py-4 text-center">
-                <p class="text-sm text-slate-500">No medicine found. Try a different spelling.</p>
-            </div>
-        </div>
-
-        {{-- Quick links --}}
-        <p class="text-slate-600 text-xs mt-5 tracking-wide">
-            Try:&nbsp;
-            <a href="/search?q=aspirin"
-                class="text-primary hover:text-primary-dark font-semibold transition-colors">Aspirin</a>,&nbsp;
-            <a href="/search?q=metformin"
-                class="text-primary hover:text-primary-dark font-semibold transition-colors">Metformin</a>,&nbsp;
-            <a href="/search?q=ibuprofen"
-                class="text-primary hover:text-primary-dark font-semibold transition-colors">Ibuprofen</a>
-        </p>
-    </div>
-
-    {{-- Wave divider --}}
-    <div class="absolute bottom-0 left-0 right-0 z-[2] pointer-events-none">
-        <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"
-            class="w-full h-auto">
-            <path d="M0 0C240 50 480 60 720 36C960 12 1200 50 1440 30V60H0V0Z" fill="#f8fafc" />
-        </svg>
-    </div>
-</section>
+{{-- ── Local Storage AI History ── --}}
+@include('partials.medicheck-history')
 
 {{-- ════════════════════════════════════════ FEATURED ════════════════════════════════════════ --}}
-<section class="max-w-7xl mx-auto px-4 py-16">
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 cv-auto">
 
     {{-- Section header --}}
-    <div class="flex items-end justify-between mb-8">
+    <div class="flex items-end justify-between mb-10 flex-wrap gap-4">
         <div>
-            <p class="text-xs font-semibold text-primary uppercase tracking-widest mb-1">Database</p>
-            <h2 class="text-2xl font-heading text-slate-800">
-                {{ !empty($fdaMode) ? 'Popular Medicines via OpenFDA' : 'Popular Medicines' }}
+            <div class="flex items-center gap-2 mb-3">
+                <span class="w-1 h-4 rounded-full" style="background: linear-gradient(to bottom,#3EAEB1,#61BACA);"></span>
+                <p class="text-[11px] font-semibold text-primary uppercase tracking-[0.18em]">Database</p>
+            </div>
+            <h2 class="display-roman text-3xl md:text-4xl text-ink-900 leading-tight">
+                {{ !empty($fdaMode) ? 'Popular medicines' : 'Popular medicines' }}
+                <span class="display-italic text-primary">today</span>
             </h2>
+            <p class="text-sm text-ink-500 mt-2 max-w-md">
+                {{ !empty($fdaMode) ? 'Curated from the live OpenFDA registry — open and trusted by clinicians.' : 'A small slice of our verified library — searched the most this week.' }}
+            </p>
         </div>
-        <a href="{{ route('drugs.search') }}"
-            class="flex items-center gap-1.5 text-sm text-primary font-medium hover:text-primary-dark transition-colors group">
+        <a href="{{ route('drugs.search') }}" class="glass-soft rounded-full pl-5 pr-4 py-2.5 text-sm font-medium text-primary-dark hover:text-primary group inline-flex items-center gap-2 transition-colors">
             Browse all
-            <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor"
-                viewBox="0 0 24 24">
+            <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
         </a>
     </div>
 
     {{-- Cards grid --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         @foreach($featured as $drug)
         @php
         $isDto = $drug instanceof \App\DTOs\DrugDTO;
@@ -320,40 +112,32 @@
         $href = $isDto ? route('drugs.show_fda', $drug->slug) : route('drugs.show', $drug->id);
         $initials = strtoupper(substr($drug->name ?? '?', 0, 2));
         @endphp
-        <a href="{{ $href }}"
-            class="drug-card group bg-white rounded-2xl p-5 border border-slate-100 block shadow-sm hover:border-primary/20">
-            {{-- Top row --}}
-            <div class="flex items-start justify-between mb-3.5">
-                <div
-                    class="w-10 h-10 bg-gradient-to-br from-primary/20 to-secondary/30 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <span class="font-bold text-primary text-sm leading-none">{{ $initials }}</span>
+        <a href="{{ $href }}" class="drug-card glass-card glass-hover group block rounded-2xl p-5">
+            <div class="flex items-start justify-between mb-4">
+                <div class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
+                    style="background: linear-gradient(135deg,rgba(62,174,177,0.18),rgba(97,186,202,0.30));">
+                    <span class="font-semibold text-primary-dark text-sm leading-none tracking-tight">{{ $initials }}</span>
                 </div>
                 @if($drug->drug_class)
-                <span
-                    class="text-xs bg-slate-100 text-slate-500 font-medium px-2 py-0.5 rounded-full max-w-[120px] truncate">{{
-                    Str::limit($drug->drug_class, 18) }}</span>
+                <span class="text-[10px] font-medium px-2.5 py-1 rounded-full max-w-[120px] truncate"
+                    style="background:rgba(62,174,177,0.08); color:#2d8a8d; border:1px solid rgba(62,174,177,0.15);">{{ Str::limit($drug->drug_class, 18) }}</span>
                 @endif
             </div>
-            {{-- Name --}}
-            <h3
-                class="font-semibold text-slate-800 text-sm leading-snug mb-0.5 group-hover:text-primary transition-colors line-clamp-1">
+            <h3 class="font-medium text-ink-900 text-sm leading-snug mb-1 group-hover:text-primary transition-colors line-clamp-1 tracking-tight">
                 {{ $drug->name }}</h3>
             @if($drug->generic_name)
-            <p class="text-xs text-slate-400 italic mb-2 truncate">{{ $drug->generic_name }}</p>
+            <p class="display-italic text-xs text-ink-400 mb-2.5 truncate">{{ $drug->generic_name }}</p>
             @endif
-            <p class="text-xs text-slate-500 leading-relaxed line-clamp-3">{{ $preview }}</p>
-            {{-- Footer --}}
-            <div class="flex items-center justify-between mt-3.5 pt-3 border-t border-slate-50">
+            <p class="text-xs text-ink-500 leading-relaxed line-clamp-3">{{ $preview }}</p>
+            <div class="flex items-center justify-between mt-4 pt-3" style="border-top:1px solid rgba(62,174,177,0.10);">
                 @if(!empty($drug->is_fda))
-                <span class="text-xs text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded font-medium">FDA</span>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:rgba(59,130,246,0.10);color:#3b82f6;">FDA</span>
                 @elseif(!empty($drug->translated))
-                <span class="text-xs text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded font-medium">✓ Verified</span>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:rgba(16,185,129,0.10);color:#059669;">✓ Verified</span>
                 @else
-                <span class="text-xs text-slate-300">—</span>
+                <span class="text-xs text-ink-300">—</span>
                 @endif
-                <span
-                    class="text-xs text-primary font-medium group-hover:translate-x-1 transition-transform inline-block">Details
-                    →</span>
+                <span class="text-xs font-medium text-primary group-hover:translate-x-0.5 transition-transform inline-block">Details →</span>
             </div>
         </a>
         @endforeach
@@ -361,58 +145,192 @@
 
 </section>
 
-{{-- ════════════════════════════════════════ ALPHABET ════════════════════════════════════════ --}}
-@if(!empty($alphaIndex))
-<section class="bg-white border-y border-slate-100 py-10">
-    <div class="max-w-7xl mx-auto px-4">
-        <div class="flex items-end gap-3 mb-5">
-            <h2 class="text-xl font-heading text-slate-800">Browse by Letter</h2>
-            <span class="text-xs text-slate-400 pb-0.5">{{ count($alphaIndex) }} sections</span>
+{{-- ════════════════════════════════════════ WHY PHARMASIS ════════════════════════════════════════ --}}
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 cv-auto">
+    <div class="text-center mb-14">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-semibold mb-5 glass-soft text-primary-dark uppercase tracking-[0.18em]">
+            Why Pharmasis
         </div>
-        <div class="flex flex-wrap gap-2">
-            @foreach($alphaIndex as $alpha)
-            <a href="{{ route('drugs.search', ['alpha' => $alpha]) }}"
-                class="alpha-pill w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-primary hover:text-white hover:border-primary">
-                {{ strtoupper($alpha) }}
-            </a>
-            @endforeach
-        </div>
-    </div>
-</section>
-@endif
-
-{{-- ════════════════════════════════════════ FEATURES ════════════════════════════════════════ --}}
-<section class="max-w-7xl mx-auto px-4 py-16">
-    <div class="text-center mb-10">
-        <p class="text-xs font-semibold text-primary uppercase tracking-widest mb-2">Why Pharmasis</p>
-        <h2 class="text-2xl font-heading text-slate-800">Everything you need to know about your medicine</h2>
+        <h2 class="display-roman text-3xl md:text-4xl lg:text-5xl text-ink-900 leading-tight max-w-3xl mx-auto">
+            Everything you need to know
+            <span class="display-italic text-primary">about your medicine.</span>
+        </h2>
+        <p class="text-sm md:text-base text-ink-500 mt-4 max-w-xl mx-auto leading-relaxed">
+            Trusted by thousands. Powered by AI. Built for clarity.
+        </p>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         @foreach([
         ['icon'=>'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z','title'=>'Smart Search','desc'=>(!empty($dbOffline) || !empty($fdaMode))
             ? 'Search across 67,000+ medicines via OpenFDA by trade name, generic, or drug class — in seconds.'
-            : 'Search across 16,000+ medicines by trade name, generic, or drug class — in seconds.'],
-        ['icon'=>'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0
-        117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4
-        0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z','title'=>'AI Plain Language','desc'=>'Complex medical text
-        simplified by AI into everyday language you can actually understand.'],
-        ['icon'=>'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003
-        9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z','title'=>'Safety
-        First','desc'=>'Warnings, drug interactions, and before-taking checklists — so you can make informed
-        decisions.'],
+            : 'Search across 16,000+ medicines by trade name, generic, or drug class — in seconds.','accent'=>'#3EAEB1'],
+        ['icon'=>'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z','title'=>'AI Plain Language','desc'=>'Complex medical text simplified by AI into everyday language you can actually understand.','accent'=>'#6366f1'],
+        ['icon'=>'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z','title'=>'Safety First','desc'=>'Warning, drug interactions, and before-taking checklists, so you can make informed decisions.','accent'=>'#059669'],
         ] as $f)
-        <div
-            class="bg-white rounded-2xl border border-slate-100 p-7 shadow-sm hover:shadow-md hover:border-primary/20 transition-all group">
-            <div
-                class="w-11 h-11 bg-primary/8 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary/15 transition-colors">
-                <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="drug-card glass-card glass-hover group rounded-2xl p-7 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-28 h-28 rounded-full opacity-[0.10] pointer-events-none"
+                style="background: radial-gradient(circle, {{ $f['accent'] }}, transparent 70%); transform: translate(30%,-30%);"></div>
+            <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-5 transition-transform group-hover:scale-105 duration-500"
+                style="background: linear-gradient(135deg, {{ $f['accent'] }}22, {{ $f['accent'] }}38); border:1px solid {{ $f['accent'] }}25;">
+                <svg class="w-5 h-5" style="color:{{ $f['accent'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $f['icon'] }}" />
                 </svg>
             </div>
-            <h3 class="font-heading text-slate-800 mb-2 text-lg">{{ $f['title'] }}</h3>
-            <p class="text-sm text-slate-500 leading-relaxed">{{ $f['desc'] }}</p>
+            <h3 class="display-roman text-ink-900 mb-2 text-2xl leading-tight">{{ $f['title'] }}</h3>
+            <p class="text-sm text-ink-500 leading-relaxed">{{ $f['desc'] }}</p>
+            <div class="mt-6 pt-4" style="border-top:1px solid rgba(62,174,177,0.10);">
+            </div>
         </div>
         @endforeach
+    </div>
+     <div class="max-w-7xl mx-auto mt-5">
+
+        {{-- Bento grid: left large (dark) + right column --}}
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+
+            {{-- ── LEFT: Dark pipeline card (spans 3 cols) ── --}}
+            <div class="lg:col-span-3 rounded-3xl p-8 relative overflow-hidden flex flex-col justify-between min-h-[420px]"
+                style="background:linear-gradient(145deg,#061e20 0%,#0d4f52 55%,#1a7a7d 100%); border:1px solid">
+                {{-- Background glow orb --}}
+                <div class="absolute -top-20 -right-20 w-64 h-64 rounded-full pointer-events-none"
+                    style="background:radial-gradient(circle,rgba(62,174,177,0.25),transparent 70%);"></div>
+                <div class="absolute bottom-0 left-0 w-48 h-48 rounded-full pointer-events-none"
+                    style="background:radial-gradient(circle,rgba(97,186,202,0.15),transparent 70%); transform:translate(-30%,30%);"></div>
+
+                {{-- Header --}}
+                <div class="relative mb-8">
+                    <p class="text-teal-300/60 text-[11px] font-bold uppercase tracking-widest mb-2">8 clinical steps · ~20s</p>
+                    <h2 class="text-white text-2xl md:text-3xl font-heading leading-snug">
+                        From symptoms<br>to a full clinical report.
+                    </h2>
+                </div>
+
+                {{-- Pipeline steps list --}}
+                <div class="relative space-y-0">
+                    {{-- Vertical line --}}
+                    <div class="absolute left-[15px] top-2 bottom-2 w-px" style="background:linear-gradient(to bottom,rgba(62,174,177,0.5),rgba(62,174,177,0.05));"></div>
+
+                    @foreach([
+                        ['01','Parsing symptom context & severity markers','Tokenizing · NLP entity extraction · urgency scoring'],
+                        ['02','Clinical pattern recognition','Differential diagnosis · ICD-10 mapping · confidence scoring'],
+                        ['03','Drug matching & dosage calculation','Formulary cross-reference · OTC vs Rx · weight-adjusted dosage'],
+                        ['04','Drug interaction safety check','Cytochrome P450 scan · contraindication matrix · substitutes'],
+                        ['05','Safety guard validation','Hallucination filtering · clinical plausibility · disclaimer injection'],
+                        ['06','Recovery plan & lifestyle report','Timeline estimation · lifestyle optimisation · emergency flags'],
+                        ['07','Locating nearby healthcare providers','IP geo-location · facility mapping · contact extraction'],
+                        ['08','Analysis complete — rendering results','Structured JSON validated · auto-swap applied · report ready'],
+                    ] as [$n, $label, $detail])
+                    <div class="flex items-start gap-4 py-2.5 group">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-all duration-200 group-hover:scale-110"
+                            style="background:rgba(62,174,177,0.18); border:1px solid rgba(62,174,177,0.30);">
+                            <span class="text-[10px] font-black text-teal-300">{{ $n }}</span>
+                        </div>
+                        <div class="pt-1 min-w-0">
+                            <p class="text-sm font-semibold text-white/90 leading-tight truncate">{{ $label }}</p>
+                            <p class="text-[10px] text-teal-300/50 mt-0.5 truncate">{{ $detail }}</p>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- ── RIGHT: Two stacked mini cards ── --}}
+            <div class="lg:col-span-2 flex flex-col gap-4">
+
+                {{-- Mini card 1: Input modes --}}
+                <div class="rounded-3xl p-7 flex-1 relative overflow-hidden"
+                    style="background:rgba(255,255,255,0.88); backdrop-filter:blur(24px); border:1px solid rgba(255,255,255,0.96); box-shadow:0 4px 24px rgba(62,174,177,0.10), 0 1px 0 rgba(255,255,255,0.9) inset;">
+                    <div class="absolute top-0 right-0 w-32 h-32 pointer-events-none"
+                        style="background:radial-gradient(circle at top right,rgba(62,174,177,0.12),transparent 70%);"></div>
+                    <div class="w-11 h-11 rounded-2xl flex items-center justify-center mb-5"
+                        style="background:linear-gradient(135deg,rgba(62,174,177,0.15),rgba(97,186,202,0.25)); border:1px solid rgba(62,174,177,0.15);">
+                        <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 10v2a7 7 0 01-14 0v-2"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-1.5">Voice & Text Input</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed mb-4">Describe symptoms by speaking or typing — in English or Indonesian. Powered by OpenAI Whisper for multilingual transcription.</p>
+                    <div class="flex gap-2 flex-wrap">
+                        <span class="inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-full" style="background:rgba(62,174,177,0.10);color:#2d8a8d;">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>Voice
+                        </span>
+                        <span class="text-[10px] font-semibold px-2.5 py-1 rounded-full" style="background:rgba(62,174,177,0.10);color:#2d8a8d;">Text</span>
+                        <span class="text-[10px] font-semibold px-2.5 py-1 rounded-full" style="background:rgba(62,174,177,0.10);color:#2d8a8d;">EN / ID</span>
+                        <span class="text-[10px] font-semibold px-2.5 py-1 rounded-full" style="background:rgba(62,174,177,0.10);color:#2d8a8d;">Whisper AI</span>
+                    </div>
+                </div>
+
+                {{-- Mini card 2: What you get --}}
+                <div class="rounded-3xl p-7 flex-1 relative overflow-hidden"
+                    style="background:rgba(255,255,255,0.88); backdrop-filter:blur(24px); border:1px solid rgba(255,255,255,0.96); box-shadow:0 4px 24px rgba(62,174,177,0.10), 0 1px 0 rgba(255,255,255,0.9) inset;">
+                    <div class="absolute top-0 right-0 w-32 h-32 pointer-events-none"
+                        style="background:radial-gradient(circle at top right,rgba(5,150,105,0.08),transparent 70%);"></div>
+                    <div class="w-11 h-11 rounded-2xl flex items-center justify-center mb-5"
+                        style="background:linear-gradient(135deg,rgba(5,150,105,0.12),rgba(5,150,105,0.22)); border:1px solid rgba(5,150,105,0.15);">
+                        <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-1.5">What You Receive</h3>
+                    <ul class="space-y-1.5 text-sm text-slate-500">
+                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Differential diagnosis with likelihood scores</li>
+                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Drug recommendations & dosage guide</li>
+                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Drug interaction & P450 safety check</li>
+                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Recovery plan & lifestyle tips</li>
+                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Nearby healthcare providers</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- Disclaimer --}}
+        <p class="text-center text-[11px] text-slate-400 mt-6">
+            <svg class="w-3 h-3 inline mr-1 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+            For educational purposes only. Always consult a licensed healthcare professional before taking any medication.
+        </p>
+
+    </div>
+</section>
+
+{{-- ════════════════════════════════════════ CTA STRIP ════════════════════════════════════════ --}}
+<section class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-15 cv-auto">
+    <div class="relative overflow-hidden rounded-3xl px-8 py-14 md:px-14 md:py-16 text-center"
+        style="background: linear-gradient(135deg, rgba(13,79,82,0.96) 0%, rgba(26,122,125,0.94) 50%, rgba(62,174,177,0.92) 100%);">
+        {{-- Soft floating orbs --}}
+        <div class="absolute -top-20 -right-20 w-72 h-72 rounded-full opacity-30 pointer-events-none"
+            style="background: radial-gradient(circle, rgba(159,216,225,0.6), transparent 70%);"></div>
+        <div class="absolute -bottom-24 -left-16 w-80 h-80 rounded-full opacity-25 pointer-events-none"
+            style="background: radial-gradient(circle, rgba(97,186,202,0.6), transparent 70%);"></div>
+
+        <div class="relative max-w-2xl mx-auto">
+            <p class="display-italic text-teal-200/80 text-lg mb-3">— start with a question</p>
+            <h2 class="display-roman text-white text-3xl md:text-5xl leading-tight mb-5">
+                Know your <span class="display-italic">medicine</span>
+                before you take it.
+            </h2>
+            <p class="text-sm md:text-base text-white/70 leading-relaxed mb-8 max-w-lg mx-auto">
+                Search a drug, scan an interaction, or describe how you feel — Pharmasis turns medical jargon into clear answers.
+            </p>
+            <div class="flex flex-wrap items-center justify-center gap-3">
+                <a href="{{ route('drugs.search') }}"
+                    class="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold transition-all"
+                    style="background: rgba(255,255,255,0.96); color:#0d4f52; box-shadow: 0 6px 24px rgba(0,0,0,0.15);"
+                    onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 10px 30px rgba(0,0,0,0.22)';"
+                    onmouseout="this.style.transform='';this.style.boxShadow='0 6px 24px rgba(0,0,0,0.15)';">
+                    Browse Medicines
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                </a>
+                <a href="{{ route('interactions.index') }}"
+                    class="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold text-white transition-all"
+                    style="background: rgba(255,255,255,0.10); border:1px solid rgba(255,255,255,0.25); backdrop-filter: blur(10px);"
+                    onmouseover="this.style.background='rgba(255,255,255,0.18)';"
+                    onmouseout="this.style.background='rgba(255,255,255,0.10)';">
+                    Check Interactions
+                </a>
+            </div>
+        </div>
     </div>
 </section>
 
@@ -474,7 +392,6 @@
             constructor(canvas, colors) { this.canvas = canvas; this.colors = colors; this.time = 0; this.last = 0; this.isPlaying = false; this.minigl = new MiniGl(canvas); this.init(); }
             init() {
                 const sc = this.colors.map(hex => normalizeColor(parseInt(hex.replace('#', '0x'), 16)));
-                const U = k => this.minigl.Uniform;
                 const uniforms = {
                     u_time: new this.minigl.Uniform({ value: 0 }),
                     u_shadow_power: new this.minigl.Uniform({ value: 6 }),
@@ -554,23 +471,20 @@ void main(){
             stop() { this.isPlaying = false; if (this.animationId) cancelAnimationFrame(this.animationId); }
         }
 
-        /* ── Boot ── */
         document.addEventListener('DOMContentLoaded', () => {
             const canvas = document.getElementById('gradient-canvas');
             if (!canvas) return;
             try {
-                // Pharmasis brand gradient: deep teal → teal → cyan → light teal → white → teal
                 const g = new Gradient(canvas, ['#0d4f52', '#1a7a7d', '#3EAEB1', '#61BACA', '#9FD8E1', '#1a7a7d']);
                 g.start();
             } catch (e) {
-                // WebGL not available — fall back to CSS gradient
                 canvas.style.display = 'none';
                 canvas.parentElement.style.background = 'linear-gradient(135deg,#0d4f52 0%,#1a7a7d 40%,#3EAEB1 100%)';
             }
         });
     })();
 
-    /* ── Alpine hero search ── */
+    /* ── Alpine hero search (preserved API) ── */
     function heroSearch() {
         return {
             query: '', results: [], open: false, loading: false, focusedIdx: -1,
@@ -589,4 +503,5 @@ void main(){
         };
     }
 </script>
+@include('partials.hero-medicheck-scripts')
 @endpush
