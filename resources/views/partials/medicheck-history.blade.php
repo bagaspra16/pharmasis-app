@@ -1,7 +1,7 @@
-<div x-data="medicheckHistory()" @medicheck-history-updated.window="loadHistory()" x-init="loadHistory()"
+<div x-data="medicheckHistory()" @medicheck-history-updated.window="loadHistory()" @cookie-consent-changed.window="onConsentChange($event)" x-init="loadHistory()"
     class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full"
     style="border-top: 1px solid rgba(62,174,177,0.12); margin-top: 3rem;"
-    x-show="history.length > 0" x-cloak>
+    x-show="history.length > 0 && (window.cookieConsentAccepted ? window.cookieConsentAccepted() : false)" x-cloak>
 
     <div class="flex items-center justify-between mb-8 flex-wrap gap-4">
         <div>
@@ -418,8 +418,9 @@
             </div>
         </div>
     </div>
+</div>
 
-    <script>
+<script>
     document.addEventListener('alpine:init', () => {
         Alpine.data('medicheckHistory', () => ({
             history: [],
@@ -428,10 +429,24 @@
             showClearConfirm: false,
 
             loadHistory() {
+                if (window.cookieConsentAccepted && !window.cookieConsentAccepted()) {
+                    this.history = [];
+                    return;
+                }
                 try {
                     this.history = JSON.parse(localStorage.getItem('medicheckHistory') || '[]');
                 } catch (e) {
                     this.history = [];
+                }
+            },
+
+            onConsentChange(event) {
+                const status = event?.detail?.status;
+                if (status === 'denied') {
+                    this.history = [];
+                    this.selected = null;
+                } else if (status === 'accepted') {
+                    this.loadHistory();
                 }
             },
 

@@ -274,17 +274,19 @@
             async runAnalysis(formData) {
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
-                // Fetch IP Location for hospital suggestions (stored for async nearby call)
-                try {
-                    const locRes = await fetch('https://ipapi.co/json/');
-                    if (locRes.ok) {
-                        const locData = await locRes.json();
-                        if (locData && locData.city) {
-                            this.nearbyLocation = `${locData.city}, ${locData.region}, ${locData.country_name}`;
+                // Fetch IP Location for hospital suggestions (requires cookie consent)
+                if (window.cookieConsentAccepted && window.cookieConsentAccepted()) {
+                    try {
+                        const locRes = await fetch('https://ipapi.co/json/');
+                        if (locRes.ok) {
+                            const locData = await locRes.json();
+                            if (locData && locData.city) {
+                                this.nearbyLocation = `${locData.city}, ${locData.region}, ${locData.country_name}`;
+                            }
                         }
+                    } catch (e) {
+                        console.log("Could not fetch IP location:", e);
                     }
-                } catch (e) {
-                    console.log("Could not fetch IP location:", e);
                 }
 
                 // Animate steps while waiting for the real response
@@ -317,18 +319,19 @@
                         this.showResults = true;
                         this.applySubstitutions();
 
-                        // Save full result to dedicated localStorage
-                        this.saveToStorage();
-
-                        // Save to local storage for history
-                        const historyId = this.saveToHistory(data.data);
+                        // Save full result to dedicated localStorage (requires cookie consent)
+                        let historyId = null;
+                        if (window.cookieConsentAccepted && window.cookieConsentAccepted()) {
+                            this.saveToStorage();
+                            historyId = this.saveToHistory(data.data);
+                        }
 
                         this.$nextTick(() => {
                             document.getElementById('medicheck-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         });
 
                         // Async: load nearby providers WITHOUT blocking the main result
-                        if (this.nearbyLocation) {
+                        if (this.nearbyLocation && historyId) {
                             this.fetchNearbyProviders(
                                 historyId,
                                 this.nearbyLocation,

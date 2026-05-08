@@ -305,9 +305,6 @@
             .glass-hover { transition: none !important; }
         }
 
-        /* Performance helper for off-screen sections */
-        .cv-auto { content-visibility: auto; contain-intrinsic-size: 1px 800px; }
-
         /* ── Hard scroll lock ── */
         body {
             overscroll-behavior: none;
@@ -611,6 +608,7 @@
         }
     </script>
 
+    @include('partials.cookie-consent')
     @stack('scripts')
 </body>
 

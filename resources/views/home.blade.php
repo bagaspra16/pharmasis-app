@@ -37,12 +37,6 @@
         transform: scale(1.08);
     }
 
-    /* Performance: defer rendering of off-screen sections */
-    .cv-auto {
-        content-visibility: auto;
-        contain-intrinsic-size: 1px 480px;
-    }
-
     @media (prefers-reduced-motion: reduce) {
         .drug-card, .alpha-pill { transition: none; }
         .drug-card:hover, .alpha-pill:hover { transform: none; }
@@ -77,7 +71,7 @@
 @include('partials.medicheck-history')
 
 {{-- ════════════════════════════════════════ FEATURED ════════════════════════════════════════ --}}
-<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 cv-auto">
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 
     {{-- Section header --}}
     <div class="flex items-end justify-between mb-10 flex-wrap gap-4">
@@ -146,7 +140,7 @@
 </section>
 
 {{-- ════════════════════════════════════════ WHY PHARMASIS ════════════════════════════════════════ --}}
-<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 cv-auto">
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
     <div class="text-center mb-14">
         <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-semibold mb-5 glass-soft text-primary-dark uppercase tracking-[0.18em]">
             Why Pharmasis
@@ -295,7 +289,7 @@
 </section>
 
 {{-- ════════════════════════════════════════ CTA STRIP ════════════════════════════════════════ --}}
-<section class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-15 cv-auto">
+<section class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-15">
     <div class="relative overflow-hidden rounded-3xl px-8 py-14 md:px-14 md:py-16 text-center"
         style="background: linear-gradient(135deg, rgba(13,79,82,0.96) 0%, rgba(26,122,125,0.94) 50%, rgba(62,174,177,0.92) 100%);">
         {{-- Soft floating orbs --}}
