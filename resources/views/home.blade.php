@@ -183,7 +183,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
 
             {{-- ── LEFT: Dark pipeline card (spans 3 cols) ── --}}
-            <div class="lg:col-span-3 rounded-3xl p-8 relative overflow-hidden flex flex-col justify-between min-h-[420px]"
+            <div class="lg:col-span-3 rounded-3xl p-6 md:p-8 relative overflow-hidden flex flex-col justify-between min-h-[420px]"
                 style="background:linear-gradient(145deg,#061e20 0%,#0d4f52 55%,#1a7a7d 100%); border:1px solid">
                 {{-- Background glow orb --}}
                 <div class="absolute -top-20 -right-20 w-64 h-64 rounded-full pointer-events-none"
@@ -195,7 +195,7 @@
                 <div class="relative mb-8">
                     <p class="text-teal-300/60 text-[11px] font-bold uppercase tracking-widest mb-2">8 clinical steps · ~20s</p>
                     <h2 class="text-white text-2xl md:text-3xl font-heading leading-snug">
-                        From symptoms<br>to a full clinical report.
+                        From symptoms<br class="hidden sm:block">to a full clinical report.
                     </h2>
                 </div>
 
@@ -232,7 +232,7 @@
             <div class="lg:col-span-2 flex flex-col gap-4">
 
                 {{-- Mini card 1: Input modes --}}
-                <div class="rounded-3xl p-7 flex-1 relative overflow-hidden"
+                <div class="rounded-3xl p-5 md:p-7 flex-1 relative overflow-hidden"
                     style="background:rgba(255,255,255,0.88); backdrop-filter:blur(24px); border:1px solid rgba(255,255,255,0.96); box-shadow:0 4px 24px rgba(62,174,177,0.10), 0 1px 0 rgba(255,255,255,0.9) inset;">
                     <div class="absolute top-0 right-0 w-32 h-32 pointer-events-none"
                         style="background:radial-gradient(circle at top right,rgba(62,174,177,0.12),transparent 70%);"></div>
@@ -256,7 +256,7 @@
                 </div>
 
                 {{-- Mini card 2: What you get --}}
-                <div class="rounded-3xl p-7 flex-1 relative overflow-hidden"
+                <div class="rounded-3xl p-5 md:p-7 flex-1 relative overflow-hidden"
                     style="background:rgba(255,255,255,0.88); backdrop-filter:blur(24px); border:1px solid rgba(255,255,255,0.96); box-shadow:0 4px 24px rgba(62,174,177,0.10), 0 1px 0 rgba(255,255,255,0.9) inset;">
                     <div class="absolute top-0 right-0 w-32 h-32 pointer-events-none"
                         style="background:radial-gradient(circle at top right,rgba(5,150,105,0.08),transparent 70%);"></div>
@@ -289,8 +289,8 @@
 </section>
 
 {{-- ════════════════════════════════════════ CTA STRIP ════════════════════════════════════════ --}}
-<section class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-15">
-    <div class="relative overflow-hidden rounded-3xl px-8 py-14 md:px-14 md:py-16 text-center"
+<section class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-12 lg:py-16">
+    <div class="relative overflow-hidden rounded-3xl px-6 py-12 md:px-14 md:py-16 text-center"
         style="background: linear-gradient(135deg, rgba(13,79,82,0.96) 0%, rgba(26,122,125,0.94) 50%, rgba(62,174,177,0.92) 100%);">
         {{-- Soft floating orbs --}}
         <div class="absolute -top-20 -right-20 w-72 h-72 rounded-full opacity-30 pointer-events-none"

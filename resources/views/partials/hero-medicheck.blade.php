@@ -38,7 +38,7 @@
     </div>
 
     {{-- Content --}}
-    <div class="relative z-10 max-w-3xl mx-auto px-4 py-16 text-center w-full" x-data="mediCheckHero()">
+    <div class="relative z-10 max-w-3xl mx-auto px-4 py-10 md:py-16 text-center w-full" x-data="mediCheckHero()">
 
         {{-- Badge --}}
         <div class="inline-flex items-center gap-2 text-[11px] font-medium px-5 py-2 rounded-full mb-7 glass uppercase tracking-[0.14em]"
@@ -66,7 +66,7 @@
             class="w-full max-w-2xl mx-auto flex flex-col items-center mt-4 mb-8 relative z-20">
 
             {{-- Tabs Selector --}}
-            <div class="inline-flex p-1.5 rounded-full mb-6"
+            <div class="inline-flex flex-wrap justify-center p-1.5 rounded-3xl md:rounded-full mb-6"
                 style="background: rgba(255,255,255,0.72); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 4px 20px rgba(62,174,177,0.12), 0 1px 0 rgba(255,255,255,0.9) inset;">
                 <button @click="activeTab = 'voice'"
                     :class="activeTab === 'voice' ? 'text-white shadow-lg' : 'text-slate-500 hover:text-slate-700 hover:bg-white/60'"
