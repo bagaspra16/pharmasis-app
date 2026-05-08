@@ -24,12 +24,14 @@ class AiController extends Controller
             'drug_id' => 'required|string',
             'field' => 'required|string|in:uses,warnings,before_taking,dosage,side_effects,interactions',
             'text' => 'required|string|min:10',
+            'language' => 'nullable|string|max:50',
         ]);
 
         $result = $this->aiService->simplify(
             $request->string('drug_id'),
             $request->string('field'),
             $request->string('text'),
+            $request->string('language')->value() ?: 'English'
         );
 
         return response()->json($result, $result['success'] ? 200 : 503);

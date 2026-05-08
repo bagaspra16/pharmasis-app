@@ -145,7 +145,7 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
                 @foreach($sections as $section)
                 @if($section['content'])
                 <div class="glass-card rounded-2xl overflow-hidden"
-                    x-data="{ open: {{ in_array($section['id'], ['uses']) ? 'true' : 'false' }}, aiText: '', aiHtml: '', aiLoading: false, aiError: '' }">
+                    x-data="sectionData({{ in_array($section['id'], ['uses']) ? 'true' : 'false' }})">
                     <button @click="open = !open"
                         class="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-slate-50 transition-colors">
                         <div class="flex items-center gap-3">
@@ -207,7 +207,14 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
                                         </svg>
                                         <span class="text-xs font-semibold text-primary">AI Plain Language
                                             Explanation</span>
-                                        <span class="text-xs text-slate-400 ml-auto">Educational use only</span>
+                                        <div class="ml-auto flex items-center gap-2">
+                                            <select x-model="selectedLang" @change="saveFrequent(selectedLang); simplify('{{ $drug->id }}', '{{ $section['field'] }}', `{{ addslashes($section['content']) }}`)" class="text-[10px] border border-primary/30 rounded-md text-primary focus:ring-primary/50 bg-white/80 px-2 py-1 outline-none font-medium cursor-pointer">
+                                                <template x-for="lang in sortedLanguages">
+                                                    <option x-bind:disabled="lang === '---'" x-text="lang" :value="lang" :selected="lang === selectedLang"></option>
+                                                </template>
+                                            </select>
+                                            <span class="text-[10px] text-slate-400">Educational use only</span>
+                                        </div>
                                     </div>
                                     <div class="ai-markdown text-sm text-slate-700 leading-relaxed" x-html="aiHtml"></div>
                                     <button @click="aiText = ''; aiHtml = ''"
@@ -368,33 +375,66 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
 
 @push('scripts')
 <script>
-    function simplify(drugId, field, text) {
-        return async function () {
-            this.aiLoading = true;
-            this.aiError = '';
-            this.aiText = '';
-            this.aiHtml = '';
-            try {
-                const res = await fetch('/api/v1/ai/simplify', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-                    body: JSON.stringify({ drug_id: drugId, field: field, text: text.substring(0, 2000) })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    this.aiText = data.text || '';
-                    if (window.marked && typeof window.marked.parse === 'function') {
-                        this.aiHtml = window.marked.parse(this.aiText);
-                    } else if (window.marked && typeof window.marked === 'function') {
-                        this.aiHtml = window.marked(this.aiText);
-                    } else {
-                        this.aiHtml = (this.aiText || '').split('\n').join('<br>');
-                    }
+    function sectionData(initialOpen) {
+        return {
+            open: initialOpen,
+            aiText: '',
+            aiHtml: '',
+            aiLoading: false,
+            aiError: '',
+            languages: ['English', 'Indonesian', 'Spanish', 'French', 'German', 'Japanese', 'Korean', 'Arabic', 'Chinese', 'Hindi', 'Dutch', 'Portuguese', 'Russian'],
+            frequent: [],
+            selectedLang: 'English',
+            
+            init() {
+                try {
+                    this.frequent = JSON.parse(localStorage.getItem('frequent_langs') || '["Indonesian", "English"]');
+                } catch (e) {
+                    this.frequent = ['Indonesian', 'English'];
                 }
-                else { this.aiError = data.error || 'Failed to simplify. Try again.'; }
-            } catch (e) { this.aiError = 'Network error. Please try again.'; }
-            this.aiLoading = false;
-        }
+                this.selectedLang = this.frequent[0] || 'English';
+            },
+            
+            saveFrequent(lang) {
+                if (lang === '---') return;
+                this.frequent = this.frequent.filter(l => l !== lang);
+                this.frequent.unshift(lang);
+                this.frequent = this.frequent.slice(0, 3);
+                localStorage.setItem('frequent_langs', JSON.stringify(this.frequent));
+            },
+            
+            get sortedLanguages() {
+                const others = this.languages.filter(l => !this.frequent.includes(l));
+                return [...this.frequent, '---', ...others];
+            },
+
+            async simplify(drugId, field, text) {
+                this.aiLoading = true;
+                this.aiError = '';
+                this.aiText = '';
+                this.aiHtml = '';
+                try {
+                    const res = await fetch('/api/v1/ai/simplify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+                        body: JSON.stringify({ drug_id: drugId, field: field, text: text.substring(0, 2000), language: this.selectedLang })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        this.aiText = data.text || '';
+                        if (window.marked && typeof window.marked.parse === 'function') {
+                            this.aiHtml = window.marked.parse(this.aiText);
+                        } else if (window.marked && typeof window.marked === 'function') {
+                            this.aiHtml = window.marked(this.aiText);
+                        } else {
+                            this.aiHtml = (this.aiText || '').split('\n').join('<br>');
+                        }
+                    }
+                    else { this.aiError = data.error || 'Failed to simplify. Try again.'; }
+                } catch (e) { this.aiError = 'Network error. Please try again.'; }
+                this.aiLoading = false;
+            }
+        };
     }
 
     function bookmarks() {

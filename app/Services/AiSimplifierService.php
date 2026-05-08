@@ -20,10 +20,10 @@ class AiSimplifierService
     }
 
     /**
-     * Simplify a piece of medical text into plain language.
+     * Simplify a piece of medical text into plain language and translate it.
      * Caches result for 30 days.
      */
-    public function simplify(string $drugId, string $field, string $text): array
+    public function simplify(string $drugId, string $field, string $text, string $language = 'English'): array
     {
         if (empty($this->apiKey)) {
             return [
@@ -32,7 +32,8 @@ class AiSimplifierService
             ];
         }
 
-        $cacheKey = "ai_simplify_{$drugId}_{$field}";
+        $langSlug = \Illuminate\Support\Str::slug($language);
+        $cacheKey = "ai_simplify_{$drugId}_{$field}_{$langSlug}";
 
         if (Cache::has($cacheKey)) {
             return ['success' => true, 'text' => Cache::get($cacheKey), 'cached' => true];
@@ -50,12 +51,15 @@ Rewrite the following medical information about "{$field}" in simple terms:
 - Do NOT give medical advice or diagnose conditions
 - End with: "Always consult a healthcare professional for personal medical advice."
 
+IMPORTANT: You MUST write your explanation in the following language: {$language}. 
+If the requested language is not English, ensure the entire output is translated naturally and accurately into {$language}.
+
 Medical text to simplify:
 """
 {$truncated}
 """
 
-Simplified explanation:
+Simplified explanation in {$language}:
 PROMPT;
 
         try {
