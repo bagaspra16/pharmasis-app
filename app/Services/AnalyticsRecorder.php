@@ -64,21 +64,22 @@ class AnalyticsRecorder
                 'lang'                     => substr((string) $request->input('lang', ''), 0, 8) ?: null,
                 'input_mode'               => self::inputMode($request),
                 'symptoms_length'          => self::clampLen($request->input('symptoms')),
-                'has_audio'                => $request->hasFile('audio') ? 1 : 0,
-                'has_location'             => $request->filled('location') ? 1 : 0,
-                'age_provided'             => $request->filled('age') ? 1 : 0,
-                'weight_provided'          => $request->filled('weight') ? 1 : 0,
-                'gender_provided'          => $request->filled('gender') ? 1 : 0,
+                'has_audio'                => $request->hasFile('audio'),
+                'has_location'             => $request->filled('location'),
+                'age_provided'             => $request->filled('age'),
+                'weight_provided'          => $request->filled('weight'),
+                'gender_provided'          => $request->filled('gender'),
                 'allergies_count'          => self::tokenCount($request->input('allergies')),
                 'conditions_count'         => self::tokenCount($request->input('conditions')),
                 'medications_count'        => self::tokenCount($request->input('medications')),
                 'pipeline_steps_completed' => null,
                 'providers_returned'       => null,
-                'success'                  => 1,
+                'success'                  => true,
                 'error_code'               => null,
                 'duration_ms'              => null,
                 'created_at'               => now(),
             ], $extra);
+            $row = self::normalizeBools($row, ['has_audio','has_location','age_provided','weight_provided','gender_provided','success']);
 
             DB::table('medicheck_events')->insert($row);
         } catch (Throwable $e) {
@@ -100,12 +101,13 @@ class AnalyticsRecorder
                 'language'      => substr((string) $request->input('language', 'en'), 0, 8),
                 'input_length'  => self::clampLen($request->input('text'), 4294967295),
                 'output_length' => null,
-                'cache_hit'     => 0,
-                'success'       => 1,
+                'cache_hit'     => false,
+                'success'       => true,
                 'error_code'    => null,
                 'duration_ms'   => null,
                 'created_at'    => now(),
             ], $extra);
+            $row = self::normalizeBools($row, ['cache_hit','success']);
 
             DB::table('ai_simplifier_events')->insert($row);
         } catch (Throwable $e) {
@@ -131,12 +133,13 @@ class AnalyticsRecorder
                 'language'           => substr((string) $request->input('language', 'en'), 0, 8),
                 'severity_max'       => 'unknown',
                 'interactions_found' => null,
-                'cache_hit'          => 0,
-                'success'            => 1,
+                'cache_hit'          => false,
+                'success'            => true,
                 'error_code'         => null,
                 'duration_ms'        => null,
                 'created_at'         => now(),
             ], $extra);
+            $row = self::normalizeBools($row, ['cache_hit','success']);
 
             DB::table('ai_interaction_events')->insert($row);
         } catch (Throwable $e) {
@@ -215,6 +218,16 @@ class AnalyticsRecorder
             return null;
         }
         return min($max, mb_strlen((string) $value));
+    }
+
+    private static function normalizeBools(array $row, array $keys): array
+    {
+        foreach ($keys as $k) {
+            if (array_key_exists($k, $row)) {
+                $row[$k] = (bool) $row[$k];
+            }
+        }
+        return $row;
     }
 
     private static function tokenCount($value): int

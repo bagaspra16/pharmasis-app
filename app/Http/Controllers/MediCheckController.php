@@ -114,7 +114,7 @@ class MediCheckController extends Controller
 
             AnalyticsRecorder::medicheck($request, 'analyze', [
                 'pipeline_steps_completed' => is_array($result) ? count(array_filter(array_keys($result), fn($k) => str_starts_with((string) $k, 'step'))) : null,
-                'success'     => 1,
+                'success'     => true,
                 'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
             ]);
 
@@ -122,7 +122,7 @@ class MediCheckController extends Controller
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             AnalyticsRecorder::medicheck($request, 'analyze', [
-                'success'     => 0,
+                'success'     => false,
                 'error_code'  => 'validation',
                 'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
             ]);
@@ -130,7 +130,7 @@ class MediCheckController extends Controller
         } catch (\RuntimeException $e) {
             Log::error('MediCheckController analyze error', ['message' => $e->getMessage()]);
             AnalyticsRecorder::medicheck($request, 'analyze', [
-                'success'     => 0,
+                'success'     => false,
                 'error_code'  => 'ai_unavailable',
                 'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
             ]);
@@ -138,7 +138,7 @@ class MediCheckController extends Controller
         } catch (\Exception $e) {
             Log::error('MediCheckController unexpected error', ['message' => $e->getMessage()]);
             AnalyticsRecorder::medicheck($request, 'analyze', [
-                'success'     => 0,
+                'success'     => false,
                 'error_code'  => 'unexpected',
                 'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
             ]);
@@ -235,7 +235,7 @@ class MediCheckController extends Controller
 
             AnalyticsRecorder::medicheck($request, 'nearby', [
                 'providers_returned' => count($providers),
-                'success'            => 1,
+                'success'            => true,
                 'duration_ms'        => (int) round((microtime(true) - $startedAt) * 1000),
             ]);
 
@@ -250,7 +250,7 @@ class MediCheckController extends Controller
             Log::error('MediCheck nearby error', ['message' => $e->getMessage()]);
             AnalyticsRecorder::medicheck($request, 'nearby', [
                 'providers_returned' => 0,
-                'success'            => 0,
+                'success'            => false,
                 'error_code'         => 'unexpected',
                 'duration_ms'        => (int) round((microtime(true) - $startedAt) * 1000),
             ]);

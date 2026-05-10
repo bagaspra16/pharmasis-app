@@ -42,8 +42,8 @@ class InteractionController extends Controller
             AnalyticsRecorder::interaction($request, [
                 'severity_max'       => $this->extractMaxSeverity($result),
                 'interactions_found' => $this->countInteractions($result),
-                'cache_hit'          => (int) (bool) ($result['cache_hit'] ?? $result['cached'] ?? false),
-                'success'            => 1,
+                'cache_hit'          => (bool) ($result['cache_hit'] ?? $result['cached'] ?? false),
+                'success'            => true,
                 'duration_ms'        => (int) round((microtime(true) - $startedAt) * 1000),
             ]);
 
@@ -59,7 +59,7 @@ class InteractionController extends Controller
             ]);
 
             AnalyticsRecorder::interaction($request, [
-                'success'     => 0,
+                'success'     => false,
                 'error_code'  => 'unexpected',
                 'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
             ]);

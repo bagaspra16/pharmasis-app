@@ -41,8 +41,8 @@ class AiController extends Controller
             'output_length' => isset($result['simplified']) && is_string($result['simplified'])
                 ? mb_strlen($result['simplified'])
                 : (isset($result['text']) && is_string($result['text']) ? mb_strlen($result['text']) : null),
-            'cache_hit'   => (int) (bool) ($result['cache_hit'] ?? $result['cached'] ?? false),
-            'success'     => (int) (bool) ($result['success'] ?? false),
+            'cache_hit'   => (bool) ($result['cache_hit'] ?? $result['cached'] ?? false),
+            'success'     => (bool) ($result['success'] ?? false),
             'error_code'  => empty($result['success']) ? substr((string) ($result['error'] ?? 'unknown'), 0, 64) : null,
             'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
         ]);

@@ -221,7 +221,10 @@ class AnalyticsReport extends Command
         }
 
         $byAction = (clone $base)
-            ->select('action', DB::raw('COUNT(*) AS c'), DB::raw('SUM(success) AS ok'), DB::raw('AVG(duration_ms) AS avg_ms'))
+            ->select('action',
+                DB::raw('COUNT(*) AS c'),
+                DB::raw('COUNT(*) FILTER (WHERE success) AS ok'),
+                DB::raw('AVG(duration_ms) AS avg_ms'))
             ->groupBy('action')->orderByDesc('c')->get();
 
         $byInput = (clone $base)
@@ -254,7 +257,10 @@ class AnalyticsReport extends Command
         }
 
         $byField = (clone $base)
-            ->select('field', DB::raw('COUNT(*) AS c'), DB::raw('SUM(success) AS ok'), DB::raw('SUM(cache_hit) AS cached'))
+            ->select('field',
+                DB::raw('COUNT(*) AS c'),
+                DB::raw('COUNT(*) FILTER (WHERE success) AS ok'),
+                DB::raw('COUNT(*) FILTER (WHERE cache_hit) AS cached'))
             ->groupBy('field')->orderByDesc('c')->get();
 
         $byLang = (clone $base)
