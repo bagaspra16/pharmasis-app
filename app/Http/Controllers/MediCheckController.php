@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Drug;
 use App\Models\FdaDrug;
+use App\Services\AnalyticsRecorder;
 use App\Services\GroqService;
 use App\Services\MedicalPipelineService;
 use Illuminate\Http\Request;
@@ -23,6 +24,7 @@ class MediCheckController extends Controller
      */
     public function analyze(Request $request)
     {
+        $startedAt = microtime(true);
         $request->validate([
             'symptoms'   => 'nullable|string|max:2000',
             'audio'      => 'nullable|file|mimes:webm,ogg,mp4,wav,m4a,mp3|max:20480',
@@ -110,15 +112,36 @@ class MediCheckController extends Controller
             $history = array_slice($history, 0, 5);
             session(['medicheck_history' => $history]);
 
+            AnalyticsRecorder::medicheck($request, 'analyze', [
+                'pipeline_steps_completed' => is_array($result) ? count(array_filter(array_keys($result), fn($k) => str_starts_with((string) $k, 'step'))) : null,
+                'success'     => 1,
+                'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
+            ]);
+
             return response()->json(['success' => true, 'data' => $result]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
+            AnalyticsRecorder::medicheck($request, 'analyze', [
+                'success'     => 0,
+                'error_code'  => 'validation',
+                'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
+            ]);
             return response()->json(['error' => $e->errors()], 422);
         } catch (\RuntimeException $e) {
             Log::error('MediCheckController analyze error', ['message' => $e->getMessage()]);
+            AnalyticsRecorder::medicheck($request, 'analyze', [
+                'success'     => 0,
+                'error_code'  => 'ai_unavailable',
+                'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
+            ]);
             return response()->json(['error' => 'AI service is temporarily unavailable. Please try again in a moment.'], 503);
         } catch (\Exception $e) {
             Log::error('MediCheckController unexpected error', ['message' => $e->getMessage()]);
+            AnalyticsRecorder::medicheck($request, 'analyze', [
+                'success'     => 0,
+                'error_code'  => 'unexpected',
+                'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
+            ]);
             return response()->json(['error' => 'An unexpected error occurred. Please try again.'], 500);
         }
     }
@@ -127,8 +150,9 @@ class MediCheckController extends Controller
      * Get session history.
      * GET /medicheck/history
      */
-    public function history()
+    public function history(Request $request)
     {
+        AnalyticsRecorder::medicheck($request, 'history_list');
         $history = session('medicheck_history', []);
         // Strip full result from list for performance
         $list = array_map(fn($h) => [
@@ -145,8 +169,9 @@ class MediCheckController extends Controller
      * Get a single history item with full result.
      * GET /medicheck/history/{id}
      */
-    public function historyItem(string $id)
+    public function historyItem(Request $request, string $id)
     {
+        AnalyticsRecorder::medicheck($request, 'history_view');
         $history = session('medicheck_history', []);
         foreach ($history as $item) {
             if ($item['id'] === $id) {
@@ -161,6 +186,7 @@ class MediCheckController extends Controller
      */
     public function nearby(Request $request)
     {
+        $startedAt = microtime(true);
         $request->validate([
             'location'   => 'required|string|max:200',
             'symptoms'   => 'nullable|string|max:500',
@@ -207,6 +233,12 @@ class MediCheckController extends Controller
                 }
             }
 
+            AnalyticsRecorder::medicheck($request, 'nearby', [
+                'providers_returned' => count($providers),
+                'success'            => 1,
+                'duration_ms'        => (int) round((microtime(true) - $startedAt) * 1000),
+            ]);
+
             return response()->json([
                 'success'          => true,
                 'providers'        => $providers,
@@ -216,6 +248,12 @@ class MediCheckController extends Controller
 
         } catch (\Exception $e) {
             Log::error('MediCheck nearby error', ['message' => $e->getMessage()]);
+            AnalyticsRecorder::medicheck($request, 'nearby', [
+                'providers_returned' => 0,
+                'success'            => 0,
+                'error_code'         => 'unexpected',
+                'duration_ms'        => (int) round((microtime(true) - $startedAt) * 1000),
+            ]);
             // Return empty so frontend can still show Maps link
             $q = urlencode("hospital clinic near " . $request->input('location', ''));
             return response()->json([
