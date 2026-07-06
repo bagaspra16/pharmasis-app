@@ -5,6 +5,7 @@ use App\Http\Controllers\MediCheckController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [DrugController::class , 'home'])->name('home');
+Route::get('/id', [DrugController::class , 'socialHome'])->name('social.home');
 Route::get('/search', [DrugController::class , 'searchPage'])->name('drugs.search');
 Route::get('/drugs/{id}', [DrugController::class , 'show'])->name('drugs.show');
 Route::get('/drugs/fda/{slug}', [DrugController::class , 'showFda'])->name('drugs.show_fda');

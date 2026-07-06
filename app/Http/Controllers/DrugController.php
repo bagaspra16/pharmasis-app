@@ -44,6 +44,31 @@ class DrugController extends Controller
         return view('home', compact('featured', 'alphaIndex', 'dbOffline', 'fdaMode'));
     }
 
+    // ─── Social Project Homepage (Bahasa Indonesia + kiosk) ────────────────────
+
+    public function socialHome()
+    {
+        $dbOffline = false;
+        $fdaMode = false;
+        $featured = collect();
+        $alphaIndex = [];
+
+        try {
+            $featured = $this->searchService->getFeatured(8);
+            $alphaIndex = $this->searchService->getAlphaIndex();
+        }
+        catch (\Exception $e) {
+            $dbOffline = true;
+            $fdaMode = true;
+            Log::warning('DB offline, falling back to OpenFDA on social homepage.');
+
+            $fdaData = $this->fdaService->popular();
+            $featured = collect(array_map(fn($d) => DrugDTO::fromArray($d), $fdaData));
+        }
+
+        return view('social.home', compact('featured', 'alphaIndex', 'dbOffline', 'fdaMode'));
+    }
+
     // ─── Drug detail (from local DB) ──────────────────────────────────────────
 
     public function show(string $id)

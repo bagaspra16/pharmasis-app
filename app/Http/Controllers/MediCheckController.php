@@ -29,6 +29,7 @@ class MediCheckController extends Controller
             'symptoms'   => 'nullable|string|max:2000',
             'audio'      => 'nullable|file|mimes:webm,ogg,mp4,wav,m4a,mp3|max:20480',
             'lang'       => 'nullable|in:en,id,auto',
+            'mode'       => 'nullable|in:classic,journey',
             'age'        => 'nullable|integer|min:0|max:120',
             'weight'     => 'nullable|numeric|min:0|max:500',
             'gender'     => 'nullable|in:male,female,other',
@@ -57,10 +58,11 @@ class MediCheckController extends Controller
             }
 
             $lang    = $request->input('lang', 'en');
+            $mode    = $request->input('mode', 'classic');
             $profile = $request->only(['age', 'weight', 'gender', 'allergies', 'conditions', 'medications', 'location']);
 
             // ── Run pipeline ────────────────────────────────────────────────────
-            $result = $this->pipeline->run($symptoms, $lang, $profile);
+            $result = $this->pipeline->run($symptoms, $lang, $profile, $mode);
 
             // ── Cross-reference drugs with DB ───────────────────────────────────
             if (isset($result['step2']['drugs']) && is_array($result['step2']['drugs'])) {

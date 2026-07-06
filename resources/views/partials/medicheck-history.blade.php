@@ -26,7 +26,7 @@
     {{-- Horizontal Scrollable List --}}
     <div class="flex overflow-x-auto pb-4 gap-4 snap-x hide-scrollbar">
         <template x-for="item in history" :key="item.id">
-            <div @click="openModal(item)"
+            <div @click="restoreSession(item)"
                 class="snap-start flex-shrink-0 w-72 rounded-2xl p-4 cursor-pointer group glass-card glass-hover">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[10px] font-medium px-2.5 py-1 rounded-full uppercase tracking-wider"
@@ -101,330 +101,13 @@
         </div>
     </div>
 
-    {{-- Modal Popup --}}
-    <div x-show="selected" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
-        aria-modal="true">
-        {{-- Backdrop --}}
-        <div x-show="selected" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
-            x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
-            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click="selected = null"
-            class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
 
-        {{-- Modal Content --}}
-        <div x-show="selected" x-transition:enter="ease-out duration-300"
-            x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200"
-            x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-            x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            class="relative w-full max-w-4xl rounded-2xl overflow-hidden max-h-[90vh] flex flex-col"
-            style="background:rgba(248,254,254,0.97); backdrop-filter:blur(32px); border:1px solid rgba(255,255,255,0.9); box-shadow:0 24px 80px rgba(13,79,82,0.2), 0 1px 0 rgba(255,255,255,0.9) inset;">
-
-            {{-- Header --}}
-            <div class="px-6 py-4 flex items-center justify-between sticky top-0 z-10"
-                style="background: linear-gradient(135deg,rgba(13,79,82,0.95),rgba(26,122,125,0.95)); border-bottom:1px solid rgba(62,174,177,0.3);">
-                <div>
-                    <h3 class="text-lg font-bold text-white">Consultation Details</h3>
-                    <p class="text-xs text-teal-200/70 mt-0.5" x-text="selected ? formatDate(selected.date) : ''"></p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button @click="copySelected()"
-                        class="text-[10px] font-semibold text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all flex items-center gap-1.5">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                        <span x-text="copyFeedback || 'Copy'"></span>
-                    </button>
-                    <button @click="shareSelected()"
-                        class="text-[10px] font-semibold text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all flex items-center gap-1.5">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
-                        Share
-                    </button>
-                    <button @click="printSelected()"
-                        class="text-[10px] font-semibold text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all flex items-center gap-1.5">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        PDF
-                    </button>
-                    <button @click="selected = null"
-                        class="w-8 h-8 flex items-center justify-center rounded-full text-white/70 hover:text-white transition-colors"
-                        style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2);">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-            {{-- Scrollable Body --}}
-            <div class="p-6 overflow-y-auto flex-1 custom-scrollbar" style="background:rgba(248,254,254,0.98);">
-                <template x-if="selected">
-                    <div class="space-y-4">
-                        {{-- Symptoms --}}
-                        <div class="rounded-xl p-4"
-                            style="background:rgba(255,255,255,0.85); border:1px solid rgba(62,174,177,0.12); box-shadow:0 2px 12px rgba(62,174,177,0.06);">
-                            <p class="text-[10px] font-bold text-primary uppercase tracking-wider mb-2">Symptoms</p>
-                            <p class="text-sm text-slate-700 italic leading-relaxed"
-                                x-text="`&quot;${selected.result.symptoms}&quot;`"></p>
-                        </div>
-
-                        {{-- Conditions --}}
-                        <div class="rounded-xl p-4"
-                            style="background:rgba(255,255,255,0.85); border:1px solid rgba(62,174,177,0.12); box-shadow:0 2px 12px rgba(62,174,177,0.06);">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Differential
-                                Diagnosis</p>
-                            <div class="space-y-3">
-                                <template x-for="cond in (selected.result.step1?.conditions||[])" :key="cond.name">
-                                    <div class="p-3 bg-slate-50 rounded-lg">
-                                        <div class="flex items-center gap-2 mb-1">
-                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase" :class="cond.likelihood === 'High' ? 'bg-red-100 text-red-700' : 
-                                                          cond.likelihood === 'Moderate' ? 'bg-amber-100 text-amber-700' : 
-                                                          'bg-emerald-100 text-emerald-700'"
-                                                x-text="cond.likelihood"></span>
-                                            <p class="text-sm font-bold text-slate-800" x-text="cond.name"></p>
-                                        </div>
-                                        <p class="text-xs text-slate-600" x-text="cond.description"></p>
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-
-                        {{-- Drugs --}}
-                        <div class="rounded-xl p-4"
-                            style="background:rgba(255,255,255,0.85); border:1px solid rgba(62,174,177,0.12); box-shadow:0 2px 12px rgba(62,174,177,0.06);">
-                            <p class="text-[10px] font-bold text-primary uppercase tracking-wider mb-3">Drug Recommendations</p>
-                            <div class="space-y-4">
-                                <template x-for="drug in (selected.result.step2?.drugs||[])" :key="drug.name">
-                                    <div class="p-4 bg-white border border-slate-100 rounded-lg shadow-sm">
-                                        {{-- Header --}}
-                                        <div class="flex items-start justify-between gap-3 mb-3 pb-3 border-b border-slate-100">
-                                            <div class="flex-1">
-                                                <div class="flex items-center gap-2 flex-wrap mb-1">
-                                                    <p class="text-sm font-bold text-slate-900" x-text="drug.name"></p>
-                                                    <span x-show="drug.otc"
-                                                        class="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide">OTC</span>
-                                                    <span x-show="!drug.otc"
-                                                        class="text-[9px] bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide">Rx Only</span>
-                                                    <span x-show="drug.drug_class"
-                                                        class="text-[9px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-medium"
-                                                        x-text="drug.drug_class"></span>
-                                                </div>
-                                                <p class="text-xs text-slate-500" x-text="drug.generic"></p>
-                                            </div>
-                                            <a :href="drug.db_url || `/search?q=${encodeURIComponent(drug.name)}`"
-                                                target="_blank"
-                                                class="flex-shrink-0 flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1.5 rounded-lg transition-colors"
-                                                :class="drug.db_found ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                                </svg>
-                                                <span x-text="drug.db_found ? 'View Details' : 'Search'"></span>
-                                            </a>
-                                        </div>
-
-                                        {{-- Dosage grid --}}
-                                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
-                                            <div>
-                                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Dosage</p>
-                                                <p class="text-xs font-semibold text-slate-800" x-text="drug.dose"></p>
-                                            </div>
-                                            <div>
-                                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Frequency</p>
-                                                <p class="text-xs font-semibold text-slate-800" x-text="drug.frequency"></p>
-                                            </div>
-                                            <div x-show="drug.duration">
-                                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Duration</p>
-                                                <p class="text-xs font-semibold text-slate-800" x-text="drug.duration"></p>
-                                            </div>
-                                            <div x-show="drug.route">
-                                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Route</p>
-                                                <p class="text-xs font-semibold text-slate-800 capitalize" x-text="drug.route"></p>
-                                            </div>
-                                        </div>
-
-                                        {{-- Purpose + Mechanism + How to Take --}}
-                                        <div class="space-y-2 mb-3">
-                                            <div class="bg-blue-50 rounded-lg px-3 py-2">
-                                                <p class="text-[9px] font-bold text-blue-500 uppercase tracking-wider mb-0.5">Purpose</p>
-                                                <p class="text-xs text-blue-900 leading-relaxed" x-text="drug.purpose"></p>
-                                            </div>
-                                            <div x-show="drug.mechanism" class="bg-indigo-50 rounded-lg px-3 py-2">
-                                                <p class="text-[9px] font-bold text-indigo-500 uppercase tracking-wider mb-0.5">Mechanism of Action</p>
-                                                <p class="text-xs text-indigo-900 leading-relaxed" x-text="drug.mechanism"></p>
-                                            </div>
-                                            <div x-show="drug.how_to_take" class="bg-emerald-50 rounded-lg px-3 py-2">
-                                                <p class="text-[9px] font-bold text-emerald-600 uppercase tracking-wider mb-0.5">How to Take</p>
-                                                <p class="text-xs text-emerald-900 leading-relaxed" x-text="drug.how_to_take"></p>
-                                            </div>
-                                        </div>
-
-                                        {{-- Side effects --}}
-                                        <div x-show="drug.side_effects?.length" class="bg-amber-50 rounded-lg px-3 py-2 mb-2">
-                                            <p class="text-[9px] font-bold text-amber-600 uppercase tracking-wider mb-1">Side Effects</p>
-                                            <div class="flex flex-wrap gap-1">
-                                                <template x-for="se in (drug.side_effects||[])" :key="se">
-                                                    <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full" x-text="se"></span>
-                                                </template>
-                                            </div>
-                                        </div>
-
-                                        {{-- Contraindications --}}
-                                        <div x-show="drug.contraindications?.length" class="bg-red-50 rounded-lg px-3 py-2">
-                                            <p class="text-[9px] font-bold text-red-600 uppercase tracking-wider mb-1">Contraindications</p>
-                                            <div class="flex flex-wrap gap-1">
-                                                <template x-for="ci in (drug.contraindications||[])" :key="ci">
-                                                    <span class="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded-full" x-text="ci"></span>
-                                                </template>
-                                            </div>
-                                        </div>
-
-                                        {{-- Source --}}
-                                        <div x-show="drug.reference_source" class="flex items-center gap-1.5 mt-2 pt-2 border-t border-slate-100">
-                                            <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                            </svg>
-                                            <span class="text-[10px] text-slate-400" x-text="'Source: ' + drug.reference_source"></span>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
-
-                            {{-- Pharmacist note --}}
-                            <div x-show="selected.result.step2?.pharmacist_notes" class="mt-3 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl">
-                                <p class="text-[10px] font-bold text-amber-700 uppercase tracking-wider mb-0.5">Pharmacist Note</p>
-                                <p class="text-xs text-amber-800 leading-relaxed" x-text="selected.result.step2.pharmacist_notes"></p>
-                            </div>
-                        </div>
-
-                        {{-- Drug Interactions --}}
-                        <div x-show="selected.result.step3?.interactions?.length" class="rounded-xl p-4"
-                            style="background:rgba(255,255,255,0.85); border:1px solid rgba(62,174,177,0.12); box-shadow:0 2px 12px rgba(62,174,177,0.06);">
-                            <p class="text-[10px] font-bold text-primary uppercase tracking-wider mb-3">Drug Interactions</p>
-                            <div class="space-y-3">
-                                <template x-for="inter in (selected.result.step3?.interactions||[])" :key="inter.drug_a + inter.drug_b">
-                                    <div class="p-3 rounded-lg"
-                                        :class="inter.severity === 'Avoid' ? 'bg-red-50 border border-red-100' : inter.severity === 'Caution' ? 'bg-amber-50 border border-amber-100' : 'bg-slate-50 border border-slate-100'">
-                                        <div class="flex items-center gap-2 mb-1">
-                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase"
-                                                :class="inter.severity === 'Avoid' ? 'bg-red-200 text-red-800' : inter.severity === 'Caution' ? 'bg-amber-200 text-amber-800' : 'bg-slate-200 text-slate-700'"
-                                                x-text="inter.severity"></span>
-                                            <p class="text-sm font-semibold text-slate-800" x-text="inter.drug_a + ' + ' + inter.drug_b"></p>
-                                        </div>
-                                        <p class="text-xs text-slate-600" x-text="inter.effect"></p>
-                                        <div x-show="inter.substitute" class="mt-2 pt-2 border-t border-slate-200">
-                                            <p class="text-xs text-emerald-700 font-semibold">Substitute: <span x-text="inter.substitute"></span></p>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-
-                        {{-- Recovery Plan --}}
-                        <div class="rounded-xl p-4"
-                            style="background:rgba(255,255,255,0.85); border:1px solid rgba(62,174,177,0.12); box-shadow:0 2px 12px rgba(62,174,177,0.06);">
-                            <p class="text-[10px] font-bold text-primary uppercase tracking-wider mb-3">Recovery Plan</p>
-
-                            <div class="space-y-4">
-                                <div x-show="selected.result.step4?.recovery_timeline"
-                                    class="flex items-start gap-2 bg-blue-50/50 p-3 rounded-lg">
-                                    <span class="text-sm">📅</span>
-                                    <div>
-                                        <p class="text-[10px] font-bold text-blue-800 uppercase">Timeline</p>
-                                        <p class="text-xs text-blue-900"
-                                            x-text="selected.result.step4?.recovery_timeline"></p>
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div x-show="selected.result.step4?.lifestyle_tips?.length"
-                                        class="bg-emerald-50/50 p-3 rounded-lg">
-                                        <p class="text-[10px] font-bold text-emerald-800 uppercase mb-1.5">Lifestyle</p>
-                                        <template x-for="tip in (selected.result.step4?.lifestyle_tips||[])">
-                                            <p class="text-xs text-emerald-900 mb-0.5">• <span x-text="tip"></span></p>
-                                        </template>
-                                    </div>
-                                    <div x-show="selected.result.step4?.diet_recommendations?.length"
-                                        class="bg-teal-50/50 p-3 rounded-lg">
-                                        <p class="text-[10px] font-bold text-teal-800 uppercase mb-1.5">Diet</p>
-                                        <template x-for="diet in (selected.result.step4?.diet_recommendations||[])">
-                                            <p class="text-xs text-teal-900 mb-0.5">• <span x-text="diet"></span></p>
-                                        </template>
-                                    </div>
-                                </div>
-
-                                <div x-show="selected.result.step4?.warning_signs?.length"
-                                    class="bg-red-50 border border-red-100 rounded-lg p-3">
-                                    <p class="text-[10px] font-bold text-red-700 uppercase mb-1.5">⚠️ Seek Medical Help If</p>
-                                    <template x-for="warning in (selected.result.step4?.warning_signs||[])">
-                                        <p class="text-xs text-red-900 mb-0.5">• <span x-text="warning"></span></p>
-                                    </template>
-                                </div>
-
-                                <div x-show="selected.result.step4?.follow_up"
-                                    class="bg-slate-50 rounded-lg p-3">
-                                    <p class="text-[10px] font-bold text-slate-700 uppercase mb-1">Follow-up</p>
-                                    <p class="text-xs text-slate-800" x-text="selected.result.step4.follow_up"></p>
-                                </div>
-
-                                <div x-show="selected.result.step4?.disclaimer"
-                                    class="bg-slate-100/50 rounded-lg p-3 border border-slate-200">
-                                    <p class="text-[9px] font-bold text-slate-500 uppercase mb-1">Disclaimer</p>
-                                    <p class="text-xs text-slate-600 italic" x-text="selected.result.step4.disclaimer"></p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Step 5: Local Healthcare Providers --}}
-                        <div x-show="selected.nearbyProviders || selected.nearbyLocation" class="rounded-xl p-4"
-                            style="background:rgba(255,255,255,0.85); border:1px solid rgba(62,174,177,0.12); box-shadow:0 2px 12px rgba(62,174,177,0.06);">
-                            <div class="flex items-center justify-between mb-3">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nearby Healthcare Providers</p>
-                                <span x-show="selected.nearbyLocation" class="text-[9px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium truncate max-w-[160px]" x-text="selected.nearbyLocation"></span>
-                            </div>
-                            <div x-show="selected.nearbyProviders?.providers?.length" class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
-                                <template x-for="provider in (selected.nearbyProviders?.providers||[])" :key="provider.name">
-                                    <div class="p-3 bg-slate-50 border border-slate-100 rounded-lg">
-                                        <div class="flex items-start justify-between mb-1">
-                                            <p class="text-xs font-bold text-slate-800 leading-tight" x-text="provider.name"></p>
-                                            <span class="text-[9px] bg-white border border-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-bold uppercase ml-2 flex-shrink-0" x-text="provider.type"></span>
-                                        </div>
-                                        <p class="text-[11px] text-slate-500 mb-2" x-text="provider.address"></p>
-                                        <div class="flex gap-1.5">
-                                            <a x-show="provider.contact" :href="provider.contact && provider.contact.includes('http') ? provider.contact : 'tel:' + provider.contact" target="_blank" class="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded hover:bg-primary/20" x-text="provider.contact && provider.contact.includes('http') ? 'Website ↗' : 'Call'"></a>
-                                            <a x-show="provider.maps_url" :href="provider.maps_url" target="_blank" class="text-[10px] font-bold text-slate-500 bg-slate-200 px-2 py-0.5 rounded hover:bg-slate-300">Maps ↗</a>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
-                            <div x-show="selected.nearbyProviders?.emergency_numbers" class="bg-red-50 border border-red-100 rounded-lg p-2.5 flex items-center gap-2 mb-2">
-                                <span class="w-4 h-4 rounded bg-red-100 text-red-600 flex items-center justify-center font-bold text-[9px] flex-shrink-0">!</span>
-                                <p class="text-[10px] text-red-800 font-bold" x-text="selected.nearbyProviders?.emergency_numbers"></p>
-                            </div>
-                            <a :href="selected.nearbyProviders?.maps_search_url || ('https://www.google.com/maps/search/' + encodeURIComponent('hospital clinic near ' + (selected.nearbyLocation || '')))" target="_blank" class="flex items-center justify-center gap-1.5 w-full py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors text-[10px] font-semibold text-slate-600">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                Search on Google Maps ↗
-                            </a>
-                        </div>
-
-                        {{-- Watermark --}}
-                        <div class="pt-4 mt-2 border-t border-slate-100 text-center">
-                            <p class="text-[10px] text-slate-400 font-medium">
-                                Generated by <span class="text-primary font-semibold">Pharmasis</span> — Know Your Medicine
-                            </p>
-                            <p class="text-[9px] text-slate-300 mt-0.5">This report is for educational purposes only. Consult a healthcare professional for medical advice.</p>
-                        </div>
-
-                    </div>
-                </template>
-            </div>
-        </div>
-    </div>
 </div>
 
 <script>
     document.addEventListener('alpine:init', () => {
         Alpine.data('medicheckHistory', () => ({
             history: [],
-            selected: null,
             copyFeedback: '',
             showClearConfirm: false,
 
@@ -444,7 +127,6 @@
                 const status = event?.detail?.status;
                 if (status === 'denied') {
                     this.history = [];
-                    this.selected = null;
                 } else if (status === 'accepted') {
                     this.loadHistory();
                 }
@@ -453,18 +135,23 @@
             confirmClearHistory() {
                 localStorage.removeItem('medicheckHistory');
                 this.history = [];
-                this.selected = null;
                 this.showClearConfirm = false;
             },
 
-            openModal(item) {
-                this.selected = item;
-                document.body.style.overflow = 'hidden';
-            },
-
-            closeModal() {
-                this.selected = null;
-                document.body.style.overflow = '';
+            restoreSession(item) {
+                // Restore item to ceksehatCurrentResult so the main UI picks it up
+                const payload = {
+                    id: item.id,
+                    savedAt: new Date().toISOString(), // Update timestamp so it doesn't expire immediately
+                    symptoms: item.preview,
+                    location: item.nearbyLocation,
+                    nearbyProviders: item.nearbyProviders,
+                    result: item.result
+                };
+                localStorage.setItem('ceksehatCurrentResult', JSON.stringify(payload));
+                // Reload page to let the main component initialize and scroll to output
+                window.location.href = '/#medicheck-output-page';
+                window.location.reload();
             },
 
             formatDate(isoString) {
