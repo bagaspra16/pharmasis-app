@@ -1,4 +1,4 @@
-{{-- Cek Sehat — scripts (Bahasa Indonesia + kiosk popup) --}}
+{{-- Cek Sehat — scripts (screening flow + kiosk) --}}
 <script>
     /* ══════════════ Infinite grid (mouse tracking + drift) ══════════════ */
     document.addEventListener('alpine:init', () => {
@@ -41,43 +41,67 @@
         };
     }
 
-    /* ══════════════ Pipeline steps (Bahasa Indonesia) ══════════════ */
-    const PIPELINE_STEPS_ID = [
-        { id: 'parse',    icon: '1', label: 'Membaca gejala & tingkat keparahan', detail: 'Mengurai teks · mengenali entitas klinis · menilai urgensi' },
-        { id: 'analyze',  icon: '2', label: 'Mengenali pola kondisi', detail: 'Diagnosis banding · pemetaan · skor keyakinan per kondisi' },
-        { id: 'drugs',    icon: '3', label: 'Mencocokkan obat & menghitung dosis', detail: 'Referensi formularium · obat bebas vs resep · penyesuaian dosis' },
-        { id: 'interact', icon: '4', label: 'Memeriksa keamanan interaksi obat', detail: 'Pemindaian konflik · matriks kontraindikasi · peringkat alternatif' },
-        { id: 'safety',   icon: '5', label: 'Validasi keamanan', detail: 'Penyaringan · pemeriksaan kewajaran klinis · penambahan disclaimer' },
-        { id: 'summary',  icon: '6', label: 'Menyusun rencana pemulihan & gaya hidup', detail: 'Estimasi waktu · optimasi gaya hidup · penanda darurat' },
-        { id: 'local',    icon: '7', label: 'Mencari fasilitas kesehatan terdekat', detail: 'Geolokasi IP · pemetaan fasilitas · ekstraksi kontak' },
-        { id: 'done',     icon: '8', label: 'Analisis selesai — menampilkan hasil', detail: 'JSON tervalidasi · laporan siap' },
+    /* ══════════════ Concluding steps (Bahasa Indonesia) ══════════════ */
+    const CONCLUDE_STEPS_ID = [
+        { id: 'read',    icon: '1', label: 'Merangkum jawaban Anda', detail: 'Menyusun transkrip screening · mengenali entitas klinis' },
+        { id: 'reason',  icon: '2', label: 'Menyusun asumsi kondisi', detail: 'Diagnosis banding · penalaran klinis' },
+        { id: 'plan',    icon: '3', label: 'Menyusun rekomendasi', detail: 'Obat / penanganan · keamanan · arahan lanjutan' },
+        { id: 'done',    icon: '4', label: 'Kesimpulan siap ditampilkan', detail: 'JSON tervalidasi · laporan disesuaikan dengan peran Anda' },
     ];
 
     /* ══════════════ Main component ══════════════ */
     function mediCheckHeroId() {
         return {
+            /* ── Input tabs / first prompt ── */
             activeTab: 'text',
             symptoms: '',
+            firstPrompt: '',
             recording: false,
-            analyzing: false,
-            showResults: false,
-            showProcessing: false,
-            result: null,
             error: '',
-            transcription: '',
-            liveTranscript: '',
+
+            /* ── Screening flow ──
+               phase: 'intake' → 'questions' → 'concluding' → 'result' */
+            phase: 'intake',
+            screening: false,      // loading questions
+            analyzing: false,      // loading conclusion
+            questions: [],
+            currentQ: 0,
+            answers: {},           // { [questionId]: { chips: [], text: '' } }
+            role: null,            // 'doctor' | 'patient'
+            result: null,          // full server payload
+            conclusion: null,      // result.conclusion (branch-specific shape)
+
+            /* ── Concluding step animation ── */
             currentStep: -1,
             completedSteps: [],
-            processingSteps: [],
+
+            /* ── Voice ── */
             mediaRecorder: null,
             audioChunks: [],
+
+            /* ── Nearby providers ── */
             nearbyProviders: null,
             nearbyLoading: false,
             nearbyLocation: '',
+
+            /* ── Report actions ── */
             copyFeedback: '',
 
-            /* ── Text Input Placeholder state ── */
-            placeholderText: '',
+            /* ── Drawer (drug detail) ── */
+            drawerOpen: false,
+            drawerTitle: '',
+            drawerData: null,
+
+            /* ── Kiosk popup ── */
+            showKioskPopup: false,
+            kioskDelay: 60,
+            kioskDuration: 60,
+            kioskCountdown: 60,
+            _kioskTick: null,
+            _kioskSnooze: null,
+            _kioskAppear: null,
+
+            /* ── Placeholder typewriter ── */
             placeholderExamples: [
                 'Contoh: "Saya batuk kering dan demam 38 derajat sejak kemarin..."',
                 'Contoh: "Perut kanan bawah terasa sangat nyeri, mual, dan sempat muntah 2 kali..."',
@@ -87,293 +111,277 @@
             currentPlaceholderIdx: 0,
             _placeholderTick: null,
 
-            /* ── Journey (Infographic) state ── */
-            journey: null,
-            drawerOpen: false,
-            drawerTitle: '',
-            drawerData: null,
+            get concludeSteps() { return CONCLUDE_STEPS_ID; },
 
-            /* ── Kiosk popup state ── */
-            showKioskPopup: false,
-            kioskDelay: 60,        // detik menunggu SETELAH output sebelum popup muncul pertama kali
-            kioskDuration: 60,     // detik hitung mundur di dalam popup sebelum auto-reset
-            kioskCountdown: 60,
-            _kioskTick: null,
-            _kioskSnooze: null,
-            _kioskAppear: null,
-
-            get steps() { return PIPELINE_STEPS_ID; },
+            get isDoctor() { return this.role === 'doctor'; },
+            get roleQuestion() { return this.questions.find(q => q.is_role); },
+            get currentQuestion() { return this.questions[this.currentQ] || null; },
+            get isLastQuestion() { return this.currentQ >= this.questions.length - 1; },
+            get progressPct() {
+                if (!this.questions.length) return 0;
+                return Math.round(((this.currentQ) / this.questions.length) * 100);
+            },
 
             init() {
-                // Restore state if returning from another page
                 try {
                     const stored = localStorage.getItem('ceksehatCurrentResult');
                     if (stored) {
                         const parsed = JSON.parse(stored);
-                        // Only restore if the result is less than 30 minutes old
                         const age = Date.now() - new Date(parsed.savedAt).getTime();
-                        if (age < 30 * 60 * 1000) {
-                            this.symptoms = parsed.symptoms || '';
-                            this.transcription = parsed.symptoms || '';
+                        if (age < 30 * 60 * 1000 && parsed.result) {
+                            this.firstPrompt = parsed.firstPrompt || '';
+                            this.role = parsed.result.role || null;
                             this.result = parsed.result;
-                            this.journey = parsed.result?.journey || null;
+                            this.conclusion = parsed.result.conclusion || null;
                             this.nearbyLocation = parsed.location || '';
                             this.nearbyProviders = parsed.nearbyProviders || null;
-                            if (this.result) {
-                                this.showResults = true;
-                                this.applySubstitutions();
-                                this.scheduleKiosk();
-                                this.$nextTick(() => {
-                                    setTimeout(() => {
-                                        const el = document.getElementById('medicheck-output-page');
-                                        if (el) {
-                                            const y = el.getBoundingClientRect().top + window.scrollY - 20; // 20px padding top
-                                            window.scrollTo({ top: y, behavior: 'auto' });
-                                        }
-                                    }, 100);
-                                });
-                            }
+                            this.phase = 'result';
+                            this.scheduleKiosk();
+                            this.$nextTick(() => setTimeout(() => this.scrollToResult('auto'), 100));
                         }
                     }
-                } catch (e) {
-                    // Ignore restore errors
-                }
+                } catch (e) { /* ignore restore errors */ }
                 this.initPlaceholder();
             },
 
-            initPlaceholder() {
-                this.placeholderText = this.placeholderExamples[0];
-                this.typewriterPlaceholder();
-            },
-
+            /* ── Placeholder typewriter ── */
+            initPlaceholder() { this.typewriterPlaceholder(); },
             typewriterPlaceholder() {
                 if (this._placeholderTick) clearTimeout(this._placeholderTick);
-                let currentExample = this.placeholderExamples[this.currentPlaceholderIdx];
-                let isDeleting = false;
-                let charIdx = 0;
-                let typingSpeed = 70;
-
+                let isDeleting = false, charIdx = 0, typingSpeed = 70;
                 const type = () => {
-                    currentExample = this.placeholderExamples[this.currentPlaceholderIdx];
-                    let currentText = '';
-                    if (isDeleting) {
-                        currentText = currentExample.substring(0, charIdx - 1);
-                        charIdx--;
-                        typingSpeed = 30;
-                    } else {
-                        currentText = currentExample.substring(0, charIdx + 1);
-                        charIdx++;
-                        typingSpeed = 50;
-                    }
-
-                    this.placeholderText = currentText;
-                    
-                    // Force DOM update directly to bypass Alpine reactivity quirks
-                    let el = (this.$refs && this.$refs.symptomTextarea) 
-                             ? this.$refs.symptomTextarea 
-                             : document.querySelector('textarea[x-model="symptoms"]');
-                             
-                    if (el) el.setAttribute('placeholder', currentText);
-
-                    if (!isDeleting && charIdx === currentExample.length) {
-                        typingSpeed = 3500;
-                        isDeleting = true;
-                    } else if (isDeleting && charIdx === 0) {
+                    const example = this.placeholderExamples[this.currentPlaceholderIdx];
+                    let text = '';
+                    if (isDeleting) { text = example.substring(0, charIdx - 1); charIdx--; typingSpeed = 30; }
+                    else { text = example.substring(0, charIdx + 1); charIdx++; typingSpeed = 50; }
+                    const el = (this.$refs && this.$refs.symptomTextarea)
+                        ? this.$refs.symptomTextarea
+                        : document.querySelector('textarea[x-model="symptoms"]');
+                    if (el) el.setAttribute('placeholder', text);
+                    if (!isDeleting && charIdx === example.length) { typingSpeed = 3500; isDeleting = true; }
+                    else if (isDeleting && charIdx === 0) {
                         isDeleting = false;
                         this.currentPlaceholderIdx = (this.currentPlaceholderIdx + 1) % this.placeholderExamples.length;
                         typingSpeed = 500;
                     }
-
                     this._placeholderTick = setTimeout(type, typingSpeed);
                 };
                 type();
             },
 
-            /* ── Badge label helpers (localize AI output if it came back in English) ── */
-            likelihoodLabel(v) {
-                const m = { 'high': 'Tinggi', 'moderate': 'Sedang', 'medium': 'Sedang', 'low': 'Rendah' };
-                return m[String(v || '').toLowerCase()] || v;
+            autoResizeTextarea() {
+                const t = this.$refs.symptomTextarea;
+                if (!t) return;
+                t.style.height = 'auto';
+                t.style.height = Math.min(t.scrollHeight, 240) + 'px';
             },
-            severityLabel(v) {
-                const m = { 'avoid': 'Hindari', 'caution': 'Hati-hati', 'monitor': 'Pantau' };
-                return m[String(v || '').toLowerCase()] || v;
-            },
-
-            /* ── Journey helpers ── */
-            get hasJourney() {
-                const j = this.journey;
-                return !!(j && (j.zona_atas?.ai_empathy_summary
-                    || j.zona_atas?.human_mapping_widget?.highlighted_areas?.length
-                    || j.zona_tengah?.interactive_timeline_checklist?.length));
-            },
-            get energyScore() {
-                const s = parseInt(this.journey?.zona_atas?.energy_score, 10);
-                return isNaN(s) ? null : Math.max(0, Math.min(100, s));
-            },
-            energyColor() {
-                const s = this.energyScore;
-                if (s === null) return '#3EAEB1';
-                if (s < 34) return '#EF4444';
-                if (s < 67) return '#F59E0B';
-                return '#10B981';
-            },
-            themeAccent() {
-                const t = this.journey?.status_page_theme || '';
-                if (t.includes('red') || t.includes('alert')) return '#EF4444';
-                if (t.includes('yellow') || t.includes('warm')) return '#F59E0B';
-                return '#3EAEB1';
-            },
-            alertLevelLabel(lvl) {
-                const m = { 'CRITICAL': 'KRITIS', 'HIGH_ALERT': 'PERINGATAN TINGGI', 'MONITOR': 'PANTAU' };
-                return m[lvl] || lvl;
-            },
-            toggleChecklist(idx) {
-                const list = this.journey?.zona_tengah?.interactive_timeline_checklist;
-                if (list && list[idx]) list[idx].is_done = !list[idx].is_done;
-            },
-            get checklistProgress() {
-                const list = this.journey?.zona_tengah?.interactive_timeline_checklist || [];
-                if (!list.length) return 0;
-                return Math.round(list.filter(t => t.is_done).length / list.length * 100);
-            },
-            openDrawer(title, data) {
-                this.drawerTitle = title;
-                this.drawerData = data;
-                this.drawerOpen = true;
-            },
-            closeDrawer() {
-                this.drawerOpen = false;
-            },
-            getAreas() {
-                const arr = this.journey?.zona_atas?.human_mapping_widget?.highlighted_areas || [];
-                return arr.map(a => {
-                    return {
-                        part: a.body_part, 
-                        ...a
-                    };
-                }).filter(a => this.bodyPos(a.part));
-            },
-            /* Map a body-part key to ellipse coords on SVG silhouette (viewBox 0 0 100 240) */
-            bodyPos(part) {
-                const map = {
-                    /* === HEAD / FACE === */
-                    head:             { cx: 50, cy: 17, rx: 14, ry: 15.5 },
-                    face:             { cx: 50, cy: 15, rx: 10, ry: 11   },
-                    eyes:             { cx: 50, cy: 13, rx:  9, ry:  4   },
-                    ears:             { cx: 50, cy: 17, rx: 16, ry:  5   },
-                    nose:             { cx: 50, cy: 17, rx:  4, ry:  5   },
-                    mouth:            { cx: 50, cy: 21, rx:  5, ry:  3   },
-                    /* === NECK / THROAT === */
-                    neck:             { cx: 50, cy: 36, rx:  7, ry:  6   },
-                    throat:           { cx: 50, cy: 36, rx:  7, ry:  6   },
-                    /* === SHOULDERS === */
-                    left_shoulder:    { cx: 29, cy: 53, rx: 10, ry:  8   },
-                    right_shoulder:   { cx: 71, cy: 53, rx: 10, ry:  8   },
-                    shoulders:        { cx: 50, cy: 53, rx: 28, ry:  8   },
-                    /* === CHEST / UPPER TORSO === */
-                    chest:            { cx: 50, cy: 78, rx: 26, ry: 18   },
-                    heart:            { cx: 41, cy: 72, rx:  9, ry: 10   },
-                    lungs:            { cx: 50, cy: 76, rx: 24, ry: 16   },
-                    breast:           { cx: 50, cy: 78, rx: 24, ry: 16   },
-                    /* === BACK === */
-                    upper_back:       { cx: 50, cy: 78, rx: 26, ry: 18   },
-                    lower_back:       { cx: 50, cy: 112,rx: 22, ry: 14   },
-                    back:             { cx: 50, cy: 94, rx: 24, ry: 30   },
-                    spine:            { cx: 50, cy: 90, rx:  5, ry: 34   },
-                    /* === ABDOMEN === */
-                    stomach:          { cx: 50, cy: 107,rx: 20, ry: 12   },
-                    abdomen:          { cx: 50, cy: 113,rx: 22, ry: 16   },
-                    liver:            { cx: 40, cy: 104,rx: 11, ry:  9   },
-                    gallbladder:      { cx: 40, cy: 106,rx:  7, ry:  6   },
-                    kidney:           { cx: 50, cy: 110,rx: 20, ry: 10   },
-                    intestine:        { cx: 50, cy: 116,rx: 20, ry: 12   },
-                    /* === PELVIS / HIPS === */
-                    pelvis:           { cx: 50, cy: 138,rx: 24, ry: 13   },
-                    groin:            { cx: 50, cy: 147,rx: 15, ry:  7   },
-                    hip:              { cx: 50, cy: 140,rx: 26, ry: 12   },
-                    left_hip:         { cx: 33, cy: 140,rx: 10, ry: 10   },
-                    right_hip:        { cx: 67, cy: 140,rx: 10, ry: 10   },
-                    /* === UPPER ARMS === */
-                    left_arm:         { cx: 12, cy: 78,  rx:  7, ry: 20  },
-                    right_arm:        { cx: 88, cy: 78,  rx:  7, ry: 20  },
-                    arms:             { cx: 50, cy: 78,  rx: 44, ry: 20  },
-                    /* === FOREARMS === */
-                    left_forearm:     { cx: 13, cy: 118, rx:  6, ry: 18  },
-                    right_forearm:    { cx: 87, cy: 118, rx:  6, ry: 18  },
-                    forearms:         { cx: 50, cy: 118, rx: 44, ry: 18  },
-                    /* === HANDS === */
-                    left_hand:        { cx: 14, cy: 149, rx:  7, ry: 10  },
-                    right_hand:       { cx: 86, cy: 149, rx:  7, ry: 10  },
-                    hands:            { cx: 50, cy: 149, rx: 44, ry: 10  },
-                    /* === THIGHS === */
-                    left_thigh:       { cx: 35, cy: 169, rx: 11, ry: 20  },
-                    right_thigh:      { cx: 65, cy: 169, rx: 11, ry: 20  },
-                    thighs:           { cx: 50, cy: 169, rx: 30, ry: 20  },
-                    /* === KNEES === */
-                    left_knee:        { cx: 32, cy: 195, rx: 11, ry:  5  },
-                    right_knee:       { cx: 68, cy: 195, rx: 11, ry:  5  },
-                    knees:            { cx: 50, cy: 195, rx: 36, ry:  5  },
-                    /* === LOWER LEGS / CALVES === */
-                    left_leg:         { cx: 32, cy: 212, rx: 10, ry: 15  },
-                    right_leg:        { cx: 68, cy: 212, rx: 10, ry: 15  },
-                    legs:             { cx: 50, cy: 212, rx: 36, ry: 15  },
-                    calf:             { cx: 50, cy: 212, rx: 36, ry: 15  },
-                    /* === FEET === */
-                    left_foot:        { cx: 32, cy: 234, rx: 13, ry:  5  },
-                    right_foot:       { cx: 68, cy: 234, rx: 13, ry:  5  },
-                    feet:             { cx: 50, cy: 234, rx: 38, ry:  5  },
-                    ankle:            { cx: 50, cy: 230, rx: 36, ry:  4  },
-                    /* === WHOLE BODY === */
-                    whole_body:       { cx: 50, cy: 120, rx: 48, ry: 115 },
-                    body:             { cx: 50, cy: 120, rx: 48, ry: 115 },
-                };
-                const key = String(part || '').toLowerCase().replace(/[\s-]/g, '_');
-                return map[key] || { cx: 50, cy: 120, rx: 12, ry: 12 };
-            },
-            bodyPartLabel(part) {
-                const m = {
-                    /* Head */ head:'Kepala', face:'Wajah', eyes:'Mata', ears:'Telinga', nose:'Hidung', mouth:'Mulut',
-                    /* Neck */ neck:'Leher', throat:'Tenggorokan',
-                    /* Shoulders */ left_shoulder:'Bahu Kiri', right_shoulder:'Bahu Kanan', shoulders:'Bahu',
-                    /* Chest */ chest:'Dada', heart:'Jantung', lungs:'Paru-paru', breast:'Dada',
-                    /* Back */ upper_back:'Punggung Atas', lower_back:'Punggung Bawah', back:'Punggung', spine:'Tulang Belakang',
-                    /* Abdomen */ stomach:'Lambung', abdomen:'Perut', liver:'Hati', gallbladder:'Kantung Empedu',
-                    kidney:'Ginjal', intestine:'Usus',
-                    /* Pelvis */ pelvis:'Panggul', groin:'Selangkangan', hip:'Pinggul', left_hip:'Pinggul Kiri', right_hip:'Pinggul Kanan',
-                    /* Arms */ left_arm:'Lengan Atas Kiri', right_arm:'Lengan Atas Kanan', arms:'Lengan',
-                    left_forearm:'Lengan Bawah Kiri', right_forearm:'Lengan Bawah Kanan', forearms:'Lengan Bawah',
-                    left_hand:'Tangan Kiri', right_hand:'Tangan Kanan', hands:'Tangan',
-                    /* Legs */ left_thigh:'Paha Kiri', right_thigh:'Paha Kanan', thighs:'Paha',
-                    left_knee:'Lutut Kiri', right_knee:'Lutut Kanan', knees:'Lutut',
-                    left_leg:'Betis Kiri', right_leg:'Betis Kanan', legs:'Kaki', calf:'Betis',
-                    left_foot:'Kaki Kiri', right_foot:'Kaki Kanan', feet:'Kaki', ankle:'Pergelangan Kaki',
-                    /* Whole */ whole_body:'Seluruh Tubuh', body:'Seluruh Tubuh',
-                };
-                const key = String(part || '').toLowerCase().replace(/[\s-]/g, '_');
-                return m[key] || part || '—';
+            handleTextareaEnter(event) {
+                if (event.shiftKey) return;
+                event.preventDefault();
+                this.startScreening();
             },
 
-            /* ── Voice recording ── */
-            async toggleRecording() {
+            /* ══════════════ Phase 1 → 2: generate screening questions ══════════════ */
+            async startScreening() {
+                const prompt = (this.symptoms || '').trim();
+                if (!prompt || this.screening) return;
+                this.error = '';
+                this.firstPrompt = prompt;
+                this.screening = true;
+                this.cancelKiosk();
+
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+                try {
+                    const body = new FormData();
+                    body.append('symptoms', prompt);
+                    body.append('lang', 'auto');
+                    const res = await fetch('/medicheck/screen', {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                        body
+                    });
+                    const data = await res.json();
+                    if (!res.ok || !data.success) {
+                        this.error = (typeof data.error === 'string' ? data.error : 'Gagal menyiapkan pertanyaan. Silakan coba lagi.');
+                    } else {
+                        this.questions = (data.questions || []).map(q => {
+                            this.answers[q.id] = { chips: [], text: '' };
+                            return q;
+                        });
+                        this.currentQ = 0;
+                        this.phase = 'questions';
+                        this.$nextTick(() => setTimeout(() => this.scrollToEl('screening-panel', 'smooth'), 80));
+                    }
+                } catch (e) {
+                    this.error = 'Kesalahan jaringan. Silakan coba lagi.';
+                } finally {
+                    this.screening = false;
+                }
+            },
+
+            /* ══════════════ Phase 2: question stepper ══════════════ */
+            toggleChip(qId, choice) {
+                const q = this.questions.find(x => x.id === qId);
+                const a = this.answers[qId] || (this.answers[qId] = { chips: [], text: '' });
+                if (q && q.allow_multiple) {
+                    const i = a.chips.indexOf(choice);
+                    if (i >= 0) a.chips.splice(i, 1); else a.chips.push(choice);
+                } else {
+                    a.chips = a.chips[0] === choice ? [] : [choice];
+                }
+            },
+            chipSelected(qId, choice) {
+                return (this.answers[qId]?.chips || []).includes(choice);
+            },
+            currentAnswered() {
+                const q = this.currentQuestion;
+                if (!q) return false;
+                const a = this.answers[q.id] || { chips: [], text: '' };
+                return a.chips.length > 0 || (a.text || '').trim().length > 0;
+            },
+            nextQ() {
+                if (!this.isLastQuestion) {
+                    this.currentQ++;
+                    this.$nextTick(() => this.scrollToEl('screening-panel', 'smooth'));
+                }
+            },
+            prevQ() {
+                if (this.currentQ > 0) this.currentQ--;
+            },
+
+            /* Role selection lives on the final question → triggers conclusion */
+            selectRole(choice, index) {
+                const roleQ = this.roleQuestion;
+                if (roleQ) this.answers[roleQ.id] = { chips: [choice], text: '' };
+                this.role = index === 0 ? 'doctor' : 'patient';
+                this.runConclude();
+            },
+
+            /* ══════════════ Phase 3 → 4: conclude ══════════════ */
+            buildQaPayload() {
+                return this.questions
+                    .filter(q => !q.is_role)
+                    .map(q => {
+                        const a = this.answers[q.id] || { chips: [], text: '' };
+                        const parts = [];
+                        if (a.chips.length) parts.push(a.chips.join(', '));
+                        if ((a.text || '').trim()) parts.push(a.text.trim());
+                        return { question: q.question, answer: parts.join(' — ') || '(tidak dijawab)' };
+                    });
+            },
+
+            async runConclude() {
                 if (this.analyzing) return;
-                if (this.recording) { this.stopRecording(); } else { await this.startRecording(); }
+                this.error = '';
+                this.analyzing = true;
+                this.phase = 'concluding';
+                this.completedSteps = [];
+                this.currentStep = 0;
+                this.$nextTick(() => setTimeout(() => this.scrollToEl('screening-panel', 'smooth'), 80));
+
+                // Fetch geolocation for the patient "faskes terdekat" section.
+                if (window.cookieConsentAccepted && window.cookieConsentAccepted()) {
+                    try {
+                        const locRes = await fetch('https://ipapi.co/json/');
+                        if (locRes.ok) {
+                            const l = await locRes.json();
+                            if (l && l.city) this.nearbyLocation = `${l.city}, ${l.region}, ${l.country_name}`;
+                        }
+                    } catch (e) { /* ignore */ }
+                }
+
+                const stepTimer = this.animateSteps();
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+                try {
+                    const body = new FormData();
+                    body.append('symptoms', this.firstPrompt);
+                    body.append('role', this.role);
+                    body.append('lang', 'auto');
+                    this.buildQaPayload().forEach((pair, i) => {
+                        body.append(`qa[${i}][question]`, pair.question);
+                        body.append(`qa[${i}][answer]`, pair.answer);
+                    });
+
+                    const res = await fetch('/medicheck/conclude', {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                        body
+                    });
+                    const data = await res.json();
+
+                    clearInterval(stepTimer);
+                    await this.finishSteps();
+
+                    if (!res.ok || !data.success) {
+                        this.error = (typeof data.error === 'string' ? data.error : 'Gagal menyusun kesimpulan. Silakan coba lagi.');
+                        this.phase = 'questions';
+                    } else {
+                        this.result = data.data;
+                        this.conclusion = data.data?.conclusion || null;
+                        await this.sleep(500);
+                        this.phase = 'result';
+                        this.scheduleKiosk();
+
+                        let historyId = null;
+                        if (window.cookieConsentAccepted && window.cookieConsentAccepted()) {
+                            this.saveToStorage();
+                            historyId = this.saveToHistory(data.data);
+                        }
+
+                        this.$nextTick(() => setTimeout(() => this.scrollToResult('smooth'), 800));
+
+                        // Patient branch → find nearby healthcare facilities.
+                        if (this.role === 'patient' && this.nearbyLocation) {
+                            const cond = this.conclusion?.assumed_condition?.name || '';
+                            this.fetchNearbyProviders(historyId, this.nearbyLocation, this.firstPrompt, cond);
+                        }
+                    }
+                } catch (e) {
+                    clearInterval(stepTimer);
+                    this.error = 'Kesalahan jaringan. Silakan coba lagi.';
+                    this.phase = 'questions';
+                } finally {
+                    this.analyzing = false;
+                }
             },
 
+            animateSteps() {
+                this.currentStep = 0;
+                const total = this.concludeSteps.length - 1;
+                const delays = [900, 3500, 8000];
+                delays.forEach((delay, i) => {
+                    setTimeout(() => {
+                        if (i < total && this.analyzing) {
+                            this.completedSteps.push(this.concludeSteps[i].id);
+                            this.currentStep = i + 1;
+                        }
+                    }, delay);
+                });
+                return setInterval(() => { }, 99999);
+            },
+            async finishSteps() {
+                for (let i = 0; i < this.concludeSteps.length; i++) {
+                    if (!this.completedSteps.includes(this.concludeSteps[i].id)) {
+                        this.completedSteps.push(this.concludeSteps[i].id);
+                        this.currentStep = i;
+                        await this.sleep(120);
+                    }
+                }
+                this.currentStep = this.concludeSteps.length;
+                await this.sleep(300);
+            },
+            sleep(ms) { return new Promise(r => setTimeout(r, ms)); },
+
+            /* ══════════════ Voice recording (feeds first prompt) ══════════════ */
+            async toggleRecording() {
+                if (this.screening) return;
+                if (this.recording) this.stopRecording(); else await this.startRecording();
+            },
             async startRecording() {
                 this.error = '';
-                this.showResults = false;
-                this.showProcessing = false;
-                this.result = null;
-                this.journey = null;
-                this.transcription = '';
-                this.liveTranscript = '';
-                this.completedSteps = [];
-                this.currentStep = -1;
-                this.cancelKiosk();
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     this.audioChunks = [];
-                    this._stream = stream;
                     const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus'
                         : MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
                     this.mediaRecorder = new MediaRecorder(stream, { mimeType });
@@ -381,16 +389,58 @@
                     this.mediaRecorder.onstop = () => {
                         stream.getTracks().forEach(t => t.stop());
                         this.stopWaveform();
-                        this.processAudio();
+                        this.transcribeAudio();
                     };
                     this.mediaRecorder.start(200);
                     this.recording = true;
                     this.startWaveform(stream);
                 } catch (e) {
-                    this.error = 'Akses mikrofon ditolak. Izinkan mikrofon atau ketik gejala Anda di bawah.';
+                    this.error = 'Akses mikrofon ditolak. Izinkan mikrofon atau ketik keluhan Anda di bawah.';
                 }
             },
-
+            stopRecording() {
+                if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') this.mediaRecorder.stop();
+                this.recording = false;
+            },
+            getAudioExt() {
+                const mime = this.mediaRecorder?.mimeType || '';
+                if (mime.includes('ogg')) return 'ogg';
+                if (mime.includes('mp4')) return 'mp4';
+                return 'webm';
+            },
+            /* Voice → text via Whisper (POST /medicheck/transcribe), then auto-start screening. */
+            async transcribeAudio() {
+                if (this.audioChunks.length === 0) return;
+                this.screening = true;
+                this.error = '';
+                const blob = new Blob(this.audioChunks, { type: this.mediaRecorder?.mimeType || 'audio/webm' });
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+                try {
+                    const body = new FormData();
+                    body.append('audio', blob, `recording.${this.getAudioExt()}`);
+                    body.append('lang', 'auto');
+                    const res = await fetch('/medicheck/transcribe', {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                        body
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.text) {
+                        this.symptoms = data.text;
+                        this.$nextTick(() => this.autoResizeTextarea());
+                        this.screening = false;
+                        this.activeTab = 'text';
+                        await this.startScreening();
+                        return;
+                    } else {
+                        this.error = (typeof data.error === 'string' ? data.error : 'Gagal mentranskripsi suara. Silakan ketik keluhan Anda.');
+                    }
+                } catch (e) {
+                    this.error = 'Gagal mentranskripsi suara. Silakan ketik keluhan Anda.';
+                } finally {
+                    this.screening = false;
+                }
+            },
             startWaveform(stream) {
                 try {
                     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -413,8 +463,8 @@
                         cctx.clearRect(0, 0, W, H);
                         this._waveData.forEach((val, i) => {
                             const barH = Math.max(3, (val / 255) * H);
-                            const hue = 245 - (i / bars) * 55; // indigo → sky
-                            cctx.fillStyle = `hsla(${hue}, 75%, 58%, 0.9)`;
+                            const hue = 180 - (i / bars) * 20;
+                            cctx.fillStyle = `hsla(${hue}, 55%, 48%, 0.9)`;
                             cctx.beginPath();
                             cctx.roundRect(i * (barW + 1), (H - barH) / 2, barW, barH, 2);
                             cctx.fill();
@@ -423,7 +473,6 @@
                     draw();
                 } catch (e) { /* graceful */ }
             },
-
             stopWaveform() {
                 if (this._rafId) cancelAnimationFrame(this._rafId);
                 if (this._audioCtx) { try { this._audioCtx.close(); } catch (e) { } }
@@ -432,254 +481,20 @@
                 if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
             },
 
-            stopRecording() {
-                if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') { this.mediaRecorder.stop(); }
-                this.recording = false;
+            /* ══════════════ Drawer (drug detail — doctor branch) ══════════════ */
+            openDrawer(title, data) { this.drawerTitle = title; this.drawerData = data; this.drawerOpen = true; },
+            closeDrawer() { this.drawerOpen = false; },
+
+            severityLabel(v) {
+                const m = { 'avoid': 'Hindari', 'caution': 'Hati-hati', 'monitor': 'Pantau' };
+                return m[String(v || '').toLowerCase()] || v;
+            },
+            likelihoodLabel(v) {
+                const m = { 'high': 'Tinggi', 'moderate': 'Sedang', 'medium': 'Sedang', 'low': 'Rendah' };
+                return m[String(v || '').toLowerCase()] || v;
             },
 
-            async processAudio() {
-                if (this.audioChunks.length === 0) return;
-                this.analyzing = true;
-                this.showProcessing = true;
-                this.completedSteps = [];
-                this.currentStep = 0;
-                const blob = new Blob(this.audioChunks, { type: this.mediaRecorder?.mimeType || 'audio/webm' });
-                const formData = new FormData();
-                formData.append('audio', blob, `recording.${this.getAudioExt()}`);
-                formData.append('lang', 'auto');
-                formData.append('mode', 'journey');
-                await this.runAnalysis(formData);
-            },
-
-            getAudioExt() {
-                const mime = this.mediaRecorder?.mimeType || '';
-                if (mime.includes('ogg')) return 'ogg';
-                if (mime.includes('mp4')) return 'mp4';
-                return 'webm';
-            },
-
-            /* ── Text analysis ── */
-            async analyzeText() {
-                if (!this.symptoms.trim() || this.analyzing) return;
-                this.error = '';
-                this.showResults = false;
-                this.showProcessing = true;
-                this.result = null;
-                this.journey = null;
-                this.transcription = '';
-                this.completedSteps = [];
-                this.currentStep = 0;
-                this.analyzing = true;
-                this.cancelKiosk();
-                const formData = new FormData();
-                formData.append('symptoms', this.symptoms.trim());
-                formData.append('lang', 'auto');
-                formData.append('mode', 'journey');
-                await this.runAnalysis(formData);
-            },
-
-            autoResizeTextarea() {
-                const textarea = this.$refs.symptomTextarea;
-                if (!textarea) return;
-                textarea.style.height = 'auto';
-                textarea.style.height = Math.min(textarea.scrollHeight, 240) + 'px';
-            },
-
-            handleTextareaEnter(event) {
-                if (event.shiftKey) return;
-                event.preventDefault();
-                this.analyzeText();
-            },
-
-            /* ── Core analysis runner ── */
-            async runAnalysis(formData) {
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-
-                if (window.cookieConsentAccepted && window.cookieConsentAccepted()) {
-                    try {
-                        const locRes = await fetch('https://ipapi.co/json/');
-                        if (locRes.ok) {
-                            const locData = await locRes.json();
-                            if (locData && locData.city) {
-                                this.nearbyLocation = `${locData.city}, ${locData.region}, ${locData.country_name}`;
-                            }
-                        }
-                    } catch (e) { /* ignore */ }
-                }
-
-                this.processingSteps = this.steps;
-                const stepTimer = this.animateSteps();
-
-                try {
-                    const res = await fetch('/medicheck/analyze', {
-                        method: 'POST',
-                        headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                        body: formData
-                    });
-                    const data = await res.json();
-
-                    clearInterval(stepTimer);
-                    await this.finishSteps();
-
-                    if (!res.ok) {
-                        this.error = (typeof data.error === 'string' ? data.error : 'Analisis gagal. Silakan coba lagi.');
-                        this.showProcessing = false;
-                    } else {
-                        this.result = data.data;
-                        this.journey = data.data?.journey || null;
-                        this.transcription = data.data?.symptoms || this.liveTranscript || '';
-
-                        await this.sleep(600);
-                        this.showProcessing = false;
-                        this.showResults = true;
-                        this.applySubstitutions();
-                        this.scheduleKiosk();
-
-                        let historyId = null;
-                        if (window.cookieConsentAccepted && window.cookieConsentAccepted()) {
-                            this.saveToStorage();
-                            historyId = this.saveToHistory(data.data);
-                        }
-
-                        this.$nextTick(() => {
-                            setTimeout(() => {
-                                const el = document.getElementById('medicheck-output-page');
-                                if (el) {
-                                    const y = el.getBoundingClientRect().top + window.scrollY - 20; // 20px padding top
-                                    window.scrollTo({ top: y, behavior: 'smooth' });
-                                }
-                            }, 100);
-                        });
-
-                        if (this.nearbyLocation && historyId) {
-                            this.fetchNearbyProviders(
-                                historyId, this.nearbyLocation,
-                                data.data?.symptoms || '',
-                                (data.data?.step1?.conditions || []).map(c => c.name).join(', ')
-                            );
-                        }
-                    }
-                } catch (e) {
-                    clearInterval(stepTimer);
-                    this.error = 'Kesalahan jaringan. Silakan coba lagi.';
-                    this.showProcessing = false;
-                } finally {
-                    this.analyzing = false;
-                }
-            },
-
-            /* ── Kiosk popup logic ──
-               Alur: output muncul → tunggu kioskDelay (60s) → popup muncul dengan
-               hitung mundur kioskDuration (60s) → jika tak ada aksi, reset halaman.
-               "Tunggu" = sembunyikan, jadwalkan lagi 60s. "Cukup" = reset sekarang. */
-            scheduleKiosk() {
-                this.cancelKiosk();
-                // Popup BELUM tampil — baru muncul setelah kioskDelay detik.
-                this._kioskAppear = setTimeout(() => {
-                    if (this.showResults) this.startKioskCountdown();
-                }, this.kioskDelay * 1000);
-            },
-
-            startKioskCountdown() {
-                this.clearKioskTimers();
-                this.kioskCountdown = this.kioskDuration;
-                this.showKioskPopup = true;
-                this._kioskTick = setInterval(() => {
-                    this.kioskCountdown--;
-                    if (this.kioskCountdown <= 0) {
-                        this.resetKiosk();
-                    }
-                }, 1000);
-            },
-
-            snoozeKiosk() {
-                // Sembunyikan popup, beri 1 menit lagi, lalu tampilkan kembali dengan hitung mundur baru.
-                this.cancelKiosk();
-                this._kioskSnooze = setTimeout(() => {
-                    if (this.showResults) this.startKioskCountdown();
-                }, this.kioskDelay * 1000);
-            },
-
-            resetKiosk() {
-                this.cancelKiosk();
-                localStorage.removeItem('ceksehatCurrentResult'); // Clear state on manual reset
-                window.location.reload();
-            },
-
-            clearKioskTimers() {
-                if (this._kioskTick) { clearInterval(this._kioskTick); this._kioskTick = null; }
-                if (this._kioskSnooze) { clearTimeout(this._kioskSnooze); this._kioskSnooze = null; }
-                if (this._kioskAppear) { clearTimeout(this._kioskAppear); this._kioskAppear = null; }
-            },
-
-            cancelKiosk() {
-                this.clearKioskTimers();
-                this.showKioskPopup = false;
-            },
-
-            /* ── Local storage history ── */
-            saveToHistory(resultData) {
-                try {
-                    let history = JSON.parse(localStorage.getItem('ceksehatHistory') || '[]');
-                    const newRecord = {
-                        id: 'cs_' + Date.now(),
-                        date: new Date().toISOString(),
-                        preview: resultData.symptoms?.substring(0, 80) + (resultData.symptoms?.length > 80 ? '...' : ''),
-                        conditions: (resultData.step1?.conditions || []).map(c => c.name).slice(0, 2),
-                        nearbyLocation: this.nearbyLocation || null,
-                        nearbyProviders: null,
-                        result: resultData
-                    };
-                    history.unshift(newRecord);
-                    if (history.length > 10) history = history.slice(0, 10);
-                    localStorage.setItem('ceksehatHistory', JSON.stringify(history));
-                    return newRecord.id;
-                } catch (e) { return null; }
-            },
-
-            patchHistoryNearby(recordId, nearbyData) {
-                if (!recordId) return;
-                try {
-                    let history = JSON.parse(localStorage.getItem('ceksehatHistory') || '[]');
-                    const idx = history.findIndex(h => h.id === recordId);
-                    if (idx !== -1) {
-                        history[idx].nearbyProviders = nearbyData;
-                        localStorage.setItem('ceksehatHistory', JSON.stringify(history));
-                    }
-                } catch (e) { /* ignore */ }
-            },
-
-            /* ── Step animation ── */
-            animateSteps() {
-                const totalSteps = this.steps.length - 1;
-                this.currentStep = 0;
-                const delays = [1200, 3500, 7000, 14000, 20000, 25000];
-                delays.forEach((delay, i) => {
-                    setTimeout(() => {
-                        if (i < totalSteps && this.analyzing) {
-                            this.completedSteps.push(this.steps[i].id);
-                            this.currentStep = i + 1;
-                        }
-                    }, delay);
-                });
-                return setInterval(() => { }, 99999);
-            },
-
-            async finishSteps() {
-                for (let i = 0; i < this.steps.length; i++) {
-                    if (!this.completedSteps.includes(this.steps[i].id)) {
-                        this.completedSteps.push(this.steps[i].id);
-                        this.currentStep = i;
-                        await this.sleep(120);
-                    }
-                }
-                this.currentStep = this.steps.length;
-                await this.sleep(400);
-            },
-
-            sleep(ms) { return new Promise(r => setTimeout(r, ms)); },
-
-            /* ── Nearby providers ── */
+            /* ══════════════ Nearby providers ══════════════ */
             async fetchNearbyProviders(historyId, location, symptoms, conditions) {
                 this.nearbyLoading = true;
                 this.nearbyProviders = null;
@@ -705,98 +520,159 @@
                 }
             },
 
-            /* ── Drug auto-swap ── */
-            applySubstitutions() {
-                this.$nextTick(() => {
-                    const interactions = this.result?.step3?.interactions || [];
-                    interactions.forEach(inter => {
-                        if ((inter.severity !== 'Avoid' && inter.severity !== 'Hindari') || !inter.substitute) return;
-                        [inter.drug_a, inter.drug_b].forEach(drugName => {
-                            const card = document.querySelector(`[data-drug-name="${drugName}"]`);
-                            if (!card) return;
-                            const label = card.querySelector('.drug-name-label');
-                            if (label && !label.classList.contains('line-through')) {
-                                label.classList.add('line-through', 'text-red-400');
-                                const badge = document.createElement('span');
-                                badge.className = 'text-[10px] bg-warm/15 text-warm px-1.5 py-0.5 rounded font-medium ml-2';
-                                badge.textContent = '🔄 Diganti otomatis';
-                                label.parentElement.appendChild(badge);
-                                const sub = document.createElement('p');
-                                sub.className = 'text-xs text-health mt-1 font-medium';
-                                sub.textContent = `→ Diganti dengan: ${inter.substitute}`;
-                                card.appendChild(sub);
-                            }
-                        });
-                    });
-                });
+            /* ══════════════ Scroll helpers ══════════════ */
+            scrollToEl(id, behavior) {
+                const el = document.getElementById(id);
+                if (el) {
+                    const y = el.getBoundingClientRect().top + window.scrollY - 20;
+                    window.scrollTo({ top: y, behavior: behavior || 'smooth' });
+                }
+            },
+            scrollToResult(behavior) {
+                const el = document.getElementById('medicheck-output-page');
+                if (!el) return;
+                // Gunakan scrollIntoView untuk focus yang lebih reliable
+                el.scrollIntoView({ behavior: behavior || 'smooth', block: 'start' });
+                // Fokuskan elemen agar screen-reader & keyboard navigation juga terarah
+                if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
+                el.focus({ preventScroll: true });
             },
 
-            /* ── Save current result to localStorage ── */
+            /* ══════════════ Kiosk popup ══════════════ */
+            scheduleKiosk() {
+                this.cancelKiosk();
+                this._kioskAppear = setTimeout(() => {
+                    if (this.phase === 'result') this.startKioskCountdown();
+                }, this.kioskDelay * 1000);
+            },
+            startKioskCountdown() {
+                this.clearKioskTimers();
+                this.kioskCountdown = this.kioskDuration;
+                this.showKioskPopup = true;
+                this._kioskTick = setInterval(() => {
+                    this.kioskCountdown--;
+                    if (this.kioskCountdown <= 0) this.resetKiosk();
+                }, 1000);
+            },
+            snoozeKiosk() {
+                this.cancelKiosk();
+                this._kioskSnooze = setTimeout(() => {
+                    if (this.phase === 'result') this.startKioskCountdown();
+                }, this.kioskDelay * 1000);
+            },
+            resetKiosk() {
+                this.cancelKiosk();
+                localStorage.removeItem('ceksehatCurrentResult');
+                window.location.reload();
+            },
+            clearKioskTimers() {
+                if (this._kioskTick) { clearInterval(this._kioskTick); this._kioskTick = null; }
+                if (this._kioskSnooze) { clearTimeout(this._kioskSnooze); this._kioskSnooze = null; }
+                if (this._kioskAppear) { clearTimeout(this._kioskAppear); this._kioskAppear = null; }
+            },
+            cancelKiosk() { this.clearKioskTimers(); this.showKioskPopup = false; },
+
+            /* ══════════════ localStorage ══════════════ */
             saveToStorage() {
                 if (!this.result) return;
                 try {
-                    const payload = {
+                    localStorage.setItem('ceksehatCurrentResult', JSON.stringify({
                         id: 'cs_' + Date.now(),
                         savedAt: new Date().toISOString(),
-                        symptoms: this.transcription || this.symptoms || '',
+                        firstPrompt: this.firstPrompt || '',
                         location: this.nearbyLocation || null,
                         nearbyProviders: this.nearbyProviders || null,
                         result: this.result
+                    }));
+                } catch (e) { /* ignore */ }
+            },
+            saveToHistory(resultData) {
+                try {
+                    let history = JSON.parse(localStorage.getItem('ceksehatHistory') || '[]');
+                    const c = resultData.conclusion || {};
+                    const conds = resultData.role === 'doctor'
+                        ? (c.differential || []).map(d => d.name).slice(0, 2)
+                        : [c.assumed_condition?.name].filter(Boolean);
+                    const rec = {
+                        id: 'cs_' + Date.now(),
+                        date: new Date().toISOString(),
+                        preview: (resultData.symptoms || '').substring(0, 80) + ((resultData.symptoms || '').length > 80 ? '...' : ''),
+                        conditions: conds,
+                        role: resultData.role,
+                        nearbyLocation: this.nearbyLocation || null,
+                        nearbyProviders: null,
+                        result: resultData
                     };
-                    localStorage.setItem('ceksehatCurrentResult', JSON.stringify(payload));
+                    history.unshift(rec);
+                    if (history.length > 10) history = history.slice(0, 10);
+                    localStorage.setItem('ceksehatHistory', JSON.stringify(history));
+                    return rec.id;
+                } catch (e) { return null; }
+            },
+            patchHistoryNearby(recordId, nearbyData) {
+                if (!recordId) return;
+                try {
+                    let history = JSON.parse(localStorage.getItem('ceksehatHistory') || '[]');
+                    const idx = history.findIndex(h => h.id === recordId);
+                    if (idx !== -1) { history[idx].nearbyProviders = nearbyData; localStorage.setItem('ceksehatHistory', JSON.stringify(history)); }
                 } catch (e) { /* ignore */ }
             },
 
-            /* ── Plain-text report ── */
+            /* ══════════════ Plain-text report ══════════════ */
             buildReport() {
-                const r = this.result;
-                if (!r) return '';
+                const r = this.result, c = this.conclusion;
+                if (!r || !c) return '';
                 const watermark = '\nDibuat oleh Pharmasis Cek Sehat\nhttps://pharmasis.id\n';
-                let text = 'LAPORAN CEK SEHAT\n';
-                text += `Pharmasis Cek Sehat AI\n`;
-                text += `Tanggal: ${new Date().toLocaleString('id-ID')}\n`;
-                text += `Gejala: ${this.transcription || this.symptoms || 'N/A'}\n\n`;
+                let t = 'LAPORAN CEK SEHAT\n';
+                t += `Pharmasis Cek Sehat AI\n`;
+                t += `Tanggal: ${new Date().toLocaleString('id-ID')}\n`;
+                t += `Peran: ${r.role === 'doctor' ? 'Tenaga Kesehatan / Dokter' : 'Pasien / Masyarakat umum'}\n`;
+                t += `Keluhan awal: ${r.symptoms || 'N/A'}\n\n`;
 
-                if (r.step1?.conditions?.length) {
-                    text += 'KEMUNGKINAN DIAGNOSIS\n';
-                    r.step1.conditions.forEach(c => { text += `[${c.likelihood}] ${c.name}\n  ${c.description}\n\n`; });
-                    if (r.step1.summary) text += `Ringkasan: ${r.step1.summary}\n\n`;
+                if ((r.qa || []).length) {
+                    t += 'HASIL SCREENING\n';
+                    r.qa.forEach(p => { t += `- ${p.question}\n  ${p.answer}\n`; });
+                    t += '\n';
                 }
-                if (r.step2?.drugs?.length) {
-                    text += 'REKOMENDASI OBAT\n';
-                    r.step2.drugs.forEach(d => {
-                        text += `${d.name} (${d.generic})\n`;
-                        text += `  Golongan: ${d.drug_class || 'N/A'} | ${d.otc ? 'Obat Bebas' : 'Perlu Resep'}\n`;
-                        text += `  Dosis: ${d.dose || 'N/A'} | Frekuensi: ${d.frequency || 'N/A'}\n`;
-                        text += `  Kegunaan: ${d.purpose || 'N/A'}\n`;
-                        if (d.mechanism) text += `  Cara Kerja: ${d.mechanism}\n`;
-                        if (d.how_to_take) text += `  Cara Pakai: ${d.how_to_take}\n`;
-                        if (d.side_effects?.length) text += `  Efek Samping: ${d.side_effects.join(', ')}\n`;
-                        if (d.contraindications?.length) text += `  Kontraindikasi: ${d.contraindications.join(', ')}\n`;
-                        text += '\n';
-                    });
-                    if (r.step2.pharmacist_notes) text += `Catatan Apoteker: ${r.step2.pharmacist_notes}\n\n`;
+
+                if (r.role === 'doctor') {
+                    if (c.differential?.length) {
+                        t += 'DIAGNOSIS BANDING\n';
+                        c.differential.forEach(d => { t += `[${d.likelihood}] ${d.name}\n  ${d.rationale}\n`; });
+                        t += '\n';
+                    }
+                    if (c.drugs?.length) {
+                        t += 'REGIMEN FARMAKOLOGI\n';
+                        c.drugs.forEach(d => {
+                            t += `${d.name} (${d.generic || ''}) — ${d.dose || ''}, ${d.frequency || ''}, ${d.duration || ''}\n`;
+                            if (d.drug_class) t += `  Golongan: ${d.drug_class}\n`;
+                            if (d.mechanism) t += `  MoA: ${d.mechanism}\n`;
+                            if (d.contraindications?.length) t += `  KI: ${d.contraindications.join(', ')}\n`;
+                            if (d.notes) t += `  Catatan: ${d.notes}\n`;
+                        });
+                        t += '\n';
+                    }
+                    if (c.interactions?.length) {
+                        t += 'INTERAKSI OBAT\n';
+                        c.interactions.forEach(i => { t += `[${i.severity}] ${i.drug_a} + ${i.drug_b}: ${i.effect}\n  Manajemen: ${i.management || '-'}\n`; });
+                        t += '\n';
+                    }
+                    if (c.management?.length) { t += 'PENATALAKSANAAN\n'; c.management.forEach(m => t += `- ${m}\n`); t += '\n'; }
+                    if (c.red_flags?.length) { t += 'RED FLAGS\n'; c.red_flags.forEach(m => t += `- ${m}\n`); t += '\n'; }
+                    if (c.icd10) t += `Dugaan ICD-10: ${c.icd10}\n`;
+                    if (c.clinical_summary) t += `Ringkasan Klinis: ${c.clinical_summary}\n`;
+                } else {
+                    if (c.reassurance) t += `${c.reassurance}\n\n`;
+                    if (c.assumed_condition?.name) t += `KEMUNGKINAN KONDISI: ${c.assumed_condition.name}\n${c.assumed_condition.plain_explanation || ''}\n\n`;
+                    if (c.self_care?.length) { t += 'PENANGANAN AWAL\n'; c.self_care.forEach(s => t += `- ${s}\n`); t += '\n'; }
+                    if (c.lifestyle?.length) { t += 'PENGATURAN POLA HIDUP\n'; c.lifestyle.forEach(s => t += `- ${s}\n`); t += '\n'; }
+                    if (c.when_to_seek_care) t += `KAPAN HARUS KE FASKES: ${c.when_to_seek_care}\n`;
+                    if (c.which_doctor) t += `TEMUI DOKTER: ${c.which_doctor}\n`;
+                    if (c.what_to_ask_doctor?.length) { t += 'YANG PERLU DITANYAKAN:\n'; c.what_to_ask_doctor.forEach(s => t += `- ${s}\n`); }
+                    if (c.disclaimer) t += `\n${c.disclaimer}\n`;
                 }
-                if (r.step3?.interactions?.length) {
-                    text += 'INTERAKSI OBAT\n';
-                    r.step3.interactions.forEach(i => {
-                        text += `[${i.severity}] ${i.drug_a} + ${i.drug_b}\n  Efek: ${i.effect}\n`;
-                        if (i.substitute) text += `  Alternatif: ${i.substitute}\n`;
-                        text += '\n';
-                    });
-                }
-                if (r.step4) {
-                    text += 'RENCANA PEMULIHAN\n';
-                    if (r.step4.recovery_timeline) text += `Perkiraan Waktu: ${r.step4.recovery_timeline}\n`;
-                    if (r.step4.lifestyle_tips?.length) text += `Gaya Hidup: ${r.step4.lifestyle_tips.join('; ')}\n`;
-                    if (r.step4.diet_recommendations?.length) text += `Makanan: ${r.step4.diet_recommendations.join('; ')}\n`;
-                    if (r.step4.warning_signs?.length) text += `Tanda Bahaya: ${r.step4.warning_signs.join('; ')}\n`;
-                    if (r.step4.follow_up) text += `Tindak Lanjut: ${r.step4.follow_up}\n`;
-                    if (r.step4.disclaimer) text += `Disclaimer: ${r.step4.disclaimer}\n`;
-                    text += '\n';
-                }
-                text += watermark;
-                return text;
+                t += watermark;
+                return t;
             },
 
             async copyResult() {
@@ -814,11 +690,10 @@
                     setTimeout(() => this.copyFeedback = '', 2000);
                 }
             },
-
             async shareResult() {
                 const text = this.buildReport();
                 if (!text) return;
-                const shareData = { title: 'Laporan Cek Sehat', text: text };
+                const shareData = { title: 'Laporan Cek Sehat', text };
                 if (navigator.canShare && navigator.canShare(shareData)) {
                     try { await navigator.share(shareData); }
                     catch (e) {
@@ -835,179 +710,92 @@
                 }
             },
 
-            /* ── Build print HTML ── */
-            buildPrintHTML() {
-                const r = this.result;
-                if (!r) return '';
-                const dateStr = new Date().toLocaleString('id-ID');
-                const symptoms = this.transcription || this.symptoms || 'N/A';
-                const logoUrl = window.location.origin + '/images/icon.png';
-                let html = '';
-                html += '<div style="display:flex;align-items:center;gap:12px;border-bottom:2px solid #0d9488;padding-bottom:1rem;margin-bottom:2rem;">';
-                html += '<img src="' + logoUrl + '" alt="Pharmasis" style="width:40px;height:40px;object-fit:contain;border-radius:8px;" />';
-                html += '<div>';
-                html += '<h1 style="font-size:1.3rem;font-weight:800;color:#0d4f52;margin:0;font-family:system-ui,sans-serif;">Pharmasis Cek Sehat</h1>';
-                html += '<p style="font-size:0.7rem;color:#64748b;margin:0.2rem 0 0;">Laporan Analisis Gejala &middot; ' + dateStr + '</p>';
-                html += '</div>';
-                html += '</div>';
-                html += '<div style="margin-bottom:1.5rem;background:#f0fdf9;border:1px solid #99f6e4;border-radius:0.5rem;padding:1rem;">';
-                html += '<p style="font-size:0.7rem;font-weight:700;color:#0d9488;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 0.5rem;">Gejala yang disampaikan</p>';
-                html += '<p style="font-size:0.9rem;color:#134e4a;margin:0;">' + this._esc(symptoms) + '</p>';
-                html += '</div>';
-
-                if (r.step1?.conditions?.length) {
-                    html += '<h2 style="font-size:1rem;font-weight:700;color:#0f172a;margin:1.5rem 0 0.75rem;border-left:3px solid #0d9488;padding-left:0.5rem;">Kemungkinan Diagnosis</h2>';
-                    r.step1.conditions.forEach(c => {
-                        html += '<div style="margin-bottom:0.75rem;border:1px solid #e2e8f0;border-radius:0.5rem;padding:0.75rem;background:#fff;">';
-                        html += '<p style="font-size:0.85rem;font-weight:700;color:#1e293b;margin:0 0 0.25rem;">[' + this._esc(c.likelihood) + '] ' + this._esc(c.name) + '</p>';
-                        html += '<p style="font-size:0.8rem;color:#475569;margin:0;">' + this._esc(c.description) + '</p>';
-                        html += '</div>';
-                    });
-                    if (r.step1.summary) html += '<p style="font-size:0.8rem;color:#64748b;font-style:italic;margin:0.5rem 0 0;">' + this._esc(r.step1.summary) + '</p>';
-                }
-                if (r.step2?.drugs?.length) {
-                    html += '<h2 style="font-size:1rem;font-weight:700;color:#0f172a;margin:1.5rem 0 0.75rem;border-left:3px solid #0d9488;padding-left:0.5rem;">Rekomendasi Obat</h2>';
-                    r.step2.drugs.forEach(d => {
-                        html += '<div style="margin-bottom:1rem;border:1px solid #e2e8f0;border-radius:0.5rem;padding:1rem;background:#fff;page-break-inside:avoid;">';
-                        html += '<p style="font-size:0.9rem;font-weight:700;color:#0f172a;margin:0 0 0.5rem;">' + this._esc(d.name) + ' <span style="font-size:0.7rem;font-weight:500;color:#64748b;">(' + this._esc(d.generic || '') + ')</span></p>';
-                        html += '<table style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:0.5rem;">';
-                        if (d.dose) html += '<tr><td style="padding:0.25rem 0;color:#64748b;width:30%;">Dosis</td><td style="padding:0.25rem 0;color:#334155;font-weight:600;">' + this._esc(d.dose) + '</td></tr>';
-                        if (d.frequency) html += '<tr><td style="padding:0.25rem 0;color:#64748b;">Frekuensi</td><td style="padding:0.25rem 0;color:#334155;font-weight:600;">' + this._esc(d.frequency) + '</td></tr>';
-                        if (d.duration) html += '<tr><td style="padding:0.25rem 0;color:#64748b;">Durasi</td><td style="padding:0.25rem 0;color:#334155;font-weight:600;">' + this._esc(d.duration) + '</td></tr>';
-                        html += '</table>';
-                        if (d.purpose) html += '<div style="background:#eff6ff;border-radius:0.375rem;padding:0.5rem;margin-bottom:0.5rem;"><p style="font-size:0.65rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;margin:0 0 0.25rem;">Kegunaan</p><p style="font-size:0.8rem;color:#1e3a8a;margin:0;">' + this._esc(d.purpose) + '</p></div>';
-                        if (d.how_to_take) html += '<div style="background:#ecfdf5;border-radius:0.375rem;padding:0.5rem;margin-bottom:0.5rem;"><p style="font-size:0.65rem;font-weight:700;color:#059669;text-transform:uppercase;margin:0 0 0.25rem;">Cara Pakai</p><p style="font-size:0.8rem;color:#064e3b;margin:0;">' + this._esc(d.how_to_take) + '</p></div>';
-                        if (d.side_effects?.length) html += '<p style="font-size:0.75rem;color:#b45309;margin:0;"><strong>Efek Samping:</strong> ' + d.side_effects.map(s => this._esc(s)).join(', ') + '</p>';
-                        if (d.contraindications?.length) html += '<p style="font-size:0.75rem;color:#dc2626;margin:0.25rem 0 0;"><strong>Kontraindikasi:</strong> ' + d.contraindications.map(s => this._esc(s)).join(', ') + '</p>';
-                        html += '</div>';
-                    });
-                    if (r.step2.pharmacist_notes) html += '<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:0.5rem;padding:0.75rem;margin-bottom:1rem;"><p style="font-size:0.7rem;font-weight:700;color:#b45309;text-transform:uppercase;margin:0 0 0.25rem;">Catatan Apoteker</p><p style="font-size:0.8rem;color:#78350f;margin:0;">' + this._esc(r.step2.pharmacist_notes) + '</p></div>';
-                }
-                if (r.step3?.interactions?.length) {
-                    html += '<h2 style="font-size:1rem;font-weight:700;color:#0f172a;margin:1.5rem 0 0.75rem;border-left:3px solid #dc2626;padding-left:0.5rem;">Interaksi Obat</h2>';
-                    r.step3.interactions.forEach(i => {
-                        html += '<div style="margin-bottom:0.5rem;border:1px solid #e2e8f0;border-radius:0.5rem;padding:0.75rem;background:#fff;">';
-                        html += '<p style="font-size:0.85rem;font-weight:600;color:#1e293b;margin:0 0 0.25rem;">[' + this._esc(i.severity) + '] ' + this._esc(i.drug_a) + ' + ' + this._esc(i.drug_b) + '</p>';
-                        html += '<p style="font-size:0.8rem;color:#475569;margin:0;">' + this._esc(i.effect) + '</p>';
-                        if (i.substitute) html += '<p style="font-size:0.8rem;color:#059669;margin:0.25rem 0 0;">Alternatif: ' + this._esc(i.substitute) + '</p>';
-                        html += '</div>';
-                    });
-                }
-                if (r.step4) {
-                    html += '<h2 style="font-size:1rem;font-weight:700;color:#0f172a;margin:1.5rem 0 0.75rem;border-left:3px solid #0d9488;padding-left:0.5rem;">Rencana Pemulihan</h2>';
-                    if (r.step4.recovery_timeline) html += '<p style="font-size:0.85rem;color:#134e4a;margin:0 0 0.5rem;"><strong>Perkiraan Waktu:</strong> ' + this._esc(r.step4.recovery_timeline) + '</p>';
-                    if (r.step4.warning_signs?.length) {
-                        html += '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:0.5rem;padding:0.75rem;margin-bottom:0.75rem;">';
-                        html += '<p style="font-size:0.7rem;font-weight:700;color:#dc2626;text-transform:uppercase;margin:0 0 0.5rem;">Segera ke Dokter Bila</p>';
-                        r.step4.warning_signs.forEach(w => html += '<p style="font-size:0.8rem;color:#991b1b;margin:0 0 0.25rem;">' + this._esc(w) + '</p>');
-                        html += '</div>';
-                    }
-                    if (r.step4.disclaimer) html += '<p style="font-size:0.75rem;color:#94a3b8;font-style:italic;margin:1rem 0 0;border-top:1px solid #e2e8f0;padding-top:0.75rem;">' + this._esc(r.step4.disclaimer) + '</p>';
-                }
-                html += '<div style="margin-top:2rem;padding-top:1rem;border-top:1px solid #e2e8f0;display:flex;align-items:center;gap:8px;">';
-                html += '<img src="' + logoUrl + '" alt="Pharmasis" style="width:22px;height:22px;object-fit:contain;border-radius:4px;" />';
-                html += '<div><p style="font-size:0.75rem;color:#0d9488;font-weight:700;margin:0;">Pharmasis Cek Sehat</p>';
-                html += '<p style="font-size:0.65rem;color:#94a3b8;margin:0;">Laporan ini hanya untuk edukasi. Konsultasikan dengan tenaga kesehatan profesional.</p></div>';
-                html += '</div>';
-                return html;
-            },
-
             _esc(str) {
                 if (!str) return '';
                 return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
             },
 
+            /* ══════════════ PDF (adapts to role) ══════════════ */
             savePdf() {
-                const html = this.buildPrintHTML();
-                if (!html) return;
-                const printWin = window.open('', '_blank');
-                printWin.document.write(`
-                    <!DOCTYPE html><html><head><title>Laporan Cek Sehat</title><meta charset="utf-8">
-                    <style>
-                        @page { margin: 1.5cm; size: A4; }
-                        body { margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #334155; background: #fff; line-height: 1.5; }
-                        .watermark { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
-                        .watermark > div { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-30deg); opacity: 0.06; font-size: 5rem; font-weight: 800; color: #4f46e5; white-space: nowrap; letter-spacing: 0.1em; }
-                        .content { position: relative; z-index: 1; }
-                        @media print { .no-print { display: none !important; } }
-                    </style></head>
-                    <body>
-                        <div class="watermark"><div>Cek Sehat</div></div>
-                        <div class="content" style="padding: 1.5cm;">${html}</div>
-                        <div class="no-print" style="text-align:center;padding: 2rem;">
-                            <button onclick="window.print()" style="padding: 0.6rem 2rem; border-radius: 999px; border: none; background: linear-gradient(135deg,#4f46e5,#4338ca); color: #fff; font-weight: 700; font-size: 0.9rem; cursor: pointer;">Cetak / Simpan sebagai PDF</button>
-                        </div>
-                    </body></html>
-                `);
-                printWin.document.close();
-                printWin.focus();
-                setTimeout(() => printWin.print(), 400);
-            },
-
-            /* ── Clinical PDF (mode dokter, ICD-10 & bahasa medis murni) ── */
-            exportClinicalPdf() {
-                const r = this.result;
-                const cx = this.journey?.zona_bawah?.clinical_pdf_export;
-                if (!r) return;
+                const r = this.result, c = this.conclusion;
+                if (!r || !c) return;
                 const dateStr = new Date().toLocaleString('id-ID');
                 const logoUrl = window.location.origin + '/images/icon.png';
+                const isDoctor = r.role === 'doctor';
+                const accent = isDoctor ? '#0d4f52' : '#0d9488';
                 let html = '';
-                // Professional header with real logo
-                html += '<div style="display:flex;align-items:center;gap:14px;border-bottom:2px solid #0d4f52;padding-bottom:0.85rem;margin-bottom:1.5rem;">';
+
+                html += `<div style="display:flex;align-items:center;gap:14px;border-bottom:2px solid ${accent};padding-bottom:0.85rem;margin-bottom:1.5rem;">`;
                 html += '<img src="' + logoUrl + '" alt="Pharmasis" style="width:44px;height:44px;object-fit:contain;border-radius:10px;" />';
-                html += '<div style="flex:1;">';
-                html += '<h1 style="font-size:1.2rem;font-weight:800;color:#0d4f52;margin:0;">Pharmasis Cek Sehat</h1>';
-                html += '<p style="font-size:0.68rem;color:#64748b;margin:0.2rem 0 0;">Ringkasan Klinis &middot; ' + dateStr + '</p>';
-                html += '</div>';
-                html += '<div style="text-align:right;">';
-                html += '<span style="font-size:0.6rem;font-weight:700;color:#0d9488;background:#f0fdf9;border:1px solid #99f6e4;padding:0.2rem 0.6rem;border-radius:99px;text-transform:uppercase;letter-spacing:0.05em;">Mode Klinis</span>';
-                html += '</div>';
-                html += '</div>';
-                html += '<p style="font-size:0.85rem;margin:0 0 0.75rem;"><strong>Keluhan (anamnesis):</strong> ' + this._esc(this.transcription || this.symptoms || 'N/A') + '</p>';
-                if (cx?.suspected_icd10) html += '<p style="font-size:0.9rem;margin:0 0 0.5rem;"><strong>Dugaan ICD-10:</strong> <code style="background:#f1f5f9;padding:0.1rem 0.4rem;border-radius:0.25rem;">' + this._esc(cx.suspected_icd10) + '</code></p>';
-                if (cx?.clinical_notes) html += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:0.5rem;padding:0.85rem;margin-bottom:1rem;"><p style="font-size:0.7rem;font-weight:700;color:#0d4f52;text-transform:uppercase;margin:0 0 0.35rem;">Catatan Klinis</p><p style="font-size:0.85rem;color:#334155;margin:0;">' + this._esc(cx.clinical_notes) + '</p></div>';
-                // Diagnosis banding
-                if (r.step1?.conditions?.length) {
-                    html += '<h2 style="font-size:0.95rem;color:#0f172a;border-left:3px solid #0d4f52;padding-left:0.5rem;margin:1rem 0 0.5rem;">Diagnosis Banding</h2>';
-                    r.step1.conditions.forEach(c => {
-                        html += '<p style="font-size:0.82rem;margin:0 0 0.35rem;"><strong>[' + this._esc(c.likelihood) + ']</strong> ' + this._esc(c.name) + ': ' + this._esc(c.description) + '</p>';
-                    });
-                }
-                // Regimen
-                if (r.step2?.drugs?.length) {
-                    html += '<h2 style="font-size:0.95rem;color:#0f172a;border-left:3px solid #0d4f52;padding-left:0.5rem;margin:1rem 0 0.5rem;">Regimen Farmakologi</h2>';
-                    r.step2.drugs.forEach(d => {
-                        html += '<p style="font-size:0.82rem;margin:0 0 0.35rem;"><strong>' + this._esc(d.name) + '</strong> (' + this._esc(d.generic || '') + ') &mdash; ' + this._esc(d.dose || '') + ', ' + this._esc(d.frequency || '') + '. ' + this._esc(d.drug_class || '') + '. ' + (d.otc ? 'OTC' : 'Rx') + '.';
-                        if (d.contraindications?.length) html += ' <em>KI: ' + d.contraindications.map(s => this._esc(s)).join(', ') + '.</em>';
-                        html += '</p>';
-                    });
-                }
-                // Interaksi
-                if (r.step3?.interactions?.length) {
-                    html += '<h2 style="font-size:0.95rem;color:#0f172a;border-left:3px solid #dc2626;padding-left:0.5rem;margin:1rem 0 0.5rem;">Interaksi Obat</h2>';
-                    r.step3.interactions.forEach(i => {
-                        html += '<p style="font-size:0.82rem;margin:0 0 0.35rem;color:#991b1b;"><strong>[' + this._esc(i.severity) + ']</strong> ' + this._esc(i.drug_a) + ' + ' + this._esc(i.drug_b) + ': ' + this._esc(i.effect) + (i.substitute ? ' (Alternatif: ' + this._esc(i.substitute) + ')' : '') + '</p>';
-                    });
-                }
-                // Footer
-                html += '<div style="margin-top:1.5rem;padding-top:0.6rem;border-top:1px solid #e2e8f0;display:flex;align-items:center;gap:8px;">';
-                html += '<img src="' + logoUrl + '" alt="Pharmasis" style="width:20px;height:20px;object-fit:contain;border-radius:4px;" />';
-                html += '<p style="font-size:0.7rem;color:#94a3b8;font-style:italic;margin:0;">Dokumen edukasi non-diagnostik. Tidak menggantikan pemeriksaan dan penilaian klinis langsung oleh tenaga medis berlisensi.</p>';
+                html += '<div style="flex:1;"><h1 style="font-size:1.2rem;font-weight:800;color:' + accent + ';margin:0;">Pharmasis Cek Sehat</h1>';
+                html += '<p style="font-size:0.68rem;color:#64748b;margin:0.2rem 0 0;">' + (isDoctor ? 'Ringkasan Klinis' : 'Laporan Kesehatan') + ' &middot; ' + dateStr + '</p></div>';
+                html += '<span style="font-size:0.6rem;font-weight:700;color:' + accent + ';background:#f0fdf9;border:1px solid #99f6e4;padding:0.2rem 0.6rem;border-radius:99px;text-transform:uppercase;">' + (isDoctor ? 'Mode Klinis' : 'Mode Pasien') + '</span>';
                 html += '</div>';
 
+                html += '<p style="font-size:0.85rem;margin:0 0 0.75rem;"><strong>Keluhan awal:</strong> ' + this._esc(r.symptoms || 'N/A') + '</p>';
+                if ((r.qa || []).length) {
+                    html += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:0.5rem;padding:0.75rem;margin-bottom:1rem;">';
+                    html += '<p style="font-size:0.7rem;font-weight:700;color:' + accent + ';text-transform:uppercase;margin:0 0 0.4rem;">Hasil Screening</p>';
+                    r.qa.forEach(p => { html += '<p style="font-size:0.78rem;margin:0 0 0.35rem;"><strong>' + this._esc(p.question) + '</strong><br>' + this._esc(p.answer) + '</p>'; });
+                    html += '</div>';
+                }
+
+                if (isDoctor) {
+                    if (c.differential?.length) {
+                        html += '<h2 style="font-size:0.95rem;color:#0f172a;border-left:3px solid ' + accent + ';padding-left:0.5rem;margin:1rem 0 0.5rem;">Diagnosis Banding</h2>';
+                        c.differential.forEach(d => html += '<p style="font-size:0.82rem;margin:0 0 0.35rem;"><strong>[' + this._esc(d.likelihood) + ']</strong> ' + this._esc(d.name) + ': ' + this._esc(d.rationale) + '</p>');
+                    }
+                    if (c.drugs?.length) {
+                        html += '<h2 style="font-size:0.95rem;color:#0f172a;border-left:3px solid ' + accent + ';padding-left:0.5rem;margin:1rem 0 0.5rem;">Regimen Farmakologi</h2>';
+                        c.drugs.forEach(d => {
+                            html += '<p style="font-size:0.82rem;margin:0 0 0.35rem;"><strong>' + this._esc(d.name) + '</strong> (' + this._esc(d.generic || '') + ') &mdash; ' + this._esc(d.dose || '') + ', ' + this._esc(d.frequency || '') + ', ' + this._esc(d.duration || '') + '. ' + this._esc(d.drug_class || '') + '.';
+                            if (d.contraindications?.length) html += ' <em>KI: ' + d.contraindications.map(s => this._esc(s)).join(', ') + '.</em>';
+                            html += '</p>';
+                        });
+                    }
+                    if (c.interactions?.length) {
+                        html += '<h2 style="font-size:0.95rem;color:#0f172a;border-left:3px solid #dc2626;padding-left:0.5rem;margin:1rem 0 0.5rem;">Interaksi Obat</h2>';
+                        c.interactions.forEach(i => html += '<p style="font-size:0.82rem;margin:0 0 0.35rem;color:#991b1b;"><strong>[' + this._esc(i.severity) + ']</strong> ' + this._esc(i.drug_a) + ' + ' + this._esc(i.drug_b) + ': ' + this._esc(i.effect) + (i.management ? ' — ' + this._esc(i.management) : '') + '</p>');
+                    }
+                    if (c.management?.length) { html += '<h2 style="font-size:0.95rem;color:#0f172a;border-left:3px solid ' + accent + ';padding-left:0.5rem;margin:1rem 0 0.5rem;">Penatalaksanaan</h2>'; c.management.forEach(m => html += '<p style="font-size:0.82rem;margin:0 0 0.25rem;">• ' + this._esc(m) + '</p>'); }
+                    if (c.red_flags?.length) { html += '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:0.5rem;padding:0.75rem;margin:0.75rem 0;"><p style="font-size:0.7rem;font-weight:700;color:#dc2626;text-transform:uppercase;margin:0 0 0.4rem;">Red Flags</p>'; c.red_flags.forEach(m => html += '<p style="font-size:0.8rem;color:#991b1b;margin:0 0 0.25rem;">' + this._esc(m) + '</p>'); html += '</div>'; }
+                    if (c.icd10) html += '<p style="font-size:0.85rem;margin:0.5rem 0;"><strong>Dugaan ICD-10:</strong> <code style="background:#f1f5f9;padding:0.1rem 0.4rem;border-radius:0.25rem;">' + this._esc(c.icd10) + '</code></p>';
+                    if (c.clinical_summary) html += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:0.5rem;padding:0.85rem;margin-top:0.75rem;"><p style="font-size:0.7rem;font-weight:700;color:' + accent + ';text-transform:uppercase;margin:0 0 0.35rem;">Ringkasan Klinis</p><p style="font-size:0.85rem;color:#334155;margin:0;">' + this._esc(c.clinical_summary) + '</p></div>';
+                } else {
+                    if (c.reassurance) html += '<div style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:0.5rem;padding:0.85rem;margin-bottom:1rem;"><p style="font-size:0.9rem;color:#134e4a;margin:0;">' + this._esc(c.reassurance) + '</p></div>';
+                    if (c.assumed_condition?.name) {
+                        html += '<h2 style="font-size:1rem;color:#0f172a;border-left:3px solid ' + accent + ';padding-left:0.5rem;margin:1rem 0 0.5rem;">Kemungkinan Kondisi: ' + this._esc(c.assumed_condition.name) + '</h2>';
+                        html += '<p style="font-size:0.85rem;color:#475569;margin:0 0 0.75rem;">' + this._esc(c.assumed_condition.plain_explanation || '') + '</p>';
+                    }
+                    const list = (title, items, color) => {
+                        if (!items?.length) return;
+                        html += '<h3 style="font-size:0.85rem;color:' + (color || '#0f172a') + ';margin:0.75rem 0 0.35rem;">' + title + '</h3>';
+                        items.forEach(s => html += '<p style="font-size:0.82rem;color:#475569;margin:0 0 0.25rem;">• ' + this._esc(s) + '</p>');
+                    };
+                    list('Penanganan Awal', c.self_care);
+                    list('Pengaturan Pola Hidup', c.lifestyle);
+                    if (c.when_to_seek_care) html += '<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:0.5rem;padding:0.75rem;margin:0.75rem 0;"><p style="font-size:0.7rem;font-weight:700;color:#b45309;text-transform:uppercase;margin:0 0 0.3rem;">Kapan Harus ke Faskes</p><p style="font-size:0.82rem;color:#78350f;margin:0;">' + this._esc(c.when_to_seek_care) + '</p></div>';
+                    if (c.which_doctor) html += '<p style="font-size:0.85rem;margin:0.5rem 0;"><strong>Temui dokter:</strong> ' + this._esc(c.which_doctor) + '</p>';
+                    list('Yang Perlu Ditanyakan ke Dokter', c.what_to_ask_doctor);
+                    if (c.disclaimer) html += '<p style="font-size:0.75rem;color:#94a3b8;font-style:italic;margin:1rem 0 0;border-top:1px solid #e2e8f0;padding-top:0.75rem;">' + this._esc(c.disclaimer) + '</p>';
+                }
+
+                html += '<div style="margin-top:1.5rem;padding-top:0.6rem;border-top:1px solid #e2e8f0;display:flex;align-items:center;gap:8px;">';
+                html += '<img src="' + logoUrl + '" alt="Pharmasis" style="width:20px;height:20px;object-fit:contain;border-radius:4px;" />';
+                html += '<p style="font-size:0.7rem;color:#94a3b8;font-style:italic;margin:0;">Dokumen edukasi non-diagnostik. Tidak menggantikan pemeriksaan dan penilaian klinis langsung oleh tenaga medis berlisensi.</p></div>';
+
+                const font = isDoctor ? "Georgia,'Times New Roman',serif" : "'Segoe UI',system-ui,sans-serif";
                 const w = window.open('', '_blank');
-                w.document.write('<!DOCTYPE html><html><head><title>Ringkasan Klinis Pharmasis</title><meta charset="utf-8"><style>@page{margin:1.5cm;size:A4;}body{font-family:Georgia,\'Times New Roman\',serif;color:#1e293b;line-height:1.55;padding:1.5cm;} .no-print{text-align:center;padding:1.5rem;} @media print{.no-print{display:none!important;}}</style></head><body>' + html + '<div class="no-print"><button onclick="window.print()" style="padding:0.6rem 2rem;border-radius:999px;border:none;background:#0d4f52;color:#fff;font-weight:700;cursor:pointer;">Cetak / Simpan PDF Klinis</button></div></body></html>');
+                w.document.write('<!DOCTYPE html><html><head><title>Laporan Cek Sehat</title><meta charset="utf-8"><style>@page{margin:1.5cm;size:A4;}body{font-family:' + font + ';color:#1e293b;line-height:1.55;padding:1.5cm;} .no-print{text-align:center;padding:1.5rem;} @media print{.no-print{display:none!important;}}</style></head><body>' + html + '<div class="no-print"><button onclick="window.print()" style="padding:0.6rem 2rem;border-radius:999px;border:none;background:' + accent + ';color:#fff;font-weight:700;cursor:pointer;">Cetak / Simpan PDF</button></div></body></html>');
                 w.document.close(); w.focus();
                 setTimeout(() => w.print(), 400);
             },
 
-            /* ── Init / cleanup ── */
-            init() {
-                this.$nextTick(() => { this.autoResizeTextarea(); });
-            },
+            /* ── cleanup ── */
             destroy() {
                 this.cancelKiosk();
                 this.stopWaveform();
+                if (this._placeholderTick) clearTimeout(this._placeholderTick);
             }
         };
     }

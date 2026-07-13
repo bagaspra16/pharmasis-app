@@ -180,9 +180,9 @@
                     style="background:radial-gradient(circle,rgba(97,186,202,0.15),transparent 70%); transform:translate(-30%,30%);"></div>
 
                 <div class="relative mb-8">
-                    <p class="text-teal-300/60 text-[11px] font-bold uppercase tracking-widest mb-2">8 langkah klinis · ~20 detik</p>
+                    <p class="text-teal-300/60 text-[11px] font-bold uppercase tracking-widest mb-2">Screening bertahap · disesuaikan dengan peran</p>
                     <h2 class="text-white text-2xl md:text-3xl font-heading leading-snug">
-                        Dari gejala<br class="hidden sm:block">menjadi laporan klinis lengkap.
+                        Dari keluhan<br class="hidden sm:block">menjadi kesimpulan yang tepat sasaran.
                     </h2>
                 </div>
 
@@ -190,14 +190,14 @@
                     <div class="absolute left-[15px] top-2 bottom-2 w-px" style="background:linear-gradient(to bottom,rgba(62,174,177,0.5),rgba(62,174,177,0.05));"></div>
 
                     @foreach([
-                        ['01','Membaca gejala & tanda keparahan','Mengurai teks · ekstraksi entitas · penilaian urgensi'],
-                        ['02','Mengenali pola kondisi','Diagnosis banding · pemetaan · skor keyakinan'],
-                        ['03','Mencocokkan obat & menghitung dosis','Referensi formularium · bebas vs resep · penyesuaian dosis'],
-                        ['04','Memeriksa keamanan interaksi obat','Pemindaian konflik · matriks kontraindikasi · alternatif'],
-                        ['05','Validasi keamanan','Penyaringan · kewajaran klinis · penambahan disclaimer'],
-                        ['06','Rencana pemulihan & gaya hidup','Estimasi waktu · optimasi gaya hidup · penanda darurat'],
-                        ['07','Mencari fasilitas kesehatan terdekat','Geolokasi IP · pemetaan fasilitas · ekstraksi kontak'],
-                        ['08','Analisis selesai — menampilkan hasil','JSON tervalidasi · penggantian otomatis · laporan siap'],
+                        ['01','Ceritakan keluhan awal','Ketik atau bicara · bahasa apa saja · mulai dari satu kalimat'],
+                        ['02','AI menyusun pertanyaan screening','3–5 pertanyaan relevan · fokus pada konteks masalah Anda'],
+                        ['03','Jawab dengan cepat','Pilihan cepat (chip) · atau tulis detail Anda sendiri'],
+                        ['04','Tentukan peran Anda','Tenaga kesehatan/dokter · atau pasien/masyarakat umum'],
+                        ['05','Kesimpulan untuk dokter','Diagnosis banding · regimen obat · interaksi · penatalaksanaan · ICD-10'],
+                        ['06','Kesimpulan untuk pasien','Penjelasan menenangkan · penanganan awal · pola hidup · arahan lanjutan'],
+                        ['07','Arahan ke fasilitas kesehatan','Dokter yang tepat · apa yang perlu ditanyakan · faskes terdekat'],
+                        ['08','Simpan & bagikan','Salin laporan · ekspor PDF · bagikan hasil'],
                     ] as [$n, $label, $detail])
                     <div class="flex items-start gap-4 py-2.5 group">
                         <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-all duration-200 group-hover:scale-110"
@@ -251,11 +251,11 @@
                     </div>
                     <h3 class="text-lg font-bold text-slate-800 mb-1.5">Yang Anda Dapatkan</h3>
                     <ul class="space-y-1.5 text-sm text-slate-500">
-                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Kemungkinan diagnosis dengan skor</li>
-                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Rekomendasi obat & panduan dosis</li>
-                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Pemeriksaan interaksi & keamanan obat</li>
-                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Rencana pemulihan & tips gaya hidup</li>
-                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Fasilitas kesehatan terdekat</li>
+                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Pertanyaan screening yang relevan</li>
+                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Kesimpulan yang menyesuaikan peran Anda</li>
+                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Mode dokter: diagnosis banding, regimen & interaksi</li>
+                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Mode pasien: penanganan awal & pola hidup</li>
+                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Arahan dokter yang tepat & faskes terdekat</li>
                     </ul>
                 </div>
 

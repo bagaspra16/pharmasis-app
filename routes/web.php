@@ -13,6 +13,9 @@ Route::get('/interactions', [DrugController::class , 'interactionPage'])->name('
 
 // ── MediCheck AI ─────────────────────────────────────────────────────────────
 Route::post('/medicheck/analyze', [MediCheckController::class, 'analyze'])->name('medicheck.analyze');
+Route::post('/medicheck/transcribe', [MediCheckController::class, 'transcribe'])->name('medicheck.transcribe');
+Route::post('/medicheck/screen', [MediCheckController::class, 'screen'])->name('medicheck.screen');
+Route::post('/medicheck/conclude', [MediCheckController::class, 'conclude'])->name('medicheck.conclude');
 Route::post('/medicheck/nearby', [MediCheckController::class, 'nearby'])->name('medicheck.nearby');
 Route::get('/medicheck/history', [MediCheckController::class, 'history'])->name('medicheck.history');
 Route::get('/medicheck/history/{id}', [MediCheckController::class, 'historyItem'])->name('medicheck.history.item');
