@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Cek Sehat — Kenali Obat Anda')
+@section('title', 'Skrining Penyakit Berbasis AI')
 @section('meta_description', (!empty($dbOffline) || !empty($fdaMode))
-    ? 'Cari 67.000+ obat lewat OpenFDA. Temukan informasi obat, peringatan, dosis, dan efek samping dalam bahasa yang mudah dipahami. Didukung AI.'
-    : 'Cari 16.000+ obat. Temukan informasi obat, peringatan, dosis, dan efek samping dalam bahasa yang mudah dipahami. Didukung AI.')
+    ? 'Konsultasikan gejala penyakit Anda menggunakan Skrining Kesehatan AI mutakhir. Ketahui informasi 67.000+ obat secara akurat, cepat, dan up-to-date.'
+    : 'Konsultasikan gejala penyakit Anda menggunakan Skrining Kesehatan AI mutakhir. Ketahui informasi 16.000+ obat secara akurat, cepat, dan up-to-date.')
 
 @push('head')
 <style>

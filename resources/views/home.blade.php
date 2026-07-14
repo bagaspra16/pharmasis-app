@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-{{-- Title otomatis di-handle oleh app.blade.php (fallback default yang telah dioptimasi SEO-nya) --}}
+@section('title', 'AI-Powered Medical Screening & Drug Directory')
 @section('meta_description', (!empty($dbOffline) || !empty($fdaMode))
-    ? 'Akses database 67.000+ obat via OpenFDA. Temukan indikasi, dosis, peringatan, dan efek samping dengan penjelasan sederhana yang mudah dipahami.'
-    : 'Akses direktori 16.000+ obat terlengkap. Temukan indikasi, dosis, peringatan, dan efek samping dengan penjelasan sederhana yang mudah dipahami.')
+    ? 'Consult your symptoms instantly with our cutting-edge AI Medical Screening. Discover accurate, fast, and up-to-date information on 67,000+ FDA drugs.'
+    : 'Consult your symptoms instantly with our cutting-edge AI Medical Screening. Discover accurate, fast, and up-to-date information on 16,000+ verified drugs.')
 
 @push('head')
 <style>
