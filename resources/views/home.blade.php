@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Pharmasis — Know Your Medicine')
+{{-- Title otomatis di-handle oleh app.blade.php (fallback default yang telah dioptimasi SEO-nya) --}}
 @section('meta_description', (!empty($dbOffline) || !empty($fdaMode))
-    ? 'Search 67,000+ medicines via OpenFDA. Find drug information, warnings, dosage, and side effects in plain language. Powered by AI for easy understanding.'
-    : 'Search 16,000+ medicines. Find drug information, warnings, dosage, and side effects in plain language. Powered by AI for easy understanding.')
+    ? 'Akses database 67.000+ obat via OpenFDA. Temukan indikasi, dosis, peringatan, dan efek samping dengan penjelasan sederhana yang mudah dipahami.'
+    : 'Akses direktori 16.000+ obat terlengkap. Temukan indikasi, dosis, peringatan, dan efek samping dengan penjelasan sederhana yang mudah dipahami.')
 
 @push('head')
 <style>

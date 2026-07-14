@@ -1,13 +1,45 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth" style="overscroll-behavior: none;">
+<html lang="id" class="scroll-smooth" style="overscroll-behavior: none;">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#3EAEB1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Pharmasis') — Know Your Medicine</title>
-    <meta name="description"
-        content="@yield('meta_description', 'Pharmasis provides clear, reliable, and easy-to-understand medicine safety information. Search 16,000+ drugs with AI-powered plain-language explanations.')">
+    <!-- SEO & Meta Tags Optimization Maksimal -->
+    @hasSection('title')
+        <title>@yield('title') | Pharmasis</title>
+        <meta name="title" content="@yield('title') | Pharmasis">
+        <meta property="og:title" content="@yield('title') | Pharmasis">
+        <meta property="twitter:title" content="@yield('title') | Pharmasis">
+    @else
+        <title>Pharmasis | Cek Kesehatan & Direktori Obat Terpercaya</title>
+        <meta name="title" content="Pharmasis | Cek Kesehatan & Direktori Obat Terpercaya">
+        <meta property="og:title" content="Pharmasis | Cek Kesehatan & Direktori Obat Terpercaya">
+        <meta property="twitter:title" content="Pharmasis | Cek Kesehatan & Direktori Obat Terpercaya">
+    @endif
+
+    <meta name="description" content="@yield('meta_description', 'Cek gejala penyakit, cari informasi obat terlengkap, dan dapatkan panduan kesehatan terpercaya dengan Pharmasis. Solusi pintar untuk kesehatan Anda dan keluarga.')">
+    <meta name="keywords" content="Pharmasis, cek kesehatan online, cek gejala penyakit, direktori obat, informasi obat, panduan medis, asisten kesehatan">
+    <meta name="author" content="Pharmasis">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="language" content="id">
+    
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:description" content="@yield('meta_description', 'Cek gejala penyakit, cari informasi obat terlengkap, dan dapatkan panduan kesehatan terpercaya dengan Pharmasis.')">
+    <meta property="og:image" content="{{ asset('images/icon.png') }}">
+    <meta property="og:site_name" content="Pharmasis">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ url()->current() }}">
+    <meta property="twitter:description" content="@yield('meta_description', 'Cek gejala penyakit, cari informasi obat terlengkap, dan dapatkan panduan kesehatan terpercaya dengan Pharmasis.')">
+    <meta property="twitter:image" content="{{ asset('images/icon.png') }}">
+
+    <!-- Canonical URL untuk menghindari Duplicate Content -->
+    <link rel="canonical" href="{{ url()->current() }}">
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -317,6 +349,31 @@
     </style>
 
     @stack('head')
+    <!-- Structured Data (JSON-LD) untuk Maksimalisasi SEO (Rich Snippets) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Pharmasis",
+      "alternateName": "Cek Sehat AI",
+      "url": "{{ url('/') }}",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "{{ url('/search') }}?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "MedicalOrganization",
+      "name": "Pharmasis",
+      "url": "{{ url('/') }}",
+      "logo": "{{ asset('images/icon.png') }}",
+      "description": "Asisten kesehatan AI pintar untuk cek gejala penyakit, analisis kondisi medis, dan direktori obat terlengkap dengan penjelasan mudah dipahami."
+    }
+    </script>
 </head>
 
 <body class="font-body bg-[#f7fcfc] text-ink-800 antialiased selection:bg-primary/20 selection:text-ink-900 flex flex-col h-screen overflow-hidden">
