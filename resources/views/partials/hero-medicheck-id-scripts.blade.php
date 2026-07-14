@@ -202,7 +202,11 @@
                     });
                     const data = await res.json();
                     if (!res.ok || !data.success) {
-                        this.error = (typeof data.error === 'string' ? data.error : 'Gagal menyiapkan pertanyaan. Silakan coba lagi.');
+                        let errMsg = 'Gagal menyiapkan pertanyaan. Silakan coba lagi.';
+                        if (typeof data.error === 'string') errMsg = data.error;
+                        else if (typeof data.message === 'string') errMsg = data.message;
+                        else if (typeof data.error === 'object') errMsg = Object.values(data.error).flat()[0] || errMsg;
+                        this.error = errMsg;
                     } else {
                         this.questions = (data.questions || []).map(q => {
                             this.answers[q.id] = { chips: [], text: '' };
@@ -313,7 +317,11 @@
                     await this.finishSteps();
 
                     if (!res.ok || !data.success) {
-                        this.error = (typeof data.error === 'string' ? data.error : 'Gagal menyusun kesimpulan. Silakan coba lagi.');
+                        let errMsg = 'Gagal menyusun kesimpulan. Silakan coba lagi.';
+                        if (typeof data.error === 'string') errMsg = data.error;
+                        else if (typeof data.message === 'string') errMsg = data.message;
+                        else if (typeof data.error === 'object') errMsg = Object.values(data.error).flat()[0] || errMsg;
+                        this.error = errMsg;
                         this.phase = 'questions';
                     } else {
                         this.result = data.data;
