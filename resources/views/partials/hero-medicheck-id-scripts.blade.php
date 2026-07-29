@@ -674,12 +674,12 @@
                     if (c.clinical_summary) t += `Clinical Summary: ${c.clinical_summary}\n`;
                 } else {
                     if (c.reassurance) t += `${c.reassurance}\n\n`;
-                    if (c.assumed_condition?.name) t += `KEMUNGKINAN KONDISI: ${c.assumed_condition.name}\n${c.assumed_condition.plain_explanation || ''}\n\n`;
-                    if (c.self_care?.length) { t += 'PENANGANAN AWAL\n'; c.self_care.forEach(s => t += `- ${s}\n`); t += '\n'; }
-                    if (c.lifestyle?.length) { t += 'PENGATURAN POLA HIDUP\n'; c.lifestyle.forEach(s => t += `- ${s}\n`); t += '\n'; }
-                    if (c.when_to_seek_care) t += `KAPAN HARUS KE FASKES: ${c.when_to_seek_care}\n`;
-                    if (c.which_doctor) t += `TEMUI DOKTER: ${c.which_doctor}\n`;
-                    if (c.what_to_ask_doctor?.length) { t += 'YANG PERLU DITANYAKAN:\n'; c.what_to_ask_doctor.forEach(s => t += `- ${s}\n`); }
+                    if (c.assumed_condition?.name) t += `LIKELY CONDITION: ${c.assumed_condition.name}\n${c.assumed_condition.plain_explanation || ''}\n\n`;
+                    if (c.self_care?.length) { t += 'SELF-CARE\n'; c.self_care.forEach(s => t += `- ${s}\n`); t += '\n'; }
+                    if (c.lifestyle?.length) { t += 'LIFESTYLE ADJUSTMENTS\n'; c.lifestyle.forEach(s => t += `- ${s}\n`); t += '\n'; }
+                    if (c.when_to_seek_care) t += `WHEN TO SEEK MEDICAL CARE: ${c.when_to_seek_care}\n`;
+                    if (c.which_doctor) t += `YOU SHOULD SEE: ${c.which_doctor}\n`;
+                    if (c.what_to_ask_doctor?.length) { t += 'WHAT TO ASK YOUR DOCTOR:\n'; c.what_to_ask_doctor.forEach(s => t += `- ${s}\n`); }
                     if (c.disclaimer) t += `\n${c.disclaimer}\n`;
                 }
                 t += watermark;
@@ -691,32 +691,32 @@
                 if (!text) return;
                 try {
                     await navigator.clipboard.writeText(text);
-                    this.copyFeedback = 'Tersalin!';
+                    this.copyFeedback = 'Copied!';
                     setTimeout(() => this.copyFeedback = '', 2000);
                 } catch (e) {
                     const ta = document.createElement('textarea');
                     ta.value = text; document.body.appendChild(ta); ta.select();
                     document.execCommand('copy'); document.body.removeChild(ta);
-                    this.copyFeedback = 'Tersalin!';
+                    this.copyFeedback = 'Copied!';
                     setTimeout(() => this.copyFeedback = '', 2000);
                 }
             },
             async shareResult() {
                 const text = this.buildReport();
                 if (!text) return;
-                const shareData = { title: 'Laporan Cek Sehat', text };
+                const shareData = { title: 'MediCheck Report', text };
                 if (navigator.canShare && navigator.canShare(shareData)) {
                     try { await navigator.share(shareData); }
                     catch (e) {
                         if (e.name !== 'AbortError') {
                             await navigator.clipboard.writeText(text);
-                            this.copyFeedback = 'Dibagikan!';
+                            this.copyFeedback = 'Shared!';
                             setTimeout(() => this.copyFeedback = '', 2000);
                         }
                     }
                 } else {
                     await navigator.clipboard.writeText(text);
-                    this.copyFeedback = 'Tersalin untuk dibagikan!';
+                    this.copyFeedback = 'Copied to share!';
                     setTimeout(() => this.copyFeedback = '', 2000);
                 }
             },
@@ -730,7 +730,7 @@
             savePdf() {
                 const r = this.result, c = this.conclusion;
                 if (!r || !c) return;
-                const dateStr = new Date().toLocaleString('id-ID');
+                const dateStr = new Date().toLocaleString('en-US');
                 const logoUrl = window.location.origin + '/images/icon.png';
                 const isDoctor = r.role === 'doctor';
                 const accent = isDoctor ? '#0d4f52' : '#0d9488';
@@ -738,44 +738,44 @@
 
                 html += `<div style="display:flex;align-items:center;gap:14px;border-bottom:2px solid ${accent};padding-bottom:0.85rem;margin-bottom:1.5rem;">`;
                 html += '<img src="' + logoUrl + '" alt="Pharmasis" style="width:44px;height:44px;object-fit:contain;border-radius:10px;" />';
-                html += '<div style="flex:1;"><h1 style="font-size:1.2rem;font-weight:800;color:' + accent + ';margin:0;">Pharmasis Cek Sehat</h1>';
-                html += '<p style="font-size:0.68rem;color:#64748b;margin:0.2rem 0 0;">' + (isDoctor ? 'Ringkasan Klinis' : 'Laporan Kesehatan') + ' &middot; ' + dateStr + '</p></div>';
-                html += '<span style="font-size:0.6rem;font-weight:700;color:' + accent + ';background:#f0fdf9;border:1px solid #99f6e4;padding:0.2rem 0.6rem;border-radius:99px;text-transform:uppercase;">' + (isDoctor ? 'Mode Klinis' : 'Mode Pasien') + '</span>';
+                html += '<div style="flex:1;"><h1 style="font-size:1.2rem;font-weight:800;color:' + accent + ';margin:0;">Pharmasis MediCheck</h1>';
+                html += '<p style="font-size:0.68rem;color:#64748b;margin:0.2rem 0 0;">' + (isDoctor ? 'Clinical Summary' : 'Health Report') + ' &middot; ' + dateStr + '</p></div>';
+                html += '<span style="font-size:0.6rem;font-weight:700;color:' + accent + ';background:#f0fdf9;border:1px solid #99f6e4;padding:0.2rem 0.6rem;border-radius:99px;text-transform:uppercase;">' + (isDoctor ? 'Clinical Mode' : 'Patient Mode') + '</span>';
                 html += '</div>';
 
-                html += '<p style="font-size:0.85rem;margin:0 0 0.75rem;"><strong>Keluhan awal:</strong> ' + this._esc(r.symptoms || 'N/A') + '</p>';
+                html += '<p style="font-size:0.85rem;margin:0 0 0.75rem;"><strong>Initial symptoms:</strong> ' + this._esc(r.symptoms || 'N/A') + '</p>';
                 if ((r.qa || []).length) {
                     html += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:0.5rem;padding:0.75rem;margin-bottom:1rem;">';
-                    html += '<p style="font-size:0.7rem;font-weight:700;color:' + accent + ';text-transform:uppercase;margin:0 0 0.4rem;">Hasil Screening</p>';
+                    html += '<p style="font-size:0.7rem;font-weight:700;color:' + accent + ';text-transform:uppercase;margin:0 0 0.4rem;">Screening Results</p>';
                     r.qa.forEach(p => { html += '<p style="font-size:0.78rem;margin:0 0 0.35rem;"><strong>' + this._esc(p.question) + '</strong><br>' + this._esc(p.answer) + '</p>'; });
                     html += '</div>';
                 }
 
                 if (isDoctor) {
                     if (c.differential?.length) {
-                        html += '<h2 style="font-size:0.95rem;color:#0f172a;border-left:3px solid ' + accent + ';padding-left:0.5rem;margin:1rem 0 0.5rem;">Diagnosis Banding</h2>';
-                        c.differential.forEach(d => html += '<p style="font-size:0.82rem;margin:0 0 0.35rem;"><strong>[' + this._esc(d.likelihood) + ']</strong> ' + this._esc(d.name) + ': ' + this._esc(d.rationale) + '</p>');
+                        html += '<h2 style="font-size:0.95rem;color:#0f172a;border-left:3px solid ' + accent + ';padding-left:0.5rem;margin:1rem 0 0.5rem;">Differential Diagnosis</h2>';
+                        c.differential.forEach(d => html += '<p style="font-size:0.82rem;margin:0 0 0.35rem;"><strong>[' + this._esc(this.likelihoodLabel(d.likelihood)) + ']</strong> ' + this._esc(d.name) + ': ' + this._esc(d.rationale) + '</p>');
                     }
                     if (c.drugs?.length) {
-                        html += '<h2 style="font-size:0.95rem;color:#0f172a;border-left:3px solid ' + accent + ';padding-left:0.5rem;margin:1rem 0 0.5rem;">Regimen Farmakologi</h2>';
+                        html += '<h2 style="font-size:0.95rem;color:#0f172a;border-left:3px solid ' + accent + ';padding-left:0.5rem;margin:1rem 0 0.5rem;">Pharmacologic Regimen</h2>';
                         c.drugs.forEach(d => {
                             html += '<p style="font-size:0.82rem;margin:0 0 0.35rem;"><strong>' + this._esc(d.name) + '</strong> (' + this._esc(d.generic || '') + ') &mdash; ' + this._esc(d.dose || '') + ', ' + this._esc(d.frequency || '') + ', ' + this._esc(d.duration || '') + '. ' + this._esc(d.drug_class || '') + '.';
-                            if (d.contraindications?.length) html += ' <em>KI: ' + d.contraindications.map(s => this._esc(s)).join(', ') + '.</em>';
+                            if (d.contraindications?.length) html += ' <em>Contraindications: ' + d.contraindications.map(s => this._esc(s)).join(', ') + '.</em>';
                             html += '</p>';
                         });
                     }
                     if (c.interactions?.length) {
-                        html += '<h2 style="font-size:0.95rem;color:#0f172a;border-left:3px solid #dc2626;padding-left:0.5rem;margin:1rem 0 0.5rem;">Interaksi Obat</h2>';
-                        c.interactions.forEach(i => html += '<p style="font-size:0.82rem;margin:0 0 0.35rem;color:#991b1b;"><strong>[' + this._esc(i.severity) + ']</strong> ' + this._esc(i.drug_a) + ' + ' + this._esc(i.drug_b) + ': ' + this._esc(i.effect) + (i.management ? ' — ' + this._esc(i.management) : '') + '</p>');
+                        html += '<h2 style="font-size:0.95rem;color:#0f172a;border-left:3px solid #dc2626;padding-left:0.5rem;margin:1rem 0 0.5rem;">Drug Interactions</h2>';
+                        c.interactions.forEach(i => html += '<p style="font-size:0.82rem;margin:0 0 0.35rem;color:#991b1b;"><strong>[' + this._esc(this.severityLabel(i.severity)) + ']</strong> ' + this._esc(i.drug_a) + ' + ' + this._esc(i.drug_b) + ': ' + this._esc(i.effect) + (i.management ? ' — ' + this._esc(i.management) : '') + '</p>');
                     }
-                    if (c.management?.length) { html += '<h2 style="font-size:0.95rem;color:#0f172a;border-left:3px solid ' + accent + ';padding-left:0.5rem;margin:1rem 0 0.5rem;">Penatalaksanaan</h2>'; c.management.forEach(m => html += '<p style="font-size:0.82rem;margin:0 0 0.25rem;">• ' + this._esc(m) + '</p>'); }
+                    if (c.management?.length) { html += '<h2 style="font-size:0.95rem;color:#0f172a;border-left:3px solid ' + accent + ';padding-left:0.5rem;margin:1rem 0 0.5rem;">Management</h2>'; c.management.forEach(m => html += '<p style="font-size:0.82rem;margin:0 0 0.25rem;">• ' + this._esc(m) + '</p>'); }
                     if (c.red_flags?.length) { html += '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:0.5rem;padding:0.75rem;margin:0.75rem 0;"><p style="font-size:0.7rem;font-weight:700;color:#dc2626;text-transform:uppercase;margin:0 0 0.4rem;">Red Flags</p>'; c.red_flags.forEach(m => html += '<p style="font-size:0.8rem;color:#991b1b;margin:0 0 0.25rem;">' + this._esc(m) + '</p>'); html += '</div>'; }
-                    if (c.icd10) html += '<p style="font-size:0.85rem;margin:0.5rem 0;"><strong>Dugaan ICD-10:</strong> <code style="background:#f1f5f9;padding:0.1rem 0.4rem;border-radius:0.25rem;">' + this._esc(c.icd10) + '</code></p>';
-                    if (c.clinical_summary) html += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:0.5rem;padding:0.85rem;margin-top:0.75rem;"><p style="font-size:0.7rem;font-weight:700;color:' + accent + ';text-transform:uppercase;margin:0 0 0.35rem;">Ringkasan Klinis</p><p style="font-size:0.85rem;color:#334155;margin:0;">' + this._esc(c.clinical_summary) + '</p></div>';
+                    if (c.icd10) html += '<p style="font-size:0.85rem;margin:0.5rem 0;"><strong>Suspected ICD-10:</strong> <code style="background:#f1f5f9;padding:0.1rem 0.4rem;border-radius:0.25rem;">' + this._esc(c.icd10) + '</code></p>';
+                    if (c.clinical_summary) html += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:0.5rem;padding:0.85rem;margin-top:0.75rem;"><p style="font-size:0.7rem;font-weight:700;color:' + accent + ';text-transform:uppercase;margin:0 0 0.35rem;">Clinical Summary</p><p style="font-size:0.85rem;color:#334155;margin:0;">' + this._esc(c.clinical_summary) + '</p></div>';
                 } else {
                     if (c.reassurance) html += '<div style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:0.5rem;padding:0.85rem;margin-bottom:1rem;"><p style="font-size:0.9rem;color:#134e4a;margin:0;">' + this._esc(c.reassurance) + '</p></div>';
                     if (c.assumed_condition?.name) {
-                        html += '<h2 style="font-size:1rem;color:#0f172a;border-left:3px solid ' + accent + ';padding-left:0.5rem;margin:1rem 0 0.5rem;">Kemungkinan Kondisi: ' + this._esc(c.assumed_condition.name) + '</h2>';
+                        html += '<h2 style="font-size:1rem;color:#0f172a;border-left:3px solid ' + accent + ';padding-left:0.5rem;margin:1rem 0 0.5rem;">Likely Condition: ' + this._esc(c.assumed_condition.name) + '</h2>';
                         html += '<p style="font-size:0.85rem;color:#475569;margin:0 0 0.75rem;">' + this._esc(c.assumed_condition.plain_explanation || '') + '</p>';
                     }
                     const list = (title, items, color) => {
@@ -783,21 +783,21 @@
                         html += '<h3 style="font-size:0.85rem;color:' + (color || '#0f172a') + ';margin:0.75rem 0 0.35rem;">' + title + '</h3>';
                         items.forEach(s => html += '<p style="font-size:0.82rem;color:#475569;margin:0 0 0.25rem;">• ' + this._esc(s) + '</p>');
                     };
-                    list('Penanganan Awal', c.self_care);
-                    list('Pengaturan Pola Hidup', c.lifestyle);
-                    if (c.when_to_seek_care) html += '<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:0.5rem;padding:0.75rem;margin:0.75rem 0;"><p style="font-size:0.7rem;font-weight:700;color:#b45309;text-transform:uppercase;margin:0 0 0.3rem;">Kapan Harus ke Faskes</p><p style="font-size:0.82rem;color:#78350f;margin:0;">' + this._esc(c.when_to_seek_care) + '</p></div>';
-                    if (c.which_doctor) html += '<p style="font-size:0.85rem;margin:0.5rem 0;"><strong>Temui dokter:</strong> ' + this._esc(c.which_doctor) + '</p>';
-                    list('Yang Perlu Ditanyakan ke Dokter', c.what_to_ask_doctor);
+                    list('Self-Care', c.self_care);
+                    list('Lifestyle Adjustments', c.lifestyle);
+                    if (c.when_to_seek_care) html += '<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:0.5rem;padding:0.75rem;margin:0.75rem 0;"><p style="font-size:0.7rem;font-weight:700;color:#b45309;text-transform:uppercase;margin:0 0 0.3rem;">When to Seek Medical Care</p><p style="font-size:0.82rem;color:#78350f;margin:0;">' + this._esc(c.when_to_seek_care) + '</p></div>';
+                    if (c.which_doctor) html += '<p style="font-size:0.85rem;margin:0.5rem 0;"><strong>You should see:</strong> ' + this._esc(c.which_doctor) + '</p>';
+                    list('What to Ask Your Doctor', c.what_to_ask_doctor);
                     if (c.disclaimer) html += '<p style="font-size:0.75rem;color:#94a3b8;font-style:italic;margin:1rem 0 0;border-top:1px solid #e2e8f0;padding-top:0.75rem;">' + this._esc(c.disclaimer) + '</p>';
                 }
 
                 html += '<div style="margin-top:1.5rem;padding-top:0.6rem;border-top:1px solid #e2e8f0;display:flex;align-items:center;gap:8px;">';
                 html += '<img src="' + logoUrl + '" alt="Pharmasis" style="width:20px;height:20px;object-fit:contain;border-radius:4px;" />';
-                html += '<p style="font-size:0.7rem;color:#94a3b8;font-style:italic;margin:0;">Dokumen edukasi non-diagnostik. Tidak menggantikan pemeriksaan dan penilaian klinis langsung oleh tenaga medis berlisensi.</p></div>';
+                html += '<p style="font-size:0.7rem;color:#94a3b8;font-style:italic;margin:0;">Non-diagnostic educational document. It does not replace an in-person examination or the clinical judgment of a licensed medical professional.</p></div>';
 
                 const font = isDoctor ? "Georgia,'Times New Roman',serif" : "'Segoe UI',system-ui,sans-serif";
                 const w = window.open('', '_blank');
-                w.document.write('<!DOCTYPE html><html><head><title>Laporan Cek Sehat</title><meta charset="utf-8"><style>@page{margin:1.5cm;size:A4;}body{font-family:' + font + ';color:#1e293b;line-height:1.55;padding:1.5cm;} .no-print{text-align:center;padding:1.5rem;} @media print{.no-print{display:none!important;}}</style></head><body>' + html + '<div class="no-print"><button onclick="window.print()" style="padding:0.6rem 2rem;border-radius:999px;border:none;background:' + accent + ';color:#fff;font-weight:700;cursor:pointer;">Cetak / Simpan PDF</button></div></body></html>');
+                w.document.write('<!DOCTYPE html><html><head><title>MediCheck Report</title><meta charset="utf-8"><style>@page{margin:1.5cm;size:A4;}body{font-family:' + font + ';color:#1e293b;line-height:1.55;padding:1.5cm;} .no-print{text-align:center;padding:1.5rem;} @media print{.no-print{display:none!important;}}</style></head><body>' + html + '<div class="no-print"><button onclick="window.print()" style="padding:0.6rem 2rem;border-radius:999px;border:none;background:' + accent + ';color:#fff;font-weight:700;cursor:pointer;">Print / Save PDF</button></div></body></html>');
                 w.document.close(); w.focus();
                 setTimeout(() => w.print(), 400);
             },
