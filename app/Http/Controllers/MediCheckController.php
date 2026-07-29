@@ -278,7 +278,12 @@ class MediCheckController extends Controller
 
         $t = ' ' . mb_strtolower($text) . ' ';
         $idHits = 0;
-        foreach ([' saya ', ' yang ', ' dan ', ' tidak ', ' dengan ', ' sakit ', ' demam ', ' batuk ', ' sejak ', ' nyeri ', ' hari ', ' terasa '] as $w) {
+        foreach ([
+            ' saya ', ' aku ', ' yang ', ' dan ', ' tidak ', ' dengan ', ' sakit ',
+            ' demam ', ' batuk ', ' sejak ', ' nyeri ', ' hari ', ' terasa ', ' sudah ',
+            ' kepala ', ' perut ', ' badan ', ' mual ', ' pusing ', ' sesak ', ' lemas ',
+            ' minum ', ' obat ', ' dokter ', ' tolong ', ' bantu ', ' ada ', ' juga ',
+        ] as $w) {
             if (str_contains($t, $w)) $idHits++;
         }
         return $idHits >= 1 ? 'id' : 'en';

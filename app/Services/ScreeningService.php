@@ -19,7 +19,8 @@ class ScreeningService
      */
     public function generateQuestions(string $firstPrompt, string $lang = 'auto'): array
     {
-        $langInstr = $this->langInstruction($lang);
+        $resolvedLang = $lang === 'auto' ? $this->detectLang($firstPrompt) : $lang;
+        $langInstr    = $this->langInstruction($resolvedLang);
 
         $raw = $this->groq->chat(self::MODEL, [
             ['role' => 'system', 'content' =>
@@ -74,8 +75,9 @@ class ScreeningService
      */
     public function conclude(string $firstPrompt, array $qa, string $role, string $lang = 'auto'): array
     {
-        $langInstr = $this->langInstruction($lang);
-        $transcript = $this->buildTranscript($firstPrompt, $qa);
+        $resolvedLang = $lang === 'auto' ? $this->detectLang($firstPrompt) : $lang;
+        $langInstr    = $this->langInstruction($resolvedLang);
+        $transcript   = $this->buildTranscript($firstPrompt, $qa);
 
         return $role === 'doctor'
             ? $this->concludeDoctor($transcript, $langInstr)
@@ -154,13 +156,44 @@ class ScreeningService
         return implode("\n", $lines);
     }
 
+    /**
+     * Detect dominant language from free text using a simple keyword heuristic.
+     * Returns 'id' for Bahasa Indonesia, 'en' otherwise.
+     */
+    private function detectLang(string $text): string
+    {
+        $t = ' ' . mb_strtolower($text) . ' ';
+        $idWords = [
+            ' saya ', ' aku ', ' yang ', ' dan ', ' tidak ', ' dengan ', ' sakit ',
+            ' demam ', ' batuk ', ' sejak ', ' nyeri ', ' hari ', ' terasa ', ' sudah ',
+            ' kepala ', ' perut ', ' badan ', ' mual ', ' pusing ', ' sesak ', ' lemas ',
+            ' minum ', ' obat ', ' dokter ', ' tolong ', ' bantu ', ' ada ', ' juga ',
+        ];
+        $hits = 0;
+        foreach ($idWords as $w) {
+            if (str_contains($t, $w)) $hits++;
+        }
+        return $hits >= 1 ? 'id' : 'en';
+    }
+
+    /**
+     * Build a hard language directive from an already-resolved language code.
+     * This removes ambiguity — the AI is told exactly which language to use,
+     * not asked to guess.
+     */
     private function langInstruction(string $lang): string
     {
-        return 'IMPORTANT: Detect the language of the patient\'s input automatically. '
-             . 'If they wrote in Bahasa Indonesia, respond entirely in Bahasa Indonesia. '
-             . 'If they used English, respond entirely in English. '
-             . 'If mixed, use whichever language dominates. '
-             . 'Never translate the input — always mirror the patient\'s own language in every field of your JSON response.';
+        if ($lang === 'id') {
+            return 'LANGUAGE DIRECTIVE (MANDATORY): The patient wrote in Bahasa Indonesia. '
+                 . 'You MUST write every field of your JSON response — including question text, hint, '
+                 . 'and every choice option — entirely in Bahasa Indonesia. '
+                 . 'Do NOT use English anywhere in any field value. No exceptions.';
+        }
+
+        return 'LANGUAGE DIRECTIVE (MANDATORY): The patient wrote in English. '
+             . 'You MUST write every field of your JSON response — including question text, hint, '
+             . 'and every choice option — entirely in English. '
+             . 'Do NOT use Bahasa Indonesia anywhere in any field value. No exceptions.';
     }
 
     private function parseJson(string $raw, string $step): array
