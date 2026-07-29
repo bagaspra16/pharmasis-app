@@ -1,4 +1,4 @@
-{{-- Cek Sehat — scripts (screening flow + kiosk) --}}
+{{-- MediCheck — scripts (screening flow + kiosk) --}}
 <script>
     /* ══════════════ Infinite grid (mouse tracking + drift) ══════════════ */
     document.addEventListener('alpine:init', () => {
@@ -41,12 +41,12 @@
         };
     }
 
-    /* ══════════════ Concluding steps (Bahasa Indonesia) ══════════════ */
+    /* ══════════════ Concluding steps ══════════════ */
     const CONCLUDE_STEPS_ID = [
-        { id: 'read',    icon: '1', label: 'Merangkum jawaban Anda', detail: 'Menyusun transkrip screening · mengenali entitas klinis' },
-        { id: 'reason',  icon: '2', label: 'Menyusun asumsi kondisi', detail: 'Diagnosis banding · penalaran klinis' },
-        { id: 'plan',    icon: '3', label: 'Menyusun rekomendasi', detail: 'Obat / penanganan · keamanan · arahan lanjutan' },
-        { id: 'done',    icon: '4', label: 'Kesimpulan siap ditampilkan', detail: 'JSON tervalidasi · laporan disesuaikan dengan peran Anda' },
+        { id: 'read',    icon: '1', label: 'Summarizing your answers', detail: 'Building the screening transcript · recognizing clinical entities' },
+        { id: 'reason',  icon: '2', label: 'Forming a likely condition', detail: 'Differential diagnosis · clinical reasoning' },
+        { id: 'plan',    icon: '3', label: 'Building recommendations', detail: 'Medicines / care · safety · next steps' },
+        { id: 'done',    icon: '4', label: 'Conclusion ready to display', detail: 'Validated JSON · report tailored to your role' },
     ];
 
     /* ══════════════ Main component ══════════════ */
@@ -103,10 +103,10 @@
 
             /* ── Placeholder typewriter ── */
             placeholderExamples: [
-                'Contoh: "Saya batuk kering dan demam 38 derajat sejak kemarin..."',
-                'Contoh: "Perut kanan bawah terasa sangat nyeri, mual, dan sempat muntah 2 kali..."',
-                'Contoh: "Hidung tersumbat, bersin-bersin tiap pagi, ada riwayat asma ringan..."',
-                'Contoh: "Kepala terasa berputar saat bangun tidur, telinga berdenging..."'
+                'Example: "I\'ve had a dry cough and a 38 degree fever since yesterday..."',
+                'Example: "My lower right abdomen hurts badly, I feel nauseous, and I vomited twice..."',
+                'Example: "Blocked nose, sneezing every morning, with a history of mild asthma..."',
+                'Example: "My head spins when I get out of bed and my ears are ringing..."'
             ],
             currentPlaceholderIdx: 0,
             _placeholderTick: null,
@@ -202,7 +202,7 @@
                     });
                     const data = await res.json();
                     if (!res.ok || !data.success) {
-                        let errMsg = 'Gagal menyiapkan pertanyaan. Silakan coba lagi.';
+                        let errMsg = 'Failed to prepare questions. Please try again.';
                         if (typeof data.error === 'string') errMsg = data.error;
                         else if (typeof data.message === 'string') errMsg = data.message;
                         else if (typeof data.error === 'object') errMsg = Object.values(data.error).flat()[0] || errMsg;
@@ -217,7 +217,7 @@
                         this.$nextTick(() => setTimeout(() => this.scrollToEl('screening-panel', 'smooth'), 80));
                     }
                 } catch (e) {
-                    this.error = 'Kesalahan jaringan. Silakan coba lagi.';
+                    this.error = 'Network error. Please try again.';
                 } finally {
                     this.screening = false;
                 }
@@ -270,7 +270,7 @@
                         const parts = [];
                         if (a.chips.length) parts.push(a.chips.join(', '));
                         if ((a.text || '').trim()) parts.push(a.text.trim());
-                        return { question: q.question, answer: parts.join(' — ') || '(tidak dijawab)' };
+                        return { question: q.question, answer: parts.join(' — ') || '(not answered)' };
                     });
             },
 
@@ -283,7 +283,7 @@
                 this.currentStep = 0;
                 this.$nextTick(() => setTimeout(() => this.scrollToEl('screening-panel', 'smooth'), 80));
 
-                // Fetch geolocation for the patient "faskes terdekat" section.
+                // Fetch geolocation for the patient "nearby facilities" section.
                 if (window.cookieConsentAccepted && window.cookieConsentAccepted()) {
                     try {
                         const locRes = await fetch('https://ipapi.co/json/');
@@ -317,7 +317,7 @@
                     await this.finishSteps();
 
                     if (!res.ok || !data.success) {
-                        let errMsg = 'Gagal menyusun kesimpulan. Silakan coba lagi.';
+                        let errMsg = 'Failed to build the conclusion. Please try again.';
                         if (typeof data.error === 'string') errMsg = data.error;
                         else if (typeof data.message === 'string') errMsg = data.message;
                         else if (typeof data.error === 'object') errMsg = Object.values(data.error).flat()[0] || errMsg;
@@ -346,7 +346,7 @@
                     }
                 } catch (e) {
                     clearInterval(stepTimer);
-                    this.error = 'Kesalahan jaringan. Silakan coba lagi.';
+                    this.error = 'Network error. Please try again.';
                     this.phase = 'questions';
                 } finally {
                     this.analyzing = false;
@@ -403,7 +403,7 @@
                     this.recording = true;
                     this.startWaveform(stream);
                 } catch (e) {
-                    this.error = 'Akses mikrofon ditolak. Izinkan mikrofon atau ketik keluhan Anda di bawah.';
+                    this.error = 'Microphone access denied. Please allow the microphone or type your symptoms below.';
                 }
             },
             stopRecording() {
@@ -441,10 +441,10 @@
                         await this.startScreening();
                         return;
                     } else {
-                        this.error = (typeof data.error === 'string' ? data.error : 'Gagal mentranskripsi suara. Silakan ketik keluhan Anda.');
+                        this.error = (typeof data.error === 'string' ? data.error : 'Failed to transcribe audio. Please type your symptoms instead.');
                     }
                 } catch (e) {
-                    this.error = 'Gagal mentranskripsi suara. Silakan ketik keluhan Anda.';
+                    this.error = 'Failed to transcribe audio. Please type your symptoms instead.';
                 } finally {
                     this.screening = false;
                 }
@@ -493,13 +493,17 @@
             openDrawer(title, data) { this.drawerTitle = title; this.drawerData = data; this.drawerOpen = true; },
             closeDrawer() { this.drawerOpen = false; },
 
+            /* The AI mirrors the user's input language, so normalize its badge
+               labels back to English to keep the chrome consistent. */
             severityLabel(v) {
-                const m = { 'avoid': 'Hindari', 'caution': 'Hati-hati', 'monitor': 'Pantau' };
-                return m[String(v || '').toLowerCase()] || v;
+                const m = { 'hindari': 'Avoid', 'hati-hati': 'Caution', 'pantau': 'Monitor' };
+                const k = String(v || '').toLowerCase();
+                return m[k] || v;
             },
             likelihoodLabel(v) {
-                const m = { 'high': 'Tinggi', 'moderate': 'Sedang', 'medium': 'Sedang', 'low': 'Rendah' };
-                return m[String(v || '').toLowerCase()] || v;
+                const m = { 'tinggi': 'High', 'sedang': 'Moderate', 'rendah': 'Low' };
+                const k = String(v || '').toLowerCase();
+                return m[k] || v;
             },
 
             /* ══════════════ Nearby providers ══════════════ */
@@ -521,7 +525,7 @@
                     this.nearbyProviders = data;
                     this.patchHistoryNearby(historyId, data);
                 } catch (e) {
-                    const q = encodeURIComponent('rumah sakit klinik dekat ' + location);
+                    const q = encodeURIComponent('hospitals clinics near ' + location);
                     this.nearbyProviders = { success: false, providers: [], maps_search_url: `https://www.google.com/maps/search/${q}` };
                 } finally {
                     this.nearbyLoading = false;
@@ -539,9 +543,8 @@
             scrollToResult(behavior) {
                 const el = document.getElementById('medicheck-output-page');
                 if (!el) return;
-                // Gunakan scrollIntoView untuk focus yang lebih reliable
                 el.scrollIntoView({ behavior: behavior || 'smooth', block: 'start' });
-                // Fokuskan elemen agar screen-reader & keyboard navigation juga terarah
+                // Focus the element so screen readers and keyboard nav follow along
                 if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
                 el.focus({ preventScroll: true });
             },
@@ -630,45 +633,45 @@
             buildReport() {
                 const r = this.result, c = this.conclusion;
                 if (!r || !c) return '';
-                const watermark = '\nDibuat oleh Pharmasis Cek Sehat\nhttps://pharmasis.id\n';
-                let t = 'LAPORAN CEK SEHAT\n';
-                t += `Pharmasis Cek Sehat AI\n`;
-                t += `Tanggal: ${new Date().toLocaleString('id-ID')}\n`;
-                t += `Peran: ${r.role === 'doctor' ? 'Tenaga Kesehatan / Dokter' : 'Pasien / Masyarakat umum'}\n`;
-                t += `Keluhan awal: ${r.symptoms || 'N/A'}\n\n`;
+                const watermark = '\nGenerated by Pharmasis MediCheck\nhttps://pharmasis.id\n';
+                let t = 'MEDICHECK REPORT\n';
+                t += `Pharmasis MediCheck AI\n`;
+                t += `Date: ${new Date().toLocaleString('en-US')}\n`;
+                t += `Role: ${r.role === 'doctor' ? 'Healthcare professional / Doctor' : 'Patient / General public'}\n`;
+                t += `Initial symptoms: ${r.symptoms || 'N/A'}\n\n`;
 
                 if ((r.qa || []).length) {
-                    t += 'HASIL SCREENING\n';
+                    t += 'SCREENING RESULTS\n';
                     r.qa.forEach(p => { t += `- ${p.question}\n  ${p.answer}\n`; });
                     t += '\n';
                 }
 
                 if (r.role === 'doctor') {
                     if (c.differential?.length) {
-                        t += 'DIAGNOSIS BANDING\n';
-                        c.differential.forEach(d => { t += `[${d.likelihood}] ${d.name}\n  ${d.rationale}\n`; });
+                        t += 'DIFFERENTIAL DIAGNOSIS\n';
+                        c.differential.forEach(d => { t += `[${this.likelihoodLabel(d.likelihood)}] ${d.name}\n  ${d.rationale}\n`; });
                         t += '\n';
                     }
                     if (c.drugs?.length) {
-                        t += 'REGIMEN FARMAKOLOGI\n';
+                        t += 'PHARMACOLOGIC REGIMEN\n';
                         c.drugs.forEach(d => {
                             t += `${d.name} (${d.generic || ''}) — ${d.dose || ''}, ${d.frequency || ''}, ${d.duration || ''}\n`;
-                            if (d.drug_class) t += `  Golongan: ${d.drug_class}\n`;
+                            if (d.drug_class) t += `  Class: ${d.drug_class}\n`;
                             if (d.mechanism) t += `  MoA: ${d.mechanism}\n`;
-                            if (d.contraindications?.length) t += `  KI: ${d.contraindications.join(', ')}\n`;
-                            if (d.notes) t += `  Catatan: ${d.notes}\n`;
+                            if (d.contraindications?.length) t += `  Contraindications: ${d.contraindications.join(', ')}\n`;
+                            if (d.notes) t += `  Notes: ${d.notes}\n`;
                         });
                         t += '\n';
                     }
                     if (c.interactions?.length) {
-                        t += 'INTERAKSI OBAT\n';
-                        c.interactions.forEach(i => { t += `[${i.severity}] ${i.drug_a} + ${i.drug_b}: ${i.effect}\n  Manajemen: ${i.management || '-'}\n`; });
+                        t += 'DRUG INTERACTIONS\n';
+                        c.interactions.forEach(i => { t += `[${this.severityLabel(i.severity)}] ${i.drug_a} + ${i.drug_b}: ${i.effect}\n  Management: ${i.management || '-'}\n`; });
                         t += '\n';
                     }
-                    if (c.management?.length) { t += 'PENATALAKSANAAN\n'; c.management.forEach(m => t += `- ${m}\n`); t += '\n'; }
+                    if (c.management?.length) { t += 'MANAGEMENT\n'; c.management.forEach(m => t += `- ${m}\n`); t += '\n'; }
                     if (c.red_flags?.length) { t += 'RED FLAGS\n'; c.red_flags.forEach(m => t += `- ${m}\n`); t += '\n'; }
-                    if (c.icd10) t += `Dugaan ICD-10: ${c.icd10}\n`;
-                    if (c.clinical_summary) t += `Ringkasan Klinis: ${c.clinical_summary}\n`;
+                    if (c.icd10) t += `Suspected ICD-10: ${c.icd10}\n`;
+                    if (c.clinical_summary) t += `Clinical Summary: ${c.clinical_summary}\n`;
                 } else {
                     if (c.reassurance) t += `${c.reassurance}\n\n`;
                     if (c.assumed_condition?.name) t += `KEMUNGKINAN KONDISI: ${c.assumed_condition.name}\n${c.assumed_condition.plain_explanation || ''}\n\n`;

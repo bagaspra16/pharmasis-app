@@ -1,4 +1,4 @@
-{{-- HERO — Cek Sehat AI · Screening Further-Question Flow (Bahasa Indonesia) --}}
+{{-- HERO — MediCheck AI · Screening Further-Question Flow --}}
 <div x-data="mediCheckHeroId()" x-init="init()" id="ceksehat-root">
 
     <section class="relative min-h-screen flex items-center justify-center overflow-hidden bg-slate-50"
@@ -51,30 +51,28 @@
                         class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                Screening Gejala dengan AI
+                AI Symptom Screening
                 <span class="w-px h-3 bg-slate-300/60 mx-0.5"></span>
-                <span class="font-display normal-case tracking-normal text-primary text-base leading-none">Cek
-                    Sehat</span>
+                <span class="font-display normal-case tracking-normal text-primary text-base leading-none">MediCheck</span>
             </div>
 
             {{-- Headline --}}
             <h1 class="font-display text-5xl sm:text-6xl lg:text-7xl text-ink-900 mb-5 leading-[1.02] tracking-tight">
-                Kenali
+                Know your
                 <span class="italic"
-                    style="background: linear-gradient(135deg,#3EAEB1 10%,#1a7a7d 90%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; padding-right: 0.05em;">kesehatan</span>
-                Anda.
+                    style="background: linear-gradient(135deg,#3EAEB1 10%,#1a7a7d 90%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; padding-right: 0.05em;">health.</span>
             </h1>
             <p class="text-sm md:text-base text-ink-500 mb-4 max-w-lg mx-auto leading-relaxed">
-                Ceritakan keluhan Anda, jawab beberapa pertanyaan singkat dari AI, lalu terima kesimpulan yang
-                disesuaikan apakah Anda seorang tenaga kesehatan atau pasien.
+                Tell us what you're feeling, answer a few quick AI questions, then get a conclusion tailored to whether
+                you're a healthcare professional or a patient.
             </p>
 
-            {{-- Cara pakai — 3 langkah --}}
+            {{-- How it works — 3 steps --}}
             <div class="flex flex-wrap items-center justify-center gap-2 mb-8 text-[11px] font-medium">
                 <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-soft text-primary-dark">
                     <span
                         class="w-4 h-4 rounded-full bg-primary/15 text-primary text-[9px] font-bold flex items-center justify-center">1</span>
-                    Ceritakan keluhan
+                    Describe symptoms
                 </span>
                 <svg class="w-3 h-3 text-ink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -82,7 +80,7 @@
                 <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-soft text-primary-dark">
                     <span
                         class="w-4 h-4 rounded-full bg-primary/15 text-primary text-[9px] font-bold flex items-center justify-center">2</span>
-                    Jawab screening
+                    Answer screening
                 </span>
                 <svg class="w-3 h-3 text-ink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -90,7 +88,7 @@
                 <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-soft text-primary-dark">
                     <span
                         class="w-4 h-4 rounded-full bg-primary/15 text-primary text-[9px] font-bold flex items-center justify-center">3</span>
-                    Terima kesimpulan
+                    Get conclusion
                 </span>
             </div>
 
@@ -109,7 +107,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
-                        Ketik
+                        Type
                     </button>
                     <button @click="activeTab = 'voice'"
                         :class="activeTab === 'voice' ? 'text-white shadow-lg' : 'text-slate-500 hover:text-slate-700 hover:bg-white/60'"
@@ -121,7 +119,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M19 10v2a7 7 0 01-14 0v-2" />
                         </svg>
-                        Suara
+                        Voice
                     </button>
                     <button @click="activeTab = 'search'"
                         :class="activeTab === 'search' ? 'text-white shadow-lg' : 'text-slate-500 hover:text-slate-700 hover:bg-white/60'"
@@ -131,7 +129,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        Cari Obat
+                        Search Medicine
                     </button>
                 </div>
 
@@ -176,7 +174,7 @@
                             </svg>
                         </button>
                         <p class="text-xs text-slate-500 mt-4 font-medium"
-                            x-text="recording ? 'Sedang merekam — ketuk untuk berhenti' : (screening ? 'Menyiapkan pertanyaan...' : 'Ketuk untuk bicara — bahasa apa saja')">
+                            x-text="recording ? 'Recording — tap to stop' : (screening ? 'Preparing questions...' : 'Tap to speak — any language')">
                         </p>
 
                         <div x-show="recording" x-cloak class="mt-4 mx-auto w-full max-w-sm">
@@ -186,9 +184,9 @@
                                     <span class="flex items-center gap-1.5">
                                         <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
                                         <span
-                                            class="text-[10px] text-red-500 font-bold tracking-widest uppercase">Merekam</span>
+                                            class="text-[10px] text-red-500 font-bold tracking-widest uppercase">Recording</span>
                                     </span>
-                                    <span class="text-[10px] text-slate-400">Transkripsi suara aktif</span>
+                                    <span class="text-[10px] text-slate-400">Voice transcription active</span>
                                 </div>
                                 <canvas x-ref="waveCanvas" width="320" height="48"
                                     class="w-full h-12 rounded-lg bg-slate-50/60"></canvas>
@@ -210,13 +208,13 @@
                             <div class="flex flex-col">
                                 <textarea x-ref="symptomTextarea" x-model="symptoms"
                                     @keydown.enter="handleTextareaEnter($event)" @input="autoResizeTextarea()"
-                                    placeholder="Ceritakan keluhan Anda secara detail... Contoh: Saya batuk kering dan demam 38°C sejak 2 hari lalu, disertai sakit kepala dan lemas."
+                                    placeholder="Describe your symptoms in detail... Example: I've had a dry cough and a 38°C fever since two days ago, along with a headache and fatigue."
                                     class="flex-1 bg-transparent text-slate-900 placeholder-slate-400/80 font-medium text-base px-5 py-4 rounded-3xl focus:outline-none focus:ring-0 resize-none border-none min-h-[120px] max-h-[280px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-teal-600/20 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-teal-600/40"
                                     rows="3"></textarea>
                                 <div
                                     class="flex items-center justify-between gap-3 pt-3 px-3 border-t border-slate-200/50 mt-1">
-                                    <span class="text-xs text-slate-400 hidden sm:inline flex-1">Ceritakan keluhan
-                                        Anda... Tekan Enter untuk mulai screening.</span>
+                                    <span class="text-xs text-slate-400 hidden sm:inline flex-1">Describe your
+                                        symptoms... Press Enter to start screening.</span>
                                     <button @click="startScreening()" :disabled="screening || !symptoms.trim()"
                                         class="flex-shrink-0 ml-auto text-white font-bold h-10 w-10 sm:h-11 sm:w-11 rounded-full flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105"
                                         style="background: linear-gradient(135deg,#0d9488,#0f766e); box-shadow: 0 4px 16px rgba(13,148,136,0.35);">
@@ -260,13 +258,13 @@
                                 <input type="text" x-model="query" @input.debounce.300ms="fetch()"
                                     @focus="if(query.length>=2) open=true" @keydown.arrow-down.prevent="focusNext()"
                                     @keydown.arrow-up.prevent="focusPrev()" @keydown.enter.prevent="go()"
-                                    placeholder="Cari berdasarkan nama obat..."
+                                    placeholder="Search by medicine name..."
                                     class="w-full bg-transparent text-slate-900 placeholder-slate-400 text-sm font-medium focus:outline-none"
                                     autocomplete="off" />
                             </div>
                             <a :href="`/search?q=${encodeURIComponent(query)}`"
                                 class="flex-shrink-0 text-white font-bold text-sm px-6 py-3 rounded-full transition-all flex items-center justify-center"
-                                style="background: linear-gradient(135deg,#3EAEB1,#2d8a8d); box-shadow: 0 4px 16px rgba(62,174,177,0.35);">Cari</a>
+                                style="background: linear-gradient(135deg,#3EAEB1,#2d8a8d); box-shadow: 0 4px 16px rgba(62,174,177,0.35);">Search</a>
                             <div x-show="open && results.length > 0" x-cloak
                                 class="absolute left-0 right-0 top-[110%] bg-white rounded-2xl shadow-xl border border-slate-100 overflow-y-auto max-h-72 z-50 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                                 <template x-for="(drug, idx) in results" :key="drug.id">
@@ -311,10 +309,10 @@
                     {{-- Progress header --}}
                     <div class="px-6 pt-5 pb-4" style="border-bottom: 1px solid rgba(62,174,177,0.1);">
                         <div class="flex items-center justify-between mb-3">
-                            <span class="text-[11px] font-bold text-primary uppercase tracking-widest">Screening
-                                Gejala</span>
+                            <span class="text-[11px] font-bold text-primary uppercase tracking-widest">Symptom
+                                Screening</span>
                             <span class="text-[11px] font-semibold text-slate-400"
-                                x-text="`Pertanyaan ${currentQ + 1} dari ${questions.length}`"></span>
+                                x-text="`Question ${currentQ + 1} of ${questions.length}`"></span>
                         </div>
                         <div class="flex items-center gap-1.5">
                             <template x-for="(q, i) in questions" :key="q.id">
@@ -328,7 +326,7 @@
                     {{-- Recap of the initial complaint --}}
                     <div class="px-6 pt-4">
                         <div class="bg-primary/5 rounded-2xl px-4 py-3">
-                            <p class="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Keluhan Anda
+                            <p class="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Your symptoms
                             </p>
                             <p class="text-sm text-slate-700 italic leading-snug line-clamp-3" x-text="firstPrompt"></p>
                         </div>
@@ -356,14 +354,14 @@
                                             x-text="choice"></button>
                                     </template>
                                     <span x-show="currentQuestion.allow_multiple"
-                                        class="w-full text-[10px] text-slate-400 mt-0.5">Bisa pilih lebih dari
-                                        satu</span>
+                                        class="w-full text-[10px] text-slate-400 mt-0.5">You can select more than
+                                        one</span>
                                 </div>
 
                                 {{-- Free text --}}
                                 <div x-show="currentQuestion.free_text !== false">
                                     <textarea x-model="answers[currentQuestion.id].text"
-                                        placeholder="Tambahkan detail Anda di sini (opsional)..." rows="2"
+                                        placeholder="Add your own details here (optional)..." rows="2"
                                         class="w-full bg-white text-slate-900 placeholder-slate-400 text-sm px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10 resize-none"></textarea>
                                 </div>
 
@@ -375,13 +373,13 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M15 19l-7-7 7-7" />
                                         </svg>
-                                        Kembali
+                                        Back
                                     </button>
                                     <div x-show="currentQ === 0" class="flex-1"></div>
                                     <button type="button" @click="nextQ()"
                                         class="ml-auto text-sm font-bold text-white px-6 py-2.5 rounded-full transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5"
                                         style="background: linear-gradient(135deg,#0d9488,#0f766e); box-shadow: 0 4px 16px rgba(13,148,136,0.3);">
-                                        <span x-text="currentAnswered() ? 'Lanjut' : 'Lewati'"></span>
+                                        <span x-text="currentAnswered() ? 'Continue' : 'Skip'"></span>
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M9 5l7 7-7 7" />
@@ -402,8 +400,8 @@
                                                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </span>
-                                    <span class="text-[10px] font-bold text-primary uppercase tracking-widest">Langkah
-                                        terakhir</span>
+                                    <span class="text-[10px] font-bold text-primary uppercase tracking-widest">Final
+                                        step</span>
                                 </div>
                                 <h3 class="text-lg font-bold text-slate-800 leading-snug mb-1"
                                     x-text="currentQuestion.question"></h3>
@@ -424,8 +422,8 @@
                                         </div>
                                         <p class="text-sm font-bold text-slate-800 mb-0.5"
                                             x-text="currentQuestion.choices[0]"></p>
-                                        <p class="text-xs text-slate-500 leading-snug">Kesimpulan klinis mendetail:
-                                            diagnosis banding, regimen obat, interaksi, dan penatalaksanaan.</p>
+                                        <p class="text-xs text-slate-500 leading-snug">Detailed clinical conclusion:
+                                            differential diagnosis, drug regimen, interactions, and management.</p>
                                     </button>
                                     {{-- Patient card --}}
                                     <button type="button" @click="selectRole(currentQuestion.choices[1], 1)"
@@ -440,8 +438,8 @@
                                         </div>
                                         <p class="text-sm font-bold text-slate-800 mb-0.5"
                                             x-text="currentQuestion.choices[1]"></p>
-                                        <p class="text-xs text-slate-500 leading-snug">Penjelasan yang menenangkan,
-                                            penanganan awal, pola hidup, dan arahan ke dokter.</p>
+                                        <p class="text-xs text-slate-500 leading-snug">A reassuring explanation,
+                                            self-care, lifestyle tips, and guidance to a doctor.</p>
                                     </button>
                                 </div>
 
@@ -452,7 +450,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M15 19l-7-7 7-7" />
                                         </svg>
-                                        Kembali
+                                        Back
                                     </button>
                                 </div>
                             </div>
@@ -470,8 +468,8 @@
                             <path class="opacity-80" fill="currentColor"
                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
-                        <span class="text-xs font-bold text-slate-700 uppercase tracking-widest">Menyusun
-                            kesimpulan...</span>
+                        <span class="text-xs font-bold text-slate-700 uppercase tracking-widest">Building
+                            conclusion...</span>
                     </div>
                     <div class="px-5 py-4 space-y-3">
                         <template x-for="(step, idx) in concludeSteps" :key="step.id">
@@ -512,8 +510,8 @@
                     </div>
                     <div class="px-5 py-2.5"
                         style="border-top: 1px solid rgba(62,174,177,0.1); background: rgba(248,254,254,0.6);">
-                        <p class="text-[10px] text-slate-400 text-center">Mohon tunggu, sedang menyiapkan kesimpulan
-                            yang disesuaikan dengan peran Anda...</p>
+                        <p class="text-[10px] text-slate-400 text-center">Please wait, preparing a conclusion
+                            tailored to your role...</p>
                     </div>
                 </div>
 
@@ -524,7 +522,7 @@
 
 
     {{-- ═══════════════════════════════════════════════════════════════════════ --}}
-    {{-- ════════════════════ HALAMAN OUTPUT — KESIMPULAN ═══════════════════════ --}}
+    {{-- ════════════════════ OUTPUT PAGE — CONCLUSION ══════════════════════════ --}}
     {{-- ═══════════════════════════════════════════════════════════════════════ --}}
     <section x-show="phase === 'result'" x-cloak id="medicheck-output-page"
         x-transition:enter="transition ease-out duration-700" x-transition:enter-start="opacity-0 translate-y-6"
@@ -541,13 +539,13 @@
                     <div class="leading-tight">
                         <p class="text-sm font-bold text-slate-800 group-hover:text-primary transition-colors">Pharmasis
                         </p>
-                        <p class="text-[10px] text-slate-400 font-medium">Cek Sehat AI</p>
+                        <p class="text-[10px] text-slate-400 font-medium">MediCheck AI</p>
                     </div>
                 </a>
                 <span class="w-px h-7 bg-slate-200 mx-1"></span>
                 <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full"
                     :class="isDoctor ? 'text-primary bg-primary/10' : 'text-emerald-700 bg-emerald-100'"
-                    x-text="isDoctor ? 'Laporan Klinis' : 'Laporan Kesehatan'"></span>
+                    x-text="isDoctor ? 'Clinical Report' : 'Health Report'"></span>
             </div>
             <button @click="resetKiosk()"
                 class="flex items-center gap-1.5 text-[11px] font-semibold px-4 py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all active:scale-95">
@@ -555,13 +553,13 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                Analisis Baru
+                New Analysis
             </button>
         </div>
 
         <div class="max-w-5xl mx-auto px-4 py-8 space-y-6">
 
-            {{-- ── Keluhan + Screening recap ── --}}
+            {{-- ── Symptoms + Screening recap ── --}}
             <div class="rounded-2xl p-5"
                 style="background: rgba(255,255,255,0.92); backdrop-filter: blur(20px); border: 1px solid rgba(62,174,177,0.12); box-shadow: 0 4px 24px rgba(62,174,177,0.08);">
                 <p class="text-[11px] font-bold text-primary uppercase tracking-widest mb-2 flex items-center gap-1.5">
@@ -569,7 +567,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
-                    Keluhan yang Anda ceritakan
+                    The symptoms you described
                 </p>
                 <p class="text-base text-slate-700 italic leading-relaxed mb-3"
                     x-text='"« " + (result?.symptoms || "") + " »"'></p>
@@ -601,8 +599,8 @@
                                 </svg>
                             </span>
                             <div>
-                                <h3 class="text-lg font-bold text-slate-800">Diagnosis Banding</h3>
-                                <p class="text-xs text-slate-400">Kemungkinan diferensial berdasarkan hasil screening
+                                <h3 class="text-lg font-bold text-slate-800">Differential Diagnosis</h3>
+                                <p class="text-xs text-slate-400">Possible differentials based on the screening results
                                 </p>
                             </div>
                         </div>
@@ -639,8 +637,8 @@
                                 </svg>
                             </span>
                             <div>
-                                <h3 class="text-lg font-bold text-slate-800">Regimen Farmakologi</h3>
-                                <p class="text-xs text-slate-400">Ketuk nama obat untuk detail lengkap</p>
+                                <h3 class="text-lg font-bold text-slate-800">Pharmacologic Regimen</h3>
+                                <p class="text-xs text-slate-400">Tap a medicine name for full details</p>
                             </div>
                         </div>
                         <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -658,10 +656,10 @@
                                     <p class="text-sm font-semibold text-slate-700"
                                         x-text="[d.dose, d.frequency, d.duration].filter(Boolean).join(' · ')"></p>
                                     <p x-show="d.route" class="text-xs text-slate-400 mt-0.5 capitalize"
-                                        x-text="'Rute: ' + d.route"></p>
+                                        x-text="'Route: ' + d.route"></p>
                                     <p
                                         class="text-xs font-semibold text-primary mt-2 group-hover:translate-x-0.5 transition-transform">
-                                        Ketuk untuk detail →</p>
+                                        Tap for details →</p>
                                 </button>
                             </template>
                         </div>
@@ -669,7 +667,7 @@
 
                     {{-- Interactions --}}
                     <div x-show="conclusion.interactions?.length" class="glass-card rounded-3xl p-6">
-                        <h3 class="text-lg font-bold text-slate-800 mb-3">Interaksi Obat</h3>
+                        <h3 class="text-lg font-bold text-slate-800 mb-3">Drug Interactions</h3>
                         <div class="space-y-2">
                             <template x-for="i in (conclusion.interactions || [])" :key="i.drug_a + i.drug_b">
                                 <div class="flex items-start gap-2 p-3 rounded-xl"
@@ -682,7 +680,7 @@
                                             x-text="`${i.drug_a} + ${i.drug_b}`"></p>
                                         <p class="text-xs text-slate-500" x-text="i.effect"></p>
                                         <p x-show="i.management" class="text-xs text-primary mt-0.5"
-                                            x-text="'→ Manajemen: ' + i.management"></p>
+                                            x-text="'→ Management: ' + i.management"></p>
                                     </div>
                                 </div>
                             </template>
@@ -692,7 +690,7 @@
                     {{-- Management + Red flags --}}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div x-show="conclusion.management?.length" class="glass-card rounded-3xl p-6">
-                            <h3 class="text-base font-bold text-slate-800 mb-3">Penatalaksanaan</h3>
+                            <h3 class="text-base font-bold text-slate-800 mb-3">Management</h3>
                             <ul class="space-y-2">
                                 <template x-for="(m, mi) in (conclusion.management || [])" :key="mi">
                                     <li class="flex items-start gap-2 text-sm text-slate-600">
@@ -723,7 +721,7 @@
                     {{-- Clinical summary + ICD-10 --}}
                     <div x-show="conclusion.clinical_summary || conclusion.icd10" class="glass-card rounded-3xl p-6">
                         <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
-                            <h3 class="text-base font-bold text-slate-800">Ringkasan Klinis</h3>
+                            <h3 class="text-base font-bold text-slate-800">Clinical Summary</h3>
                             <span x-show="conclusion.icd10"
                                 class="text-xs font-mono font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
                                 ICD-10: <span x-text="conclusion.icd10"></span>
@@ -736,9 +734,9 @@
                     <div
                         class="rounded-2xl p-4 border border-dashed border-slate-200 bg-slate-50/60 flex items-center justify-between flex-wrap gap-3">
                         <div class="flex-1 min-w-[12rem]">
-                            <p class="text-sm font-bold text-slate-700 mb-0.5">Dokumen klinis</p>
-                            <p class="text-xs text-slate-500">Ekspor ringkasan formal ini untuk rekam medis atau
-                                rujukan.</p>
+                            <p class="text-sm font-bold text-slate-700 mb-0.5">Clinical document</p>
+                            <p class="text-xs text-slate-500">Export this formal summary for medical records or
+                                referrals.</p>
                         </div>
                         <button @click="savePdf()"
                             class="inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-bold text-white transition-all hover:scale-105"
@@ -747,7 +745,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
-                            PDF Klinis
+                            Clinical PDF
                         </button>
                     </div>
                 </div>
@@ -780,8 +778,8 @@
 
                     {{-- Assumed condition --}}
                     <div x-show="conclusion.assumed_condition?.name" class="glass-card rounded-3xl p-6">
-                        <p class="text-[11px] font-bold text-primary uppercase tracking-widest mb-1.5">Kemungkinan
-                            Kondisi</p>
+                        <p class="text-[11px] font-bold text-primary uppercase tracking-widest mb-1.5">Likely
+                            Condition</p>
                         <h3 class="text-xl font-bold text-slate-800 mb-2" x-text="conclusion.assumed_condition?.name">
                         </h3>
                         <p class="text-sm text-slate-600 leading-relaxed"
@@ -799,7 +797,7 @@
                                             d="M5 13l4 4L19 7" />
                                     </svg>
                                 </span>
-                                Penanganan Awal
+                                Self-Care
                             </h3>
                             <ul class="space-y-2">
                                 <template x-for="(s, si) in (conclusion.self_care || [])" :key="si">
@@ -820,7 +818,7 @@
                                             d="M13 10V3L4 14h7v7l9-11h-7z" />
                                     </svg>
                                 </span>
-                                Pengaturan Pola Hidup
+                                Lifestyle Adjustments
                             </h3>
                             <ul class="space-y-2">
                                 <template x-for="(s, si) in (conclusion.lifestyle || [])" :key="si">
@@ -839,7 +837,7 @@
                         <h3 class="text-base font-bold text-amber-800 mb-2 flex items-center gap-2">
                             <span
                                 class="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center font-black">!</span>
-                            Kapan Harus ke Fasilitas Kesehatan
+                            When to Seek Medical Care
                         </h3>
                         <p class="text-sm text-amber-900 leading-relaxed" x-text="conclusion.when_to_seek_care"></p>
                     </div>
@@ -847,13 +845,13 @@
                     {{-- Which doctor + What to ask --}}
                     <div class="glass-card rounded-3xl p-6">
                         <div x-show="conclusion.which_doctor" class="mb-4 pb-4 border-b border-slate-100">
-                            <p class="text-[11px] font-bold text-primary uppercase tracking-widest mb-1">Sebaiknya Temui
+                            <p class="text-[11px] font-bold text-primary uppercase tracking-widest mb-1">You Should See
                             </p>
                             <p class="text-lg font-bold text-slate-800" x-text="conclusion.which_doctor"></p>
                         </div>
                         <div x-show="conclusion.what_to_ask_doctor?.length">
-                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Yang Perlu
-                                Anda Tanyakan ke Dokter</p>
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">What to Ask
+                                Your Doctor</p>
                             <ul class="space-y-2">
                                 <template x-for="(q, qi) in (conclusion.what_to_ask_doctor || [])" :key="qi">
                                     <li class="flex items-start gap-2 text-sm text-slate-600">
@@ -875,7 +873,7 @@
                 </div>
             </template>
 
-            {{-- ════════════════ FASKES TERDEKAT (patient branch) ════════════════ --}}
+            {{-- ════════════════ NEARBY FACILITIES (patient branch) ════════════════ --}}
             <div id="mc-faskes" class="glass-card rounded-3xl overflow-hidden"
                 x-show="nearbyLoading || nearbyProviders">
                 <div class="px-6 py-4 flex items-center justify-between"
@@ -883,7 +881,7 @@
                     <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
                         <span
                             class="w-9 h-9 bg-primary/15 rounded-2xl flex items-center justify-center text-lg flex-shrink-0">📍</span>
-                        Fasilitas Kesehatan Terdekat
+                        Nearby Healthcare Facilities
                     </h3>
                     <div x-show="nearbyLoading" class="flex items-center gap-1.5">
                         <svg class="w-3.5 h-3.5 text-primary animate-spin" fill="none" viewBox="0 0 24 24">
@@ -891,7 +889,7 @@
                             <path class="opacity-80" fill="currentColor"
                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
-                        <span class="text-[10px] text-primary font-medium">Mencari...</span>
+                        <span class="text-[10px] text-primary font-medium">Searching...</span>
                     </div>
                 </div>
                 <div class="p-5">
@@ -928,9 +926,9 @@
                                                 :href="provider.contact && provider.contact.includes('http') ? provider.contact : 'tel:' + provider.contact"
                                                 target="_blank"
                                                 class="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded inline-block hover:bg-primary/20 transition-colors"
-                                                x-text="provider.contact && provider.contact.includes('http') ? 'Situs ↗' : 'Telepon'"></a>
+                                                x-text="provider.contact && provider.contact.includes('http') ? 'Website ↗' : 'Call'"></a>
                                             <a :href="provider.maps_url" target="_blank"
-                                                class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded inline-block hover:bg-slate-200 transition-colors">Peta
+                                                class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded inline-block hover:bg-slate-200 transition-colors">Map
                                                 ↗</a>
                                         </div>
                                     </div>
@@ -942,8 +940,8 @@
                                     class="w-6 h-6 rounded bg-red-100 text-red-600 flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
                                     !</div>
                                 <div>
-                                    <p class="text-[9px] font-bold text-red-600 uppercase tracking-wider mb-0.5">Nomor
-                                        Darurat Setempat</p>
+                                    <p class="text-[9px] font-bold text-red-600 uppercase tracking-wider mb-0.5">Local
+                                        Emergency Numbers</p>
                                     <p class="text-sm text-red-800 font-bold"
                                         x-text="nearbyProviders.emergency_numbers"></p>
                                 </div>
@@ -956,7 +954,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
-                                Cari Lebih Banyak di Google Maps ↗
+                                Find More on Google Maps ↗
                             </a>
                         </div>
                     </template>
@@ -973,11 +971,11 @@
                                 d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" />
                         </svg>
                     </div>
-                    <span class="text-xs font-bold text-slate-500">Pharmasis <span class="text-primary">Cek
-                            Sehat</span></span>
+                    <span class="text-xs font-bold text-slate-500">Pharmasis <span
+                            class="text-primary">MediCheck</span></span>
                 </div>
-                <p class="text-[11px] text-slate-300 mt-0.5">Laporan ini hanya untuk edukasi. Selalu konsultasikan
-                    dengan tenaga kesehatan profesional.</p>
+                <p class="text-[11px] text-slate-300 mt-0.5">This report is for educational purposes only. Always consult
+                    a healthcare professional.</p>
             </div>
 
             {{-- Action Bar --}}
@@ -989,7 +987,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
-                    <span x-text="copyFeedback || 'Salin Laporan'"></span>
+                    <span x-text="copyFeedback || 'Copy Report'"></span>
                 </button>
                 <button @click="shareResult()"
                     class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold transition-all hover:scale-105 active:scale-95"
@@ -998,7 +996,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                     </svg>
-                    Bagikan
+                    Share
                 </button>
                 <button @click="savePdf()"
                     class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold transition-all hover:scale-105 active:scale-95"
@@ -1007,7 +1005,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    Simpan PDF
+                    Save PDF
                 </button>
                 <button @click="resetKiosk()"
                     class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold transition-all hover:scale-105 active:scale-95 bg-slate-100 text-slate-600 hover:bg-slate-200">
@@ -1015,7 +1013,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
-                    Mulai Lagi
+                    Start Over
                 </button>
             </div>
 
@@ -1060,22 +1058,22 @@
                         </div>
                     </template>
                     <div x-show="drawerData?.mechanism">
-                        <p class="text-xs font-bold text-indigo-500 uppercase tracking-wider mb-1">Mekanisme / Cara
-                            Kerja</p>
+                        <p class="text-xs font-bold text-indigo-500 uppercase tracking-wider mb-1">Mechanism of
+                            Action</p>
                         <p class="text-base text-slate-700 leading-relaxed" x-text="drawerData?.mechanism"></p>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div x-show="drawerData?.duration" class="bg-slate-50 rounded-xl px-3 py-2">
-                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Durasi</p>
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Duration</p>
                             <p class="text-sm font-semibold text-slate-800" x-text="drawerData?.duration"></p>
                         </div>
                         <div x-show="drawerData?.route" class="bg-slate-50 rounded-xl px-3 py-2">
-                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Rute</p>
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Route</p>
                             <p class="text-sm font-semibold text-slate-800 capitalize" x-text="drawerData?.route"></p>
                         </div>
                     </div>
                     <div x-show="drawerData?.contraindications?.length" class="bg-red-50 rounded-2xl px-4 py-3">
-                        <p class="text-xs font-bold text-red-600 uppercase tracking-wider mb-1.5">Kontraindikasi</p>
+                        <p class="text-xs font-bold text-red-600 uppercase tracking-wider mb-1.5">Contraindications</p>
                         <div class="flex flex-wrap gap-1.5">
                             <template x-for="ci in (drawerData?.contraindications || [])" :key="ci">
                                 <span class="text-sm bg-red-100 text-red-700 px-2.5 py-1 rounded-full"
@@ -1084,13 +1082,13 @@
                         </div>
                     </div>
                     <div x-show="drawerData?.reference_source">
-                        <p class="text-xs font-bold text-teal-600 uppercase tracking-wider mb-1">Catatan</p>
+                        <p class="text-xs font-bold text-teal-600 uppercase tracking-wider mb-1">Notes</p>
                         <p class="text-base text-slate-700 leading-relaxed" x-text="drawerData?.reference_source"></p>
                     </div>
                     <div x-show="drawerData?.__drug?.db_url" class="pt-2">
                         <a :href="drawerData?.__drug?.db_url" target="_blank"
                             class="inline-flex items-center gap-2 text-sm font-semibold text-primary bg-primary/10 px-4 py-2.5 rounded-full hover:bg-primary/20 transition-colors">
-                            Lihat halaman obat lengkap
+                            View full medicine page
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 5l7 7-7 7" />
@@ -1122,21 +1120,21 @@
                         <span class="text-2xl font-bold text-primary" x-text="kioskCountdown"></span>
                     </div>
                 </div>
-                <h3 class="text-lg font-bold text-ink-900 mb-1">Sudah selesai membaca?</h3>
+                <h3 class="text-lg font-bold text-ink-900 mb-1">Finished reading?</h3>
                 <p class="text-sm text-ink-500 mb-5 leading-relaxed">
-                    Halaman akan otomatis kembali ke awal dalam <span class="font-bold text-primary"
-                        x-text="kioskCountdown"></span> detik
-                    agar siap untuk pengguna berikutnya.
+                    This page will reset automatically in <span class="font-bold text-primary"
+                        x-text="kioskCountdown"></span> seconds
+                    so it's ready for the next person.
                 </p>
                 <div class="flex gap-3">
                     <button @click="snoozeKiosk()"
-                        class="flex-1 px-4 py-3 rounded-full text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors">Tunggu</button>
+                        class="flex-1 px-4 py-3 rounded-full text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors">Wait</button>
                     <button @click="resetKiosk()"
                         class="flex-1 px-4 py-3 rounded-full text-sm font-bold text-white transition-all"
-                        style="background: linear-gradient(135deg,#3EAEB1,#2d8a8d); box-shadow: 0 4px 16px rgba(62,174,177,0.35);">Cukup</button>
+                        style="background: linear-gradient(135deg,#3EAEB1,#2d8a8d); box-shadow: 0 4px 16px rgba(62,174,177,0.35);">Done</button>
                 </div>
-                <p class="text-[10px] text-ink-400 mt-4">"Tunggu" memberi 1 menit tambahan · "Cukup" langsung mulai dari
-                    awal</p>
+                <p class="text-[10px] text-ink-400 mt-4">"Wait" adds 1 more minute · "Done" starts over right
+                    away</p>
             </div>
         </div>{{-- /kiosk --}}
 

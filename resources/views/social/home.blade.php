@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Skrining Penyakit Berbasis AI')
+@section('title', 'AI-Powered Symptom Screening')
 @section('meta_description', (!empty($dbOffline) || !empty($fdaMode))
-    ? 'Konsultasikan gejala penyakit Anda menggunakan Skrining Kesehatan AI mutakhir. Ketahui informasi 67.000+ obat secara akurat, cepat, dan up-to-date.'
-    : 'Konsultasikan gejala penyakit Anda menggunakan Skrining Kesehatan AI mutakhir. Ketahui informasi 16.000+ obat secara akurat, cepat, dan up-to-date.')
+    ? 'Consult your symptoms with cutting-edge AI Health Screening. Discover accurate, fast, and up-to-date information on 67,000+ medicines.'
+    : 'Consult your symptoms with cutting-edge AI Health Screening. Discover accurate, fast, and up-to-date information on 16,000+ medicines.')
 
 @push('head')
 <style>
@@ -48,10 +48,10 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7" />
         </svg>
         <p class="text-xs text-amber-800 flex-1">
-            <strong>Menggunakan sumber data OpenFDA.</strong> Basis data lokal kami sedang tidak tersedia, jadi hasil dimuat dari OpenFDA.
+            <strong>Using OpenFDA data source.</strong> Our local database is temporarily unavailable, so results are being loaded from OpenFDA.
         </p>
         <button onclick="window.location.reload()"
-            class="text-xs text-amber-700 border border-amber-200 px-2.5 py-1 rounded-lg hover:bg-amber-100 transition-colors">Coba lagi</button>
+            class="text-xs text-amber-700 border border-amber-200 px-2.5 py-1 rounded-lg hover:bg-amber-100 transition-colors">Try again</button>
         <button @click="show=false" class="text-amber-400 hover:text-amber-700 ml-1">✕</button>
     </div>
 </div>
@@ -59,28 +59,28 @@
 
 @include('partials.hero-medicheck-id')
 
-{{-- ── Riwayat AI (localStorage) ── --}}
+{{-- ── AI history (localStorage) ── --}}
 @include('partials.medicheck-history')
 
-{{-- ════════════════════════════════════════ OBAT POPULER ════════════════════════════════════════ --}}
+{{-- ════════════════════════════════════════ POPULAR MEDICINES ════════════════════════════════════════ --}}
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 
     <div class="flex items-end justify-between mb-10 flex-wrap gap-4">
         <div>
             <div class="flex items-center gap-2 mb-3">
                 <span class="w-1 h-4 rounded-full" style="background: linear-gradient(to bottom,#3EAEB1,#61BACA);"></span>
-                <p class="text-[11px] font-semibold text-primary uppercase tracking-[0.18em]">Basis Data</p>
+                <p class="text-[11px] font-semibold text-primary uppercase tracking-[0.18em]">Database</p>
             </div>
             <h2 class="display-roman text-3xl md:text-4xl text-ink-900 leading-tight">
-                Obat yang populer
-                <span class="display-italic text-primary">hari ini</span>
+                Popular medicines
+                <span class="display-italic text-primary">today</span>
             </h2>
             <p class="text-sm text-ink-500 mt-2 max-w-md">
-                {{ !empty($fdaMode) ? 'Dikurasi dari registri OpenFDA yang terbuka dan dipercaya klinisi.' : 'Sebagian kecil dari pustaka terverifikasi kami — paling banyak dicari minggu ini.' }}
+                {{ !empty($fdaMode) ? 'Curated from the live OpenFDA registry — open and trusted by clinicians.' : 'A small slice of our verified library — searched the most this week.' }}
             </p>
         </div>
         <a href="{{ route('drugs.search') }}" class="glass-soft rounded-full pl-5 pr-4 py-2.5 text-sm font-medium text-primary-dark hover:text-primary group inline-flex items-center gap-2 transition-colors">
-            Lihat semua
+            Browse all
             <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
@@ -92,7 +92,7 @@
         @php
         $isDto = $drug instanceof \App\DTOs\DrugDTO;
         $uses = $isDto ? $drug->uses : \App\Models\Drug::cleanField($drug->uses);
-        $preview = $uses ? Str::limit($uses, 85) : 'Ketuk untuk mempelajari obat ini lebih lanjut.';
+        $preview = $uses ? Str::limit($uses, 85) : 'Tap to learn more about this medicine.';
         $href = $isDto ? route('drugs.show_fda', $drug->slug) : route('drugs.show', $drug->id);
         $initials = strtoupper(substr($drug->name ?? '?', 0, 2));
         @endphp
@@ -117,11 +117,11 @@
                 @if(!empty($drug->is_fda))
                 <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:rgba(59,130,246,0.10);color:#3b82f6;">FDA</span>
                 @elseif(!empty($drug->translated))
-                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:rgba(16,185,129,0.10);color:#059669;">✓ Terverifikasi</span>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:rgba(16,185,129,0.10);color:#059669;">✓ Verified</span>
                 @else
                 <span class="text-xs text-ink-300">—</span>
                 @endif
-                <span class="text-xs font-medium text-primary group-hover:translate-x-0.5 transition-transform inline-block">Detail →</span>
+                <span class="text-xs font-medium text-primary group-hover:translate-x-0.5 transition-transform inline-block">Details →</span>
             </div>
         </a>
         @endforeach
@@ -129,27 +129,27 @@
 
 </section>
 
-{{-- ════════════════════════════════════════ MENGAPA CEK SEHAT ════════════════════════════════════════ --}}
+{{-- ════════════════════════════════════════ WHY MEDICHECK ════════════════════════════════════════ --}}
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
     <div class="text-center mb-14">
         <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-semibold mb-5 glass-soft text-primary-dark uppercase tracking-[0.18em]">
-            Mengapa Cek Sehat
+            Why MediCheck
         </div>
         <h2 class="display-roman text-3xl md:text-4xl lg:text-5xl text-ink-900 leading-tight max-w-3xl mx-auto">
-            Semua yang perlu Anda ketahui
-            <span class="display-italic text-primary">tentang obat Anda.</span>
+            Everything you need to know
+            <span class="display-italic text-primary">about your medicine.</span>
         </h2>
         <p class="text-sm md:text-base text-ink-500 mt-4 max-w-xl mx-auto leading-relaxed">
-            Dipercaya banyak orang. Didukung AI. Dibuat agar jelas dan mudah dipahami.
+            Trusted by thousands. Powered by AI. Built for clarity.
         </p>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         @foreach([
-        ['icon'=>'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z','title'=>'Pencarian Cerdas','desc'=>(!empty($dbOffline) || !empty($fdaMode))
-            ? 'Cari di antara 67.000+ obat lewat OpenFDA berdasarkan nama dagang, generik, atau golongan dalam hitungan detik.'
-            : 'Cari di antara 16.000+ obat berdasarkan nama dagang, generik, atau golongan dalam hitungan detik.','accent'=>'#3EAEB1'],
-        ['icon'=>'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z','title'=>'Bahasa yang Mudah','desc'=>'Teks medis yang rumit disederhanakan AI menjadi bahasa sehari-hari yang benar-benar bisa Anda pahami.','accent'=>'#6366f1'],
-        ['icon'=>'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z','title'=>'Utamakan Keamanan','desc'=>'Peringatan, interaksi obat, dan daftar periksa sebelum minum obat, agar Anda bisa mengambil keputusan yang tepat.','accent'=>'#059669'],
+        ['icon'=>'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z','title'=>'Smart Search','desc'=>(!empty($dbOffline) || !empty($fdaMode))
+            ? 'Search across 67,000+ medicines via OpenFDA by trade name, generic, or drug class in seconds.'
+            : 'Search across 16,000+ medicines by trade name, generic, or drug class in seconds.','accent'=>'#3EAEB1'],
+        ['icon'=>'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z','title'=>'AI Plain Language','desc'=>'Complex medical text simplified by AI into everyday language you can actually understand.','accent'=>'#6366f1'],
+        ['icon'=>'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z','title'=>'Safety First','desc'=>'Warnings, drug interactions, and before-taking checklists, so you can make informed decisions.','accent'=>'#059669'],
         ] as $f)
         <div class="drug-card glass-card glass-hover group rounded-2xl p-7 relative overflow-hidden">
             <div class="absolute top-0 right-0 w-28 h-28 rounded-full opacity-[0.10] pointer-events-none"
@@ -168,10 +168,10 @@
     </div>
     <div class="max-w-7xl mx-auto mt-5">
 
-        {{-- Bento grid: kiri besar (gelap) + kolom kanan --}}
+        {{-- Bento grid: large left (dark) + right column --}}
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
 
-            {{-- ── KIRI: Kartu pipeline gelap ── --}}
+            {{-- ── LEFT: Dark pipeline card ── --}}
             <div class="lg:col-span-3 rounded-3xl p-6 md:p-8 relative overflow-hidden flex flex-col justify-between min-h-[420px]"
                 style="background:linear-gradient(145deg,#061e20 0%,#0d4f52 55%,#1a7a7d 100%); border:1px solid">
                 <div class="absolute -top-20 -right-20 w-64 h-64 rounded-full pointer-events-none"
@@ -180,9 +180,9 @@
                     style="background:radial-gradient(circle,rgba(97,186,202,0.15),transparent 70%); transform:translate(-30%,30%);"></div>
 
                 <div class="relative mb-8">
-                    <p class="text-teal-300/60 text-[11px] font-bold uppercase tracking-widest mb-2">Screening bertahap · disesuaikan dengan peran</p>
+                    <p class="text-teal-300/60 text-[11px] font-bold uppercase tracking-widest mb-2">Step-by-step screening · tailored to your role</p>
                     <h2 class="text-white text-2xl md:text-3xl font-heading leading-snug">
-                        Dari keluhan<br class="hidden sm:block">menjadi kesimpulan yang tepat sasaran.
+                        From what you feel<br class="hidden sm:block">to a conclusion that fits you.
                     </h2>
                 </div>
 
@@ -190,14 +190,14 @@
                     <div class="absolute left-[15px] top-2 bottom-2 w-px" style="background:linear-gradient(to bottom,rgba(62,174,177,0.5),rgba(62,174,177,0.05));"></div>
 
                     @foreach([
-                        ['01','Ceritakan keluhan awal','Ketik atau bicara · bahasa apa saja · mulai dari satu kalimat'],
-                        ['02','AI menyusun pertanyaan screening','3–5 pertanyaan relevan · fokus pada konteks masalah Anda'],
-                        ['03','Jawab dengan cepat','Pilihan cepat (chip) · atau tulis detail Anda sendiri'],
-                        ['04','Tentukan peran Anda','Tenaga kesehatan/dokter · atau pasien/masyarakat umum'],
-                        ['05','Kesimpulan untuk dokter','Diagnosis banding · regimen obat · interaksi · penatalaksanaan · ICD-10'],
-                        ['06','Kesimpulan untuk pasien','Penjelasan menenangkan · penanganan awal · pola hidup · arahan lanjutan'],
-                        ['07','Arahan ke fasilitas kesehatan','Dokter yang tepat · apa yang perlu ditanyakan · faskes terdekat'],
-                        ['08','Simpan & bagikan','Salin laporan · ekspor PDF · bagikan hasil'],
+                        ['01','Describe your first complaint','Type or speak · any language · start with one sentence'],
+                        ['02','AI builds screening questions','3–5 relevant questions · focused on your context'],
+                        ['03','Answer quickly','Quick-choice chips · or write your own details'],
+                        ['04','Tell us your role','Healthcare professional/doctor · or patient/general public'],
+                        ['05','Conclusion for clinicians','Differential diagnosis · drug regimen · interactions · management · ICD-10'],
+                        ['06','Conclusion for patients','Reassuring explanation · self-care · lifestyle · next steps'],
+                        ['07','Guidance to healthcare facilities','The right doctor · what to ask · nearest facilities'],
+                        ['08','Save & share','Copy report · export PDF · share results'],
                     ] as [$n, $label, $detail])
                     <div class="flex items-start gap-4 py-2.5 group">
                         <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-all duration-200 group-hover:scale-110"
@@ -213,7 +213,7 @@
                 </div>
             </div>
 
-            {{-- ── KANAN: Dua kartu mini bertumpuk ── --}}
+            {{-- ── RIGHT: Two stacked mini cards ── --}}
             <div class="lg:col-span-2 flex flex-col gap-4">
 
                 <div class="rounded-3xl p-5 md:p-7 flex-1 relative overflow-hidden"
@@ -227,13 +227,13 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 10v2a7 7 0 01-14 0v-2"/>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-bold text-slate-800 mb-1.5">Input Suara & Teks</h3>
-                    <p class="text-sm text-slate-500 leading-relaxed mb-4">Ceritakan gejala dengan bicara atau mengetik — dalam Bahasa Indonesia maupun Inggris. Didukung Whisper AI untuk transkripsi multibahasa.</p>
+                    <h3 class="text-lg font-bold text-slate-800 mb-1.5">Voice & Text Input</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed mb-4">Describe your symptoms by speaking or typing — in English or Bahasa Indonesia. Powered by Whisper AI for multilingual transcription.</p>
                     <div class="flex gap-2 flex-wrap">
                         <span class="inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-full" style="background:rgba(62,174,177,0.10);color:#2d8a8d;">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>Suara
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>Voice
                         </span>
-                        <span class="text-[10px] font-semibold px-2.5 py-1 rounded-full" style="background:rgba(62,174,177,0.10);color:#2d8a8d;">Teks</span>
+                        <span class="text-[10px] font-semibold px-2.5 py-1 rounded-full" style="background:rgba(62,174,177,0.10);color:#2d8a8d;">Text</span>
                         <span class="text-[10px] font-semibold px-2.5 py-1 rounded-full" style="background:rgba(62,174,177,0.10);color:#2d8a8d;">ID / EN</span>
                         <span class="text-[10px] font-semibold px-2.5 py-1 rounded-full" style="background:rgba(62,174,177,0.10);color:#2d8a8d;">Whisper AI</span>
                     </div>
@@ -249,13 +249,13 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-bold text-slate-800 mb-1.5">Yang Anda Dapatkan</h3>
+                    <h3 class="text-lg font-bold text-slate-800 mb-1.5">What You Get</h3>
                     <ul class="space-y-1.5 text-sm text-slate-500">
-                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Pertanyaan screening yang relevan</li>
-                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Kesimpulan yang menyesuaikan peran Anda</li>
-                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Mode dokter: diagnosis banding, regimen & interaksi</li>
-                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Mode pasien: penanganan awal & pola hidup</li>
-                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Arahan dokter yang tepat & faskes terdekat</li>
+                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Relevant screening questions</li>
+                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>A conclusion tailored to your role</li>
+                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Clinician mode: differentials, regimen & interactions</li>
+                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>Patient mode: self-care & lifestyle</li>
+                        <li class="flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0"></span>The right doctor & nearest facilities</li>
                     </ul>
                 </div>
 
@@ -264,7 +264,7 @@
 
         <p class="text-center text-[11px] text-slate-400 mt-6">
             <svg class="w-3 h-3 inline mr-1 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-            Hanya untuk tujuan edukasi. Selalu konsultasikan dengan tenaga kesehatan berlisensi sebelum mengonsumsi obat apa pun.
+            For educational purposes only. Always consult a licensed healthcare professional before taking any medicine.
         </p>
 
     </div>
@@ -280,13 +280,13 @@
             style="background: radial-gradient(circle, rgba(97,186,202,0.6), transparent 70%);"></div>
 
         <div class="relative max-w-2xl mx-auto">
-            <p class="display-italic text-teal-200/80 text-lg mb-3">— mulai dari sebuah pertanyaan</p>
+            <p class="display-italic text-teal-200/80 text-lg mb-3">— it starts with a question</p>
             <h2 class="display-roman text-white text-3xl md:text-5xl leading-tight mb-5">
-                Kenali <span class="display-italic">obat Anda</span>
-                sebelum meminumnya.
+                Know <span class="display-italic">your medicine</span>
+                before you take it.
             </h2>
             <p class="text-sm md:text-base text-white/70 leading-relaxed mb-8 max-w-lg mx-auto">
-                Cari obat, periksa interaksi, atau ceritakan yang Anda rasakan — Cek Sehat mengubah istilah medis menjadi jawaban yang jelas.
+                Search a medicine, check interactions, or tell us what you're feeling — MediCheck turns medical jargon into clear answers.
             </p>
             <div class="flex flex-wrap items-center justify-center gap-3">
                 <a href="{{ route('drugs.search') }}"
@@ -294,7 +294,7 @@
                     style="background: rgba(255,255,255,0.96); color:#0d4f52; box-shadow: 0 6px 24px rgba(0,0,0,0.15);"
                     onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 10px 30px rgba(0,0,0,0.22)';"
                     onmouseout="this.style.transform='';this.style.boxShadow='0 6px 24px rgba(0,0,0,0.15)';">
-                    Telusuri Obat
+                    Browse Medicines
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                 </a>
                 <a href="{{ route('interactions.index') }}"
@@ -302,7 +302,7 @@
                     style="background: rgba(255,255,255,0.10); border:1px solid rgba(255,255,255,0.25); backdrop-filter: blur(10px);"
                     onmouseover="this.style.background='rgba(255,255,255,0.18)';"
                     onmouseout="this.style.background='rgba(255,255,255,0.10)';">
-                    Periksa Interaksi
+                    Check Interactions
                 </a>
             </div>
         </div>
