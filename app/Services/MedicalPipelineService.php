@@ -7,10 +7,10 @@ use Illuminate\Support\Facades\Log;
 class MedicalPipelineService
 {
     // Model assignments (do not change)
-    const MODEL_SYMPTOM_ANALYSIS = 'llama-3.3-70b-versatile';
-    const MODEL_DRUG_MATCHING    = 'llama-3.1-8b-instant';
-    const MODEL_INTERACTION      = 'meta-llama/llama-4-scout-17b-16e-instruct';
-    const MODEL_SUMMARY          = 'llama-3.3-70b-versatile';
+    const MODEL_SYMPTOM_ANALYSIS = 'groq/compound';
+    const MODEL_DRUG_MATCHING    = 'groq/compound-mini';
+    const MODEL_INTERACTION      = 'groq/compound';
+    const MODEL_SUMMARY          = 'groq/compound';
 
     public function __construct(private GroqService $groq) {}
 

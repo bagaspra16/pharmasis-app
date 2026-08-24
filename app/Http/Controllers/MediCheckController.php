@@ -418,7 +418,7 @@ class MediCheckController extends Controller
                      . "Return JSON: {\"providers\":[{\"name\":\"...\",\"type\":\"Hospital|Clinic|Specialist\",\"address\":\"...\",\"contact\":\"phone or website if known, otherwise empty\"}],\"emergency_numbers\":\"local emergency number\"}";
 
             $raw = $this->groq->chat(
-                'llama-3.3-70b-versatile',
+                'groq/compound',
                 [
                     ['role' => 'system', 'content' => 'You are a local healthcare directory assistant. Return ONLY valid JSON. No conversational text.'],
                     ['role' => 'user',   'content' => $prompt],

@@ -82,7 +82,7 @@
             speechRecognition: null,
             nearbyProviders: null,
             nearbyLoading: false,
-            nearbyLocation: '',
+            nearbyLocation: '{{ $userLocation ?? "" }}',
             copyFeedback: '',
 
             get steps() {

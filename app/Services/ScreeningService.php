@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Log;
 
 class ScreeningService
 {
-    const MODEL = 'llama-3.3-70b-versatile';
+    const MODEL = 'groq/compound';
 
     public function __construct(private GroqService $groq) {}
 

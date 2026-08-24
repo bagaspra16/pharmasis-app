@@ -10,11 +10,14 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Log;
 
+use App\Services\GeoIpService;
+
 class DrugController extends Controller
 {
     public function __construct(
         private DrugSearchService $searchService,
         private OpenFdaService $fdaService,
+        private GeoIpService $geoIpService,
         )
     {
     }
@@ -41,7 +44,9 @@ class DrugController extends Controller
             $featured = collect(array_map(fn($d) => DrugDTO::fromArray($d), $fdaData));
         }
 
-        return view('home', compact('featured', 'alphaIndex', 'dbOffline', 'fdaMode'));
+        $userLocation = $this->geoIpService->resolveLocation(request()->ip());
+
+        return view('home', compact('featured', 'alphaIndex', 'dbOffline', 'fdaMode', 'userLocation'));
     }
 
     // ─── Social Project Homepage (Bahasa Indonesia + kiosk) ────────────────────
@@ -66,7 +71,9 @@ class DrugController extends Controller
             $featured = collect(array_map(fn($d) => DrugDTO::fromArray($d), $fdaData));
         }
 
-        return view('social.home', compact('featured', 'alphaIndex', 'dbOffline', 'fdaMode'));
+        $userLocation = $this->geoIpService->resolveLocation(request()->ip());
+
+        return view('social.home', compact('featured', 'alphaIndex', 'dbOffline', 'fdaMode', 'userLocation'));
     }
 
     // ─── Drug detail (from local DB) ──────────────────────────────────────────

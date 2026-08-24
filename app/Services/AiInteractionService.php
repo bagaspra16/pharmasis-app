@@ -14,8 +14,8 @@ class AiInteractionService
     public function __construct(GroqService $groq)
     {
         $this->groq = $groq;
-        // Use the highly capable Llama 3.3 70B model via Groq for excellent medical reasoning
-        $this->model = 'llama-3.3-70b-versatile';
+        // Use the highly capable compound model via Groq for excellent medical reasoning
+        $this->model = 'groq/compound';
     }
 
     /**

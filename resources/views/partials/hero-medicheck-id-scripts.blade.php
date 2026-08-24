@@ -82,7 +82,7 @@
             /* ── Nearby providers ── */
             nearbyProviders: null,
             nearbyLoading: false,
-            nearbyLocation: '',
+            nearbyLocation: '{{ $userLocation ?? "" }}',
 
             /* ── Report actions ── */
             copyFeedback: '',
