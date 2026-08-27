@@ -7,10 +7,10 @@ use Illuminate\Support\Facades\Log;
 class MedicalPipelineService
 {
     // Model assignments (do not change)
-    const MODEL_SYMPTOM_ANALYSIS = 'groq/compound';
-    const MODEL_DRUG_MATCHING    = 'groq/compound-mini';
-    const MODEL_INTERACTION      = 'groq/compound';
-    const MODEL_SUMMARY          = 'groq/compound';
+    const MODEL_SYMPTOM_ANALYSIS = 'openai/gpt-oss-120b';
+    const MODEL_DRUG_MATCHING    = 'openai/gpt-oss-20b';
+    const MODEL_INTERACTION      = 'openai/gpt-oss-120b';
+    const MODEL_SUMMARY          = 'openai/gpt-oss-120b';
 
     public function __construct(private GroqService $groq) {}
 

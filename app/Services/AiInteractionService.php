@@ -15,7 +15,7 @@ class AiInteractionService
     {
         $this->groq = $groq;
         // Use the highly capable compound model via Groq for excellent medical reasoning
-        $this->model = 'groq/compound';
+        $this->model = 'openai/gpt-oss-120b';
     }
 
     /**

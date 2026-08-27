@@ -16,7 +16,7 @@ class AiSimplifierService
     {
         $this->apiKey = config('services.groq.key', '');
         $this->apiBase = config('services.groq.base', 'https://api.groq.com/openai/v1');
-        $this->model = config('services.groq.model', 'groq/compound');
+        $this->model = config('services.groq.model', 'openai/gpt-oss-120b');
     }
 
     /**

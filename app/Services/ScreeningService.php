@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Log;
 
 class ScreeningService
 {
-    const MODEL = 'groq/compound';
+    const MODEL = 'openai/gpt-oss-120b';
 
     public function __construct(private GroqService $groq) {}
 
