@@ -43,19 +43,6 @@
         {{-- Content --}}
         <div class="relative z-10 max-w-3xl mx-auto px-4 py-10 md:py-16 text-center w-full">
 
-            {{-- Badge --}}
-            <div class="inline-flex items-center gap-2 text-[11px] font-medium px-5 py-2 rounded-full mb-7 glass uppercase tracking-[0.14em]"
-                style="color:#0d4f52;">
-                <span class="relative flex h-2 w-2">
-                    <span
-                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                AI Symptom Screening
-                <span class="w-px h-3 bg-slate-300/60 mx-0.5"></span>
-                <span class="font-display normal-case tracking-normal text-primary text-base leading-none">MediCheck</span>
-            </div>
-
             {{-- Headline --}}
             <h1 class="font-display text-5xl sm:text-6xl lg:text-7xl text-ink-900 mb-5 leading-[1.02] tracking-tight">
                 Know your
@@ -974,7 +961,8 @@
                     <span class="text-xs font-bold text-slate-500">Pharmasis <span
                             class="text-primary">MediCheck</span></span>
                 </div>
-                <p class="text-[11px] text-slate-300 mt-0.5">This report is for educational purposes only. Always consult
+                <p class="text-[11px] text-slate-300 mt-0.5">This report is for educational purposes only. Always
+                    consult
                     a healthcare professional.</p>
             </div>
 

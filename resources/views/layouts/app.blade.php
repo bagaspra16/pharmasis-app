@@ -238,67 +238,66 @@
         .ai-markdown strong { font-weight: 600; }
 
         /* ──────────────────────────────────────────────────────────
-           Sticky → Floating Glass Navbar (smooth morph on scroll)
+           Sticky → Floating Glass Navbar (Ultra-Smooth Morph)
            ────────────────────────────────────────────────────────── */
         .nav-shell {
-            position: relative;
+            position: fixed;
+            top: 0; left: 0; right: 0;
             z-index: 50;
             padding: 0;
-            flex-shrink: 0;
-            transition:
-                padding 420ms cubic-bezier(.22,1,.36,1),
-                background 380ms ease;
-            background: linear-gradient(to bottom, rgba(248,254,254,0.0), rgba(248,254,254,0.0));
-        }
-        .nav-shell.is-floating { padding: 14px 16px 0; }
-        .nav-shell.is-floating::before {
-            content: '';
-            position: absolute; inset: 0;
-            background: linear-gradient(to bottom, rgba(248,254,254,0.55), rgba(248,254,254,0));
             pointer-events: none;
-            opacity: 0;
-            transition: opacity 320ms ease;
+            transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1),
+                        padding 500ms cubic-bezier(0.16, 1, 0.3, 1);
+            background: transparent;
+            will-change: transform, padding;
         }
-        .nav-shell.is-floating::before { opacity: 1; }
+        .nav-shell.is-floating {
+            padding: 10px 16px 0;
+            transform: translateY(2px);
+        }
 
         .nav-bar {
             position: relative;
             margin: 0 auto;
             max-width: 80rem;
-            transition:
-                max-width 420ms cubic-bezier(.22,1,.36,1),
-                border-radius 420ms cubic-bezier(.22,1,.36,1),
-                background 380ms ease,
-                box-shadow 380ms ease,
-                border-color 380ms ease,
-                padding 420ms cubic-bezier(.22,1,.36,1),
-                backdrop-filter 380ms ease;
-            background: transparent;
-            backdrop-filter: none;
-            -webkit-backdrop-filter: none;
-            border: none;
-            border-radius: 0;
+            pointer-events: auto;
+            border-radius: 1rem;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(16px) saturate(160%);
+            -webkit-backdrop-filter: blur(16px) saturate(160%);
+            border: 1px solid transparent;
             box-shadow: none;
             padding: 0 24px;
+            will-change: max-width, border-radius, background-color, border-color, box-shadow, padding;
+            transition:
+                max-width 500ms cubic-bezier(0.16, 1, 0.3, 1),
+                border-radius 500ms cubic-bezier(0.16, 1, 0.3, 1),
+                background-color 450ms cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 450ms cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 450ms cubic-bezier(0.16, 1, 0.3, 1),
+                padding 500ms cubic-bezier(0.16, 1, 0.3, 1);
         }
         .nav-shell.is-floating .nav-bar {
-            max-width: 76rem;
-            border-radius: 999px;
-            background: rgba(255,255,255,0.65);
-            backdrop-filter: blur(32px) saturate(180%);
-            -webkit-backdrop-filter: blur(32px) saturate(180%);
-            border: 1px solid rgba(255,255,255,0.85);
+            max-width: 72rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.95);
             box-shadow:
-                0 1px 0 rgba(255,255,255,0.9) inset,
-                0 20px 48px rgba(11,31,36,0.12),
-                0 6px 18px rgba(62,174,177,0.14);
-            padding: 0 12px 0 18px;
+                0 14px 40px -6px rgba(11, 31, 36, 0.11),
+                0 2px 10px -2px rgba(11, 31, 36, 0.04),
+                0 1px 0 rgba(255, 255, 255, 0.95) inset;
+            padding: 0 16px 0 22px;
         }
 
         @media (max-width: 767px) {
+            .nav-shell.is-floating {
+                padding: 8px 10px 0;
+            }
             .nav-shell.is-floating .nav-bar {
-                border-radius: 22px;
-                max-width: calc(100% - 0px);
+                border-radius: 1.25rem;
+                max-width: 100%;
             }
         }
 
@@ -404,24 +403,31 @@
                 </a>
 
                 {{-- Nav Search --}}
-                <div class="flex-1 max-w-xl relative hidden md:block"
+                <div class="flex-1 max-w-xl relative hidden md:block group"
                     @keydown.escape="open = false; query = ''; results = []">
                     <div class="relative">
-                        <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-slate-400 group-focus-within:text-primary transition-colors duration-200 pointer-events-none z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                         <input type="text" x-model="query" @input.debounce.300ms="fetchInstant()"
                             @focus="if(query.length >= 2) open = true" @keydown.arrow-down.prevent="focusNext()"
                             @keydown.arrow-up.prevent="focusPrev()" @keydown.enter.prevent="selectFocused()"
                             placeholder="Search medicines, generics, drug classes…"
                             class="w-full pl-10 pr-9 py-2.5 text-sm rounded-full transition-all duration-300
-                                   bg-white/55 hover:bg-white/75 focus:bg-white
-                                   border border-white/60
-                                   focus:outline-none focus:ring-4 focus:ring-primary/12 focus:border-primary/55
+                                   bg-white/85 hover:bg-white focus:bg-white
+                                   border border-slate-300/90 hover:border-slate-400 focus:border-primary
+                                   focus:outline-none focus:ring-4 focus:ring-primary/15
+                                   shadow-[0_4px_14px_rgba(11,31,36,0.07)] hover:shadow-[0_6px_20px_rgba(11,31,36,0.10)]
                                    placeholder:text-ink-400 text-ink-800"
                             style="backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%);"
                             autocomplete="off" />
-                        <div x-show="loading" class="absolute right-3 top-1/2 -translate-y-1/2">
+                        <button x-show="query.length > 0 && !loading" x-cloak @click="query = ''; results = []; open = false" type="button"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-full transition-colors z-10" aria-label="Clear search">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        <div x-show="loading" class="absolute right-3 top-1/2 -translate-y-1/2 z-10">
                             <svg class="animate-spin w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -490,14 +496,14 @@
                 {{-- Mobile Search --}}
                 <div class="px-1 pt-3 pb-2 relative" @keydown.escape="open = false; query = ''; results = []">
                     <div class="relative">
-                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                         <input type="text" x-model="query" @input.debounce.300ms="fetchInstant()"
                             @focus="if(query.length >= 2) open = true"
                             @keydown.enter.prevent="if(query) window.location.href=`/search?q=${encodeURIComponent(query)}`"
                             placeholder="Search medicines…"
-                            class="w-full pl-9 pr-4 py-2.5 text-sm rounded-2xl bg-white/70 border border-white/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-ink-400 transition-all"
+                            class="w-full pl-9 pr-4 py-2.5 text-sm rounded-2xl bg-white/85 hover:bg-white focus:bg-white border border-slate-300/90 hover:border-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-ink-400 transition-all shadow-[0_4px_14px_rgba(11,31,36,0.07)]"
                             style="backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);"
                             autocomplete="off" />
                     </div>
@@ -618,16 +624,19 @@
             const navShell = document.getElementById('nav-shell');
             if (!wrapper || !navShell) return;
             let ticking = false;
-            const threshold = 32;
+            const threshold = 16;
             function update() {
-                navShell.classList.toggle('is-floating', wrapper.scrollTop > threshold);
+                const isScrolled = wrapper.scrollTop > threshold;
+                if (navShell.classList.contains('is-floating') !== isScrolled) {
+                    navShell.classList.toggle('is-floating', isScrolled);
+                }
                 ticking = false;
             }
             wrapper.addEventListener('scroll', () => {
                 if (ticking) return;
                 ticking = true;
                 requestAnimationFrame(update);
-            });
+            }, { passive: true });
             update();
         });
 
