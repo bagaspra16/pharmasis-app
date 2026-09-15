@@ -23,7 +23,17 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
     <div class="flex flex-col lg:flex-row gap-8">
 
         {{-- ── Main Content Column ── --}}
-        <div class="flex-1 min-w-0">
+        <div class="flex-1 min-w-0" x-data="drugDetailManager({{ json_encode([
+            'id' => $drug->id,
+            'name' => $drug->name,
+            'generic_name' => $drug->generic_name,
+            'drug_class' => $drug->drug_class,
+            'uses' => $cleanUses,
+            'warnings' => $cleanWarnings,
+            'dosage' => $cleanDosage,
+            'side_effects' => $cleanSideEffects,
+            'interactions' => $cleanInteractions,
+        ]) }})">
 
             {{-- Breadcrumb --}}
             <nav class="flex items-center gap-2 text-sm text-slate-400 mb-4">
@@ -47,7 +57,7 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
                 <p class="text-xs text-blue-700">
                     <strong>OpenFDA Data Source</strong> — Local database is offline. This information is sourced
                     directly from the
-                    <a href="https://open.fda.gov" target="_blank" class="underline">U.S. Food & Drug
+                    <a href="https://open.fda.gov" target="_blank" class="underline">U.S. Food &amp; Drug
                         Administration</a>.
                 </p>
             </div>
@@ -82,17 +92,44 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
                             <span
                                 class="text-[10px] border {{ $riskColor }} px-2.5 py-1 rounded-full font-medium capitalize uppercase tracking-wider">⚠
                                 {{ $riskLevel }} risk</span>
+
+                            {{-- AI Humanized badge (shows after auto-humanize is done) --}}
+                            <span x-show="autoHumanized && !autoHumanizing" x-cloak
+                                class="badge-antigravity-ai text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 uppercase tracking-wider">
+                                <svg class="w-3 h-3 text-indigo-600 animate-spin" style="animation-duration: 8s;" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" />
+                                </svg>
+                                <span class="text-antigravity-gradient font-bold">AI Humanized</span>
+                            </span>
+
+                            {{-- Humanizing in progress badge --}}
+                            <span x-show="autoHumanizing" x-cloak
+                                class="badge-antigravity-ai-processing text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 uppercase tracking-wider">
+                                <svg class="w-3 h-3 animate-spin text-indigo-600" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                                <span class="text-antigravity-gradient font-bold">AI Processing...</span>
+                            </span>
                         </div>
                         <h1 class="font-display text-3xl sm:text-4xl md:text-5xl text-ink-900 leading-[1.05] tracking-tight">{{ $drug->name }}</h1>
                         @if($drug->generic_name)
-                        <p class="text-ink-500 mt-2 text-sm">Generic: <span class="display-italic text-base text-ink-700">{{
+                        <p class="text-ink-500 mt-2 text-sm">Generic: <span class="display-italic text-base text-ink-700" x-text="heroGeneric || '{{ addslashes($drug->generic_name) }}'">{{
                                 $drug->generic_name }}</span></p>
                         @endif
                         @if($drug->drug_class)
                         <p class="text-ink-500 text-sm mt-1">Class: <a
                                 href="{{ route('drugs.search', ['drug_class' => $drug->drug_class]) }}"
-                                class="text-primary hover:underline font-medium">{{ $drug->drug_class }}</a></p>
+                                class="text-primary hover:underline font-medium" x-text="heroClass || '{{ addslashes($drug->drug_class) }}'">{{ $drug->drug_class }}</a></p>
                         @endif
+
+                        {{-- Active language badge --}}
+                        <p class="text-xs text-slate-400 mt-2 flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                            </svg>
+                            <span x-text="'Content language: ' + currentLangName"></span>
+                        </p>
                     </div>
                 </div>
 
@@ -120,7 +157,7 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
             </div>
 
             {{-- Content Sections --}}
-            <div class="space-y-4" x-data="{ openSections: ['uses'] }">
+            <div class="space-y-4">
 
                 @php
                 $sections = [
@@ -145,7 +182,7 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
                 @foreach($sections as $section)
                 @if($section['content'])
                 <div class="glass-card rounded-2xl overflow-hidden"
-                    x-data="sectionData({{ in_array($section['id'], ['uses']) ? 'true' : 'false' }})">
+                    x-data="sectionData({{ in_array($section['id'], ['uses']) ? 'true' : 'false' }}, '{{ $section['id'] }}')">
                     <button @click="open = !open"
                         class="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-slate-50 transition-colors">
                         <div class="flex items-center gap-3">
@@ -156,69 +193,78 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
                                 </svg>
                             </div>
                             <span class="font-semibold text-slate-800">{{ $section['label'] }}</span>
+
+                            {{-- Section-level AI loading indicator --}}
+                            <span x-show="sectionHumanizing" x-cloak
+                                class="badge-antigravity-ai-processing text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 uppercase tracking-wider">
+                                <svg class="w-2.5 h-2.5 animate-spin text-indigo-600" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                                <span class="text-antigravity-gradient font-bold">Translating...</span>
+                            </span>
                         </div>
-                        <svg class="w-5 h-5 text-slate-400 transition-transform duration-200"
-                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
+
+                        <div class="flex items-center gap-3">
+                            {{-- Per-section Language Dropdown --}}
+                            <div class="flex items-center gap-1.5" @click.stop>
+                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                                </svg>
+                                <select :value="sectionLang"
+                                        @change="changeSectionLang($event.target.value)"
+                                        class="text-xs bg-slate-100/90 hover:bg-slate-200/90 text-slate-700 font-medium px-2.5 py-1 rounded-lg border-0 focus:ring-2 focus:ring-primary/40 cursor-pointer outline-none transition-colors">
+                                    <template x-for="l in (window.PharmasisI18n ? window.PharmasisI18n.languages : [])" :key="l.code">
+                                        <option :value="l.code" x-text="l.native" :selected="l.code === sectionLang"></option>
+                                    </template>
+                                </select>
+                            </div>
+
+                            <svg class="w-5 h-5 text-slate-400 transition-transform duration-200"
+                                :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
                     </button>
 
                     <div x-show="open" x-collapse class="border-t border-slate-100">
                         <div class="px-6 py-5">
-                            <p class="text-slate-700 leading-relaxed text-sm">{{ $section['content'] }}</p>
 
-                            {{-- AI Simplifier --}}
-                            <div class="mt-4 pt-4 border-t border-slate-50">
-                                <div x-show="!aiText && !aiLoading">
-                                    <button
-                                        @click="simplify('{{ $drug->id }}', '{{ $section['field'] }}', `{{ addslashes($section['content']) }}`)"
-                                        class="inline-flex items-center gap-2 text-xs text-primary hover:text-primary-dark font-medium transition-colors group">
-                                        <svg class="w-4 h-4 group-hover:scale-110 transition-transform" fill="none"
-                                            stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                                        </svg>
-                                        Explain in simple terms (AI)
-                                    </button>
+                            {{-- Loading Shimmer while global AI humanize is running --}}
+                            <template x-if="sectionHumanizing">
+                                <div class="space-y-2 animate-pulse">
+                                    <div class="h-3 bg-slate-200 rounded w-full"></div>
+                                    <div class="h-3 bg-slate-200 rounded w-5/6"></div>
+                                    <div class="h-3 bg-slate-200 rounded w-4/5"></div>
+                                    <div class="h-3 bg-slate-200 rounded w-full mt-3"></div>
+                                    <div class="h-3 bg-slate-200 rounded w-3/4"></div>
                                 </div>
+                            </template>
 
-                                {{-- Loading --}}
-                                <div x-show="aiLoading" class="flex items-center gap-2 text-xs text-slate-500">
-                                    <svg class="animate-spin w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                            stroke-width="4" />
-                                        <path class="opacity-75" fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                                    </svg>
-                                    AI is simplifying this...
-                                </div>
-
-                                {{-- Error --}}
-                                <div x-show="aiError" class="text-xs text-red-500 mt-1" x-text="aiError"></div>
-
-                                {{-- AI Result --}}
-                                <div x-show="aiText" x-cloak
-                                    class="mt-3 bg-primary-light rounded-xl p-4 border border-primary/20">
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <svg class="w-4 h-4 text-primary flex-shrink-0" fill="none"
-                                            stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            {{-- Main content (hidden while humanizing) --}}
+                            <div x-show="!sectionHumanizing">
+                                {{-- AI humanized badge when content was AI-processed --}}
+                                <div x-show="sectionAiHumanized" x-cloak
+                                    class="flex items-center gap-2 mb-3 pb-3 border-b border-slate-100">
+                                    <div class="badge-antigravity-ai flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-full">
+                                        <svg class="w-3 h-3 text-indigo-600" fill="none" viewBox="0 0 24 24">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                                         </svg>
-                                        <span class="text-xs font-semibold text-primary">AI Plain Language
-                                            Explanation</span>
-                                        <div class="ml-auto flex items-center gap-2">
-                                            <select x-model="selectedLang" @change="saveFrequent(selectedLang); simplify('{{ $drug->id }}', '{{ $section['field'] }}', `{{ addslashes($section['content']) }}`)" class="text-[10px] border border-primary/30 rounded-md text-primary focus:ring-primary/50 bg-white/80 px-2 py-1 outline-none font-medium cursor-pointer">
-                                                <template x-for="lang in sortedLanguages">
-                                                    <option x-bind:disabled="lang === '---'" x-text="lang" :value="lang" :selected="lang === selectedLang"></option>
-                                                </template>
-                                            </select>
-                                            <span class="text-[10px] text-slate-400">Educational use only</span>
-                                        </div>
+                                        <span class="text-antigravity-gradient font-bold">AI Humanized &amp; Translated</span>
                                     </div>
-                                    <div class="ai-markdown text-sm text-slate-700 leading-relaxed" x-html="aiHtml"></div>
-                                    <button @click="aiText = ''; aiHtml = ''"
-                                        class="text-xs text-slate-400 hover:text-slate-600 mt-2 transition-colors">Hide</button>
+                                    <span class="text-[10px] text-slate-400 font-medium">Educational use only</span>
+                                </div>
+
+                                {{-- Content display --}}
+                                <div class="text-slate-700 leading-relaxed text-sm whitespace-pre-line ai-markdown"
+                                   x-html="getSectionHtml() || `{{ nl2br(e($section['content'])) }}`"></div>
+
+                                {{-- Section-level error fallback --}}
+                                <div x-show="sectionError" x-cloak class="mt-3 flex items-center gap-2 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                    <span x-text="sectionError"></span>
                                 </div>
                             </div>
                         </div>
@@ -375,64 +421,264 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
 
 @push('scripts')
 <script>
-    function sectionData(initialOpen) {
+    // ── Language code → full English name map (for AI API calls) ──
+    const LANG_CODE_TO_NAME = {
+        en: 'English', id: 'Indonesian', ja: 'Japanese', es: 'Spanish',
+        zh: 'Chinese', ar: 'Arabic', fr: 'French', de: 'German',
+        ko: 'Korean', pt: 'Portuguese', ru: 'Russian'
+    };
+
+    // ── drugDetailManager: orchestrates auto AI humanize ──
+    function drugDetailManager(drugPayload) {
         return {
-            open: initialOpen,
-            aiText: '',
-            aiHtml: '',
-            aiLoading: false,
-            aiError: '',
-            languages: ['English', 'Indonesian', 'Spanish', 'French', 'German', 'Japanese', 'Korean', 'Arabic', 'Chinese', 'Hindi', 'Dutch', 'Portuguese', 'Russian'],
-            frequent: [],
-            selectedLang: 'English',
-            
+            drug: drugPayload,
+            globalLang: 'en',
+            currentLangName: 'English',
+            autoHumanizing: false,
+            autoHumanized: false,
+            autoError: '',
+            heroGeneric: drugPayload.generic_name || '',
+            heroClass: drugPayload.drug_class || '',
+
+            // Stores AI humanized text per section (keyed by section id)
+            aiSections: {},
+            // Tracks which section is currently being re-translated (section-level lang change)
+            sectionHumanizingId: null,
+
             init() {
-                try {
-                    this.frequent = JSON.parse(localStorage.getItem('frequent_langs') || '["Indonesian", "English"]');
-                } catch (e) {
-                    this.frequent = ['Indonesian', 'English'];
-                }
-                this.selectedLang = this.frequent[0] || 'English';
-            },
-            
-            saveFrequent(lang) {
-                if (lang === '---') return;
-                this.frequent = this.frequent.filter(l => l !== lang);
-                this.frequent.unshift(lang);
-                this.frequent = this.frequent.slice(0, 3);
-                localStorage.setItem('frequent_langs', JSON.stringify(this.frequent));
-            },
-            
-            get sortedLanguages() {
-                const others = this.languages.filter(l => !this.frequent.includes(l));
-                return [...this.frequent, '---', ...others];
+                this.globalLang = window.PharmasisI18n ? window.PharmasisI18n.getLanguage() : 'en';
+                this.currentLangName = LANG_CODE_TO_NAME[this.globalLang] || 'English';
+
+                // Trigger auto-humanize on page load
+                this.autoHumanizeAll(this.globalLang);
+
+                // Re-humanize when navbar language changes
+                window.addEventListener('pharmasis:languageChanged', (e) => {
+                    const newLang = e.detail?.lang || (window.PharmasisI18n ? window.PharmasisI18n.getLanguage() : 'en');
+                    if (newLang !== this.globalLang) {
+                        this.globalLang = newLang;
+                        this.currentLangName = LANG_CODE_TO_NAME[newLang] || 'English';
+                        this.autoHumanizeAll(newLang);
+                    }
+                });
             },
 
-            async simplify(drugId, field, text) {
-                this.aiLoading = true;
-                this.aiError = '';
-                this.aiText = '';
-                this.aiHtml = '';
+            async autoHumanizeAll(langCode) {
+                this.autoHumanizing = true;
+                this.autoHumanized = false;
+                this.autoError = '';
+
+                const langName = LANG_CODE_TO_NAME[langCode] || 'English';
+
+                try {
+                    const res = await fetch('/api/v1/ai/humanize-drug', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            drug_id: String(this.drug.id),
+                            drug_name: this.drug.name,
+                            language_code: langCode,
+                            language_name: langName,
+                            sections: {
+                                uses: this.drug.uses || '',
+                                warnings: this.drug.warnings || '',
+                                dosage: this.drug.dosage || '',
+                                side_effects: this.drug.side_effects || '',
+                                interactions: this.drug.interactions || '',
+                            }
+                        })
+                    });
+
+                    const data = await res.json();
+
+                    if (data.success && data.sections) {
+                        // Store AI sections globally, dispatch event for each sectionData component
+                        this.aiSections = data.sections;
+                        this.autoHumanized = true;
+
+                        // Fire event so sectionData components update themselves
+                        window.dispatchEvent(new CustomEvent('pharmasis:aiSectionsReady', {
+                            detail: { sections: data.sections, lang: langCode }
+                        }));
+                    } else {
+                        this.autoError = data.error || 'AI humanization failed.';
+                    }
+                } catch (e) {
+                    this.autoError = 'Network error during AI humanization.';
+                    console.error('drugDetailManager.autoHumanizeAll error:', e);
+                } finally {
+                    this.autoHumanizing = false;
+                }
+            },
+
+            // Called by sectionData when per-section lang changes
+            async humanizeSection(sectionId, langCode) {
+                this.sectionHumanizingId = sectionId;
+                const langName = LANG_CODE_TO_NAME[langCode] || 'English';
+                const rawText = this.drug[sectionId] || '';
+
+                if (!rawText.trim()) {
+                    this.sectionHumanizingId = null;
+                    return;
+                }
+
                 try {
                     const res = await fetch('/api/v1/ai/simplify', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-                        body: JSON.stringify({ drug_id: drugId, field: field, text: text.substring(0, 2000), language: this.selectedLang })
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            drug_id: String(this.drug.id) + '_' + sectionId,
+                            field: sectionId,
+                            text: rawText.substring(0, 2000),
+                            language: langName
+                        })
+                    });
+
+                    const data = await res.json();
+
+                    if (data.success && data.text) {
+                        // Fire section-specific event
+                        window.dispatchEvent(new CustomEvent('pharmasis:sectionTranslated', {
+                            detail: { sectionId, text: data.text, lang: langCode }
+                        }));
+                    }
+                } catch (e) {
+                    console.error('humanizeSection error:', e);
+                } finally {
+                    this.sectionHumanizingId = null;
+                }
+            }
+        };
+    }
+
+    // ── sectionData: handles per-section display & language switching ──
+    function sectionData(initialOpen, sectionId) {
+        return {
+            open: initialOpen,
+            sectionId: sectionId,
+            sectionLang: 'en',
+            sectionAiText: '',
+            sectionAiHumanized: false,
+            sectionHumanizing: false,
+            sectionError: '',
+
+            init() {
+                // Sync with global language
+                this.sectionLang = window.PharmasisI18n ? window.PharmasisI18n.getLanguage() : 'en';
+
+                // Show shimmer immediately if global humanizing is active
+                const parentEl = this.$el.closest('[x-data*="drugDetailManager"]');
+                if (parentEl && parentEl._x_dataStack) {
+                    const mgr = parentEl._x_dataStack[0];
+                    if (mgr && mgr.autoHumanizing) {
+                        this.sectionHumanizing = true;
+                    }
+                }
+
+                // Listen for global AI sections ready
+                window.addEventListener('pharmasis:aiSectionsReady', (e) => {
+                    const { sections, lang } = e.detail;
+                    this.sectionLang = lang;
+                    if (sections[this.sectionId]) {
+                        this.sectionAiText = sections[this.sectionId];
+                        this.sectionAiHumanized = true;
+                    }
+                    this.sectionHumanizing = false;
+                    this.sectionError = '';
+                });
+
+                // Listen for per-section translation
+                window.addEventListener('pharmasis:sectionTranslated', (e) => {
+                    const { sectionId, text, lang } = e.detail;
+                    if (sectionId === this.sectionId) {
+                        this.sectionAiText = text;
+                        this.sectionAiHumanized = true;
+                        this.sectionHumanizing = false;
+                        this.sectionError = '';
+                    }
+                });
+
+                // When global language changes, sync lang and show shimmer
+                window.addEventListener('pharmasis:languageChanged', (e) => {
+                    const newLang = e.detail?.lang;
+                    if (newLang && newLang !== this.sectionLang) {
+                        this.sectionLang = newLang;
+                        this.sectionHumanizing = true;
+                        this.sectionAiHumanized = false;
+                        this.sectionAiText = '';
+                    }
+                });
+            },
+
+            getSectionHtml() {
+                if (!this.sectionAiText) return '';
+                if (window.marked && typeof window.marked.parse === 'function') {
+                    return window.marked.parse(this.sectionAiText);
+                } else if (window.marked && typeof window.marked === 'function') {
+                    return window.marked(this.sectionAiText);
+                }
+                return this.sectionAiText.split('\n').join('<br>');
+            },
+
+            async changeSectionLang(newLangCode) {
+                if (newLangCode === this.sectionLang) return;
+                this.sectionLang = newLangCode;
+                this.sectionHumanizing = true;
+                this.sectionAiHumanized = false;
+                this.sectionAiText = '';
+                this.sectionError = '';
+
+                // Find the drugDetailManager parent and call humanizeSection
+                const parentEl = this.$el.closest('[x-data*="drugDetailManager"]');
+                if (parentEl && parentEl._x_dataStack) {
+                    const mgr = parentEl._x_dataStack[0];
+                    if (mgr && typeof mgr.humanizeSection === 'function') {
+                        await mgr.humanizeSection(this.sectionId, newLangCode);
+                        return;
+                    }
+                }
+                // Fallback: call API directly
+                await this.humanizeSectionDirect(newLangCode);
+            },
+
+            async humanizeSectionDirect(langCode) {
+                // Inline fallback if parent component not accessible
+                const langName = LANG_CODE_TO_NAME[langCode] || 'English';
+                const rawField = document.querySelector(`[x-data*="drugDetailManager"]`)?._x_dataStack?.[0]?.drug?.[this.sectionId] || '';
+                if (!rawField.trim()) { this.sectionHumanizing = false; return; }
+
+                try {
+                    const res = await fetch('/api/v1/ai/simplify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            drug_id: 'section_' + this.sectionId,
+                            field: this.sectionId,
+                            text: rawField.substring(0, 2000),
+                            language: langName
+                        })
                     });
                     const data = await res.json();
-                    if (data.success) {
-                        this.aiText = data.text || '';
-                        if (window.marked && typeof window.marked.parse === 'function') {
-                            this.aiHtml = window.marked.parse(this.aiText);
-                        } else if (window.marked && typeof window.marked === 'function') {
-                            this.aiHtml = window.marked(this.aiText);
-                        } else {
-                            this.aiHtml = (this.aiText || '').split('\n').join('<br>');
-                        }
+                    if (data.success && data.text) {
+                        this.sectionAiText = data.text;
+                        this.sectionAiHumanized = true;
+                    } else {
+                        this.sectionError = data.error || 'Translation failed.';
                     }
-                    else { this.aiError = data.error || 'Failed to simplify. Try again.'; }
-                } catch (e) { this.aiError = 'Network error. Please try again.'; }
-                this.aiLoading = false;
+                } catch (e) {
+                    this.sectionError = 'Network error. Please try again.';
+                } finally {
+                    this.sectionHumanizing = false;
+                }
             }
         };
     }

@@ -97,6 +97,8 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <!-- Markdown renderer for AI output -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Pharmasis Multilingual Localization Engine (i18n) -->
+    <script src="{{ asset('js/pharmasis-i18n.js') }}"></script>
 
     {{-- Google Fonts: Geist (body/UI) + Instrument Serif (display) --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -148,15 +150,40 @@
             --glass-tint: rgba(62,174,177,0.05);
         }
 
-        /* ── Scrollbar ── */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
+        /* ── Transparent White Glassmorphic Scrollbar ── */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.6) rgba(255, 255, 255, 0.08);
+        }
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 9999px;
+        }
         ::-webkit-scrollbar-thumb {
-            background: linear-gradient(to bottom, rgba(62,174,177,0.55), rgba(159,216,225,0.6));
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.52);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.85);
+            border-radius: 9999px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14), inset 0 0 0 1px rgba(255, 255, 255, 0.7), inset 0 1px 2px rgba(255, 255, 255, 0.9);
+            transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(to bottom, rgba(62,174,177,0.8), rgba(159,216,225,0.85));
+            background: rgba(255, 255, 255, 0.82);
+            border-color: #ffffff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.95), inset 0 1px 3px rgba(255, 255, 255, 1);
+        }
+        ::-webkit-scrollbar-thumb:active {
+            background: rgba(255, 255, 255, 0.95);
+            border-color: #ffffff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
+        }
+        ::-webkit-scrollbar-corner {
+            background: transparent;
         }
 
         /* ── Glass Utilities ── */
@@ -230,12 +257,76 @@
         /* ── Gradient hero utility ── */
         .gradient-hero { background: linear-gradient(135deg,#0d4f52 0%,#1a7a7d 40%,#3EAEB1 100%); }
 
-        /* ── AI Markdown ── */
-        .ai-markdown { font-size: 0.9rem; line-height: 1.65; }
-        .ai-markdown p  { margin-bottom: 0.4rem; }
-        .ai-markdown ul { list-style-type: disc; padding-left: 1.25rem; margin-bottom: 0.4rem; }
-        .ai-markdown li { margin-bottom: 0.18rem; }
-        .ai-markdown strong { font-weight: 600; }
+        /* ── High-Visibility iOS Dark Spinner Animation ── */
+        .ios-spinner {
+            position: relative;
+            width: 36px;
+            height: 36px;
+            display: inline-block;
+        }
+        .ios-spinner div {
+            position: absolute;
+            left: 43.5%;
+            top: 35%;
+            width: 13%;
+            height: 30%;
+            background: #090d16;
+            border-radius: 50px;
+            opacity: 0.12;
+            animation: iosSpinnerFade 0.9s linear infinite;
+            transform-origin: 50% 195%;
+            box-shadow: 0 0.5px 1px rgba(0,0,0,0.4);
+        }
+        .ios-spinner div:nth-child(1)  { transform: rotate(0deg); animation-delay: -0.825s; }
+        .ios-spinner div:nth-child(2)  { transform: rotate(30deg); animation-delay: -0.75s; }
+        .ios-spinner div:nth-child(3)  { transform: rotate(60deg); animation-delay: -0.675s; }
+        .ios-spinner div:nth-child(4)  { transform: rotate(90deg); animation-delay: -0.6s; }
+        .ios-spinner div:nth-child(5)  { transform: rotate(120deg); animation-delay: -0.525s; }
+        .ios-spinner div:nth-child(6)  { transform: rotate(150deg); animation-delay: -0.45s; }
+        .ios-spinner div:nth-child(7)  { transform: rotate(180deg); animation-delay: -0.375s; }
+        .ios-spinner div:nth-child(8)  { transform: rotate(210deg); animation-delay: -0.3s; }
+        .ios-spinner div:nth-child(9)  { transform: rotate(240deg); animation-delay: -0.225s; }
+        .ios-spinner div:nth-child(10) { transform: rotate(270deg); animation-delay: -0.15s; }
+        .ios-spinner div:nth-child(11) { transform: rotate(300deg); animation-delay: -0.075s; }
+        .ios-spinner div:nth-child(12) { transform: rotate(330deg); animation-delay: 0s; }
+
+        @keyframes iosSpinnerFade {
+            0% { opacity: 1; filter: drop-shadow(0 0 1px rgba(9,13,22,0.8)); }
+            100% { opacity: 0.12; }
+        }
+
+        /* ── Antigravity Signature Colorful AI Styles ── */
+        @keyframes antigravityShimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .badge-antigravity-ai {
+            position: relative;
+            background: linear-gradient(135deg, rgba(6,182,212,0.12) 0%, rgba(99,102,241,0.14) 35%, rgba(236,72,153,0.14) 70%, rgba(245,158,11,0.12) 100%);
+            background-size: 200% 200%;
+            animation: antigravityShimmer 5s ease infinite;
+            border: 1px solid rgba(99,102,241,0.28);
+            box-shadow: 0 2px 10px -2px rgba(99,102,241,0.16), inset 0 1px 0 rgba(255,255,255,0.7);
+            color: #312e81;
+        }
+
+        .badge-antigravity-ai-processing {
+            position: relative;
+            background: linear-gradient(135deg, rgba(14,165,233,0.16) 0%, rgba(139,92,246,0.2) 50%, rgba(244,63,94,0.16) 100%);
+            background-size: 200% 200%;
+            animation: antigravityShimmer 2.2s ease infinite;
+            border: 1px solid rgba(139,92,246,0.38);
+            box-shadow: 0 0 14px rgba(139,92,246,0.22);
+            color: #4338ca;
+        }
+
+        .text-antigravity-gradient {
+            background: linear-gradient(135deg, #0284c7 0%, #6366f1 35%, #d946ef 70%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
         /* ──────────────────────────────────────────────────────────
            Sticky → Floating Glass Navbar (Ultra-Smooth Morph)
@@ -467,28 +558,136 @@
                     </div>
                 </div>
 
-                {{-- Desktop Nav Links --}}
-                <div class="hidden sm:flex items-center gap-1 sm:gap-2 text-sm font-medium">
-                    <a href="{{ route('home') }}"
-                        class="nav-link-modern px-4 py-2 text-ink-700 hover:text-primary rounded-full transition-all">Home</a>
-                    <a href="{{ route('interactions.index') }}"
-                        class="nav-link-modern px-4 py-2 text-ink-700 hover:text-primary rounded-full transition-all">Interactions</a>
-                    <a href="{{ route('drugs.search') }}"
-                        class="btn-gradient px-5 py-2.5 rounded-full font-semibold text-sm">Browse</a>
+                {{-- Desktop Nav Links & Language Switcher --}}
+                <div class="hidden sm:flex items-center gap-2 text-sm font-medium">
+                    {{-- Language Selector Dropdown (Desktop - In Home Position) --}}
+                    <div class="relative" x-data="{
+                        langOpen: false,
+                        currentLang: window.PharmasisI18n ? window.PharmasisI18n.getLanguage() : 'en',
+                        get currentMeta() {
+                            return (window.PharmasisI18n && window.PharmasisI18n.getLangMeta(this.currentLang)) || { code: 'en', name: 'English', native: 'English' };
+                        },
+                        selectLang(code) {
+                            this.langOpen = false;
+                            if (window.PharmasisI18n) {
+                                window.PharmasisI18n.setLanguage(code);
+                            }
+                        },
+                        init() {
+                            window.addEventListener('pharmasis:languageChanged', (e) => {
+                                this.currentLang = e.detail.lang;
+                            });
+                        }
+                    }">
+                        <button @click="langOpen = !langOpen" @click.outside="langOpen = false" type="button"
+                            class="flex items-center gap-2 px-3.5 py-2 rounded-full text-xs font-semibold text-ink-800 bg-white/85 hover:bg-white border border-slate-200/90 shadow-[0_2px_8px_rgba(11,31,36,0.06)] hover:shadow-[0_4px_14px_rgba(11,31,36,0.12)] transition-all focus:outline-none"
+                            style="backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);"
+                            title="Multi-Language Switcher">
+                            <svg class="w-4 h-4 text-teal-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                            </svg>
+                            <span class="tracking-wider uppercase font-mono text-xs font-bold text-teal-900" x-text="currentMeta.code"></span>
+                            <span class="text-xs font-semibold text-slate-600 hidden lg:inline" x-text="'· ' + currentMeta.native"></span>
+                            <svg class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': langOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        {{-- Dropdown Panel --}}
+                        <div x-show="langOpen" x-cloak
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                            x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+                            class="absolute left-0 mt-2 w-60 rounded-2xl p-1.5 z-50 glass-strong shadow-2xl border border-white/90 max-h-80 overflow-y-auto">
+                            <div class="px-3 py-2 border-b border-slate-100/70 mb-1 flex items-center justify-between">
+                                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Multi-Language</p>
+                                <span class="text-[9px] font-mono bg-teal-50 text-teal-700 px-1.5 py-0.5 rounded font-bold">11 Languages</span>
+                            </div>
+                            <div class="space-y-0.5">
+                                <template x-for="lang in (window.PharmasisI18n ? window.PharmasisI18n.languages : [])" :key="lang.code">
+                                    <button type="button" @click="selectLang(lang.code)"
+                                        class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-colors"
+                                        :class="currentLang === lang.code ? 'bg-primary/15 text-primary-dark font-bold' : 'hover:bg-white/60 text-ink-700 font-medium'">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <span class="w-6 h-5 rounded flex items-center justify-center text-[10px] font-bold font-mono uppercase bg-slate-100 text-slate-700 border border-slate-200/80" x-text="lang.code"></span>
+                                            <div class="text-left truncate">
+                                                <p class="truncate" x-text="lang.native"></p>
+                                                <p class="text-[10px] opacity-60 truncate" x-text="lang.name"></p>
+                                            </div>
+                                        </div>
+                                        <svg x-show="currentLang === lang.code" class="w-4 h-4 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="{{ route('interactions.index') }}" data-i18n="nav_interactions"
+                        class="nav-link-modern px-3.5 py-2 text-ink-700 hover:text-primary rounded-full transition-all">Interactions</a>
+                    <a href="{{ route('drugs.search') }}" data-i18n="nav_browse"
+                        class="btn-gradient px-4 py-2 rounded-full font-semibold text-xs sm:text-sm">Browse</a>
                 </div>
 
-                {{-- Mobile: Hamburger Button --}}
-                <button @click="mobileOpen = !mobileOpen"
-                    class="sm:hidden flex items-center justify-center w-9 h-9 rounded-full text-ink-700 hover:bg-white/70 transition-colors focus:outline-none border border-white/60"
-                    style="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);"
-                    :aria-expanded="mobileOpen" aria-label="Toggle menu">
-                    <svg x-show="!mobileOpen" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                    <svg x-show="mobileOpen" x-cloak class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
+                {{-- Mobile: Hamburger & Lang Capsule --}}
+                <div class="sm:hidden flex items-center gap-2">
+                    {{-- Mobile Language Selector --}}
+                    <div class="relative" x-data="{
+                        mOpen: false,
+                        currentLang: window.PharmasisI18n ? window.PharmasisI18n.getLanguage() : 'en',
+                        get currentMeta() {
+                            return (window.PharmasisI18n && window.PharmasisI18n.getLangMeta(this.currentLang)) || { code: 'en', name: 'English', native: 'English' };
+                        },
+                        selectLang(code) {
+                            this.mOpen = false;
+                            if (window.PharmasisI18n) window.PharmasisI18n.setLanguage(code);
+                        },
+                        init() {
+                            window.addEventListener('pharmasis:languageChanged', (e) => { this.currentLang = e.detail.lang; });
+                        }
+                    }">
+                        <button @click="mOpen = !mOpen" @click.outside="mOpen = false" type="button"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-ink-700 bg-white/80 border border-slate-200 shadow-sm focus:outline-none"
+                            style="backdrop-filter: blur(10px);">
+                            <svg class="w-3.5 h-3.5 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                            </svg>
+                            <span class="uppercase text-[11px] font-mono font-bold text-teal-900" x-text="currentMeta.code"></span>
+                        </button>
+                        <div x-show="mOpen" x-cloak
+                            class="absolute right-0 mt-2 w-52 rounded-2xl p-1.5 z-50 glass-strong shadow-2xl border border-white/90 max-h-72 overflow-y-auto">
+                            <template x-for="lang in (window.PharmasisI18n ? window.PharmasisI18n.languages : [])" :key="lang.code">
+                                <button type="button" @click="selectLang(lang.code)"
+                                    class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-colors"
+                                    :class="currentLang === lang.code ? 'bg-primary/15 text-primary-dark font-bold' : 'hover:bg-white/60 text-ink-700 font-medium'">
+                                    <div class="flex items-center gap-2 truncate">
+                                        <span class="w-5 h-4 rounded flex items-center justify-center text-[9px] font-bold font-mono uppercase bg-slate-100 text-slate-700 border border-slate-200/80" x-text="lang.code"></span>
+                                        <span class="truncate" x-text="lang.native"></span>
+                                    </div>
+                                    <svg x-show="currentLang === lang.code" class="w-3.5 h-3.5 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <button @click="mobileOpen = !mobileOpen"
+                        class="flex items-center justify-center w-9 h-9 rounded-full text-ink-700 hover:bg-white/70 transition-colors focus:outline-none border border-white/60"
+                        style="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);"
+                        :aria-expanded="mobileOpen" aria-label="Toggle menu">
+                        <svg x-show="!mobileOpen" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                        <svg x-show="mobileOpen" x-cloak class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             {{-- Mobile Dropdown Menu --}}
@@ -503,6 +702,7 @@
                             @focus="if(query.length >= 2) open = true"
                             @keydown.enter.prevent="if(query) window.location.href=`/search?q=${encodeURIComponent(query)}`"
                             placeholder="Search medicines…"
+                            data-i18n-placeholder="nav_search_mobile"
                             class="w-full pl-9 pr-4 py-2.5 text-sm rounded-2xl bg-white/85 hover:bg-white focus:bg-white border border-slate-300/90 hover:border-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-ink-400 transition-all shadow-[0_4px_14px_rgba(11,31,36,0.07)]"
                             style="backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);"
                             autocomplete="off" />
@@ -525,26 +725,19 @@
 
                 {{-- Mobile Nav Links --}}
                 <div class="px-1 pb-4 pt-2 space-y-1">
-                    <a href="{{ route('home') }}" @click="mobileOpen = false"
-                        class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-ink-700 hover:text-primary hover:bg-white/60 rounded-xl transition-all">
-                        <svg class="w-4 h-4 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                        </svg>
-                        Home
-                    </a>
                     <a href="{{ route('interactions.index') }}" @click="mobileOpen = false"
                         class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-ink-700 hover:text-primary hover:bg-white/60 rounded-xl transition-all">
                         <svg class="w-4 h-4 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                         </svg>
-                        Interactions
+                        <span data-i18n="nav_interactions">Interactions</span>
                     </a>
                     <a href="{{ route('drugs.search') }}" @click="mobileOpen = false"
                         class="btn-gradient flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl">
                         <svg class="w-4 h-4 text-white/85" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
                         </svg>
-                        Browse Medicines
+                        <span data-i18n="nav_browse">Browse Medicines</span>
                     </a>
                 </div>
             </div>
@@ -673,6 +866,18 @@
             };
         }
     </script>
+
+    {{-- ════════════════════════════════════════ MINIMALIST BARE iOS SPINNER PRELOADER ════════════════════════════════════════ --}}
+    <div id="pharmasis-lang-preloader" class="hidden fixed inset-0 z-[99999] flex items-center justify-center select-none"
+        style="background: rgba(255,255,255,0.45); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%);">
+        
+        {{-- Compact Bare Minimalist Dark iOS spinner --}}
+        <div class="ios-spinner" style="transform: scale(1.05); transform-origin: center;">
+            <div></div><div></div><div></div><div></div>
+            <div></div><div></div><div></div><div></div>
+            <div></div><div></div><div></div><div></div>
+        </div>
+    </div>
 
     @include('partials.cookie-consent')
     @stack('scripts')

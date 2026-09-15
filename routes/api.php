@@ -11,6 +11,7 @@ Route::prefix('v1')->group(function () {
 
     // AI simplifier
     Route::post('/ai/simplify', [AiController::class , 'simplify']);
+    Route::post('/ai/humanize-drug', [AiController::class , 'humanizeDrug']);
 
     // Interaction checker
     Route::post('/interactions/check', [\App\Http\Controllers\Api\InteractionController::class , 'check']);

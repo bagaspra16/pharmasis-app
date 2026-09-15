@@ -97,4 +97,125 @@ PROMPT;
             return ['success' => false, 'error' => 'Failed to reach AI service. Please try again later.'];
         }
     }
+
+    /**
+     * Humanize & translate all drug information sections in a single AI call.
+     * Returns translated/humanized text for each section present.
+     * Caches result for 30 days per drug+language combination.
+     */
+    public function humanizeDrug(string $drugId, string $drugName, array $sections, string $language = 'English'): array
+    {
+        if (empty($this->apiKey)) {
+            return [
+                'success' => false,
+                'error' => 'AI service is not configured. Please add your GROQ_API_KEY to .env',
+            ];
+        }
+
+        $langSlug = \Illuminate\Support\Str::slug($language);
+        $cacheKey = "ai_humanize_drug_{$drugId}_{$langSlug}";
+
+        if (Cache::has($cacheKey)) {
+            return ['success' => true, 'sections' => Cache::get($cacheKey), 'cached' => true];
+        }
+
+        // Build the sections content for the prompt (only non-empty sections)
+        $sectionLines = [];
+        $sectionLabels = [
+            'uses'         => 'Uses & Indications',
+            'warnings'     => 'Warnings & Precautions',
+            'dosage'       => 'Dosage & Administration',
+            'side_effects' => 'Side Effects',
+            'interactions' => 'Drug Interactions',
+        ];
+
+        foreach ($sections as $key => $text) {
+            if (!empty(trim((string) $text)) && isset($sectionLabels[$key])) {
+                $truncated = substr(strip_tags((string) $text), 0, 800);
+                $label = $sectionLabels[$key];
+                $sectionLines[] = "### {$label}\n{$truncated}";
+            }
+        }
+
+        if (empty($sectionLines)) {
+            return ['success' => false, 'error' => 'No drug sections provided.'];
+        }
+
+        $sectionsText = implode("\n\n", $sectionLines);
+
+        $prompt = <<<PROMPT
+You are a clinical medical information humanizer. Your task is to rewrite each section of a drug monograph for {$drugName} into clear, patient-friendly, easy-to-understand language.
+
+Rules:
+- Use plain language (no heavy medical jargon — explain any necessary terms in parentheses)
+- Keep each section concise but informative
+- Use short bullet points where appropriate
+- Do NOT give personalized medical advice or diagnose conditions
+- Be accurate and educational
+- IMPORTANT: You MUST translate and write ALL output in the following language: {$language}
+
+Return your response in this EXACT JSON format (no extra text outside the JSON):
+{
+  "uses": "humanized text or null if section not provided",
+  "warnings": "humanized text or null if section not provided",
+  "dosage": "humanized text or null if section not provided",
+  "side_effects": "humanized text or null if section not provided",
+  "interactions": "humanized text or null if section not provided"
+}
+
+Drug Monograph Sections to Humanize:
+{$sectionsText}
+
+Respond ONLY with valid JSON, all content written in {$language}:
+PROMPT;
+
+        try {
+            $response = Http::timeout(45)
+                ->withToken($this->apiKey)
+                ->post("{$this->apiBase}/chat/completions", [
+                'model' => $this->model,
+                'messages' => [
+                    ['role' => 'system', 'content' => 'You are a precise medical information humanizer. Return only valid JSON. Translate all content to the requested language.'],
+                    ['role' => 'user', 'content' => $prompt],
+                ],
+                'max_tokens' => 2000,
+                'temperature' => 0.35,
+                'response_format' => ['type' => 'json_object'],
+            ]);
+
+            if ($response->failed()) {
+                Log::error('AI Humanizer (Groq) error', [
+                    'status' => $response->status(),
+                    'body'   => $response->body(),
+                ]);
+                return ['success' => false, 'error' => 'AI service returned an error. Please try again later.'];
+            }
+
+            $rawContent = $response->json('choices.0.message.content', '');
+
+            if (empty($rawContent)) {
+                return ['success' => false, 'error' => 'No response from AI.'];
+            }
+
+            // Parse JSON response
+            $parsed = json_decode($rawContent, true);
+            if (json_last_error() !== JSON_ERROR_NONE || !is_array($parsed)) {
+                Log::warning('AI Humanizer JSON parse error', ['raw' => substr($rawContent, 0, 500)]);
+                return ['success' => false, 'error' => 'AI returned an unexpected format.'];
+            }
+
+            // Merge with nulls for missing sections
+            $result = array_merge([
+                'uses' => null, 'warnings' => null, 'dosage' => null,
+                'side_effects' => null, 'interactions' => null,
+            ], $parsed);
+
+            Cache::put($cacheKey, $result, now()->addDays(30));
+            return ['success' => true, 'sections' => $result, 'cached' => false];
+
+        } catch (\Exception $e) {
+            Log::error('AiSimplifierService humanizeDrug error', ['error' => $e->getMessage()]);
+            return ['success' => false, 'error' => 'Failed to reach AI service. Please try again later.'];
+        }
+    }
 }

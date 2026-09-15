@@ -16,8 +16,8 @@ class AiController extends Controller
     }
 
     /**
-     * POST /api/ai/simplify
-     * Body: { drug_id, field, text }
+     * POST /api/v1/ai/simplify
+     * Body: { drug_id, field, text, language }
      */
     public function simplify(Request $request): JsonResponse
     {
@@ -46,6 +46,38 @@ class AiController extends Controller
             'error_code'  => empty($result['success']) ? substr((string) ($result['error'] ?? 'unknown'), 0, 64) : null,
             'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
         ]);
+
+        return response()->json($result, $result['success'] ? 200 : 503);
+    }
+
+    /**
+     * POST /api/v1/ai/humanize-drug
+     * Humanizes and translates ALL drug sections in one AI call.
+     * Body: { drug_id, drug_name, language_code, language_name, sections: { uses, warnings, dosage, side_effects, interactions } }
+     */
+    public function humanizeDrug(Request $request): JsonResponse
+    {
+        $request->validate([
+            'drug_id'       => 'required|string',
+            'drug_name'     => 'required|string|max:200',
+            'language_code' => 'nullable|string|max:10',
+            'language_name' => 'nullable|string|max:50',
+            'sections'      => 'required|array',
+            'sections.uses'         => 'nullable|string',
+            'sections.warnings'     => 'nullable|string',
+            'sections.dosage'       => 'nullable|string',
+            'sections.side_effects' => 'nullable|string',
+            'sections.interactions' => 'nullable|string',
+        ]);
+
+        $language = $request->string('language_name')->value() ?: 'English';
+
+        $result = $this->aiService->humanizeDrug(
+            $request->string('drug_id'),
+            $request->string('drug_name'),
+            $request->input('sections', []),
+            $language
+        );
 
         return response()->json($result, $result['success'] ? 200 : 503);
     }

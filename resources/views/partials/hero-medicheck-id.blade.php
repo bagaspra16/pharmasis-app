@@ -46,20 +46,17 @@
             {{-- Headline in one single elegant line --}}
             <h1
                 class="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[4.6rem] text-ink-900 mb-5 leading-tight tracking-tight whitespace-normal">
-                What you feel
+                <span data-i18n="hero_title_1">What you feel</span>
                 <span class="italic"
-                    style="background: linear-gradient(135deg,#3EAEB1 10%,#1a7a7d 90%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; padding-right: 0.05em;">deserves
-                    a real answer.</span>
+                    style="background: linear-gradient(135deg,#3EAEB1 10%,#1a7a7d 90%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; padding-right: 0.05em;"
+                    data-i18n="hero_title_2">deserves a real answer.</span>
             </h1>
 
             {{-- Richer, wider, and well-explained description --}}
             <p
-                class="text-sm md:text-[15px] text-slate-600 mb-3 max-w-3xl mx-auto leading-relaxed text-center sm:text-justify md:text-center">
-                Describe what you're feeling in your own words. MediCore AI analyzes your symptoms, verifies medication
-                safety, and creates a clinical-grade report tailored for both patients and healthcare providers.
-            </p>
-            <p class="text-xs text-slate-400 mb-7 max-w-lg mx-auto">
-                No account required. Instant bilingual screening in English and Bahasa Indonesia.
+                class="text-sm md:text-[15px] text-slate-600 mb-3 max-w-3xl mx-auto leading-relaxed text-center sm:text-justify md:text-center"
+                data-i18n="hero_desc">
+                Describe your symptoms in plain language. Pharmasis' MediCore AI analyzes your input, asks the follow-up questions that matter, and delivers a clinically structured conclusion for both patients and healthcare providers.
             </p>
 
             {{-- How it works — 3 steps --}}
@@ -203,13 +200,13 @@
                             <div class="flex flex-col">
                                 <textarea x-ref="symptomTextarea" x-model="symptoms"
                                     @keydown.enter="handleTextareaEnter($event)" @input="autoResizeTextarea()"
+                                    data-i18n-placeholder="hero_placeholder"
                                     placeholder="Describe your symptoms in detail... Example: I've had a dry cough and a 38°C fever since two days ago, along with a headache and fatigue."
-                                    class="flex-1 bg-transparent text-slate-900 placeholder-slate-400/80 font-medium text-base px-5 py-4 rounded-3xl focus:outline-none focus:ring-0 resize-none border-none min-h-[120px] max-h-[280px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-teal-600/20 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-teal-600/40"
+                                    class="flex-1 bg-transparent text-slate-900 placeholder-slate-400/80 font-medium text-base px-5 py-4 rounded-3xl focus:outline-none focus:ring-0 resize-none border-none min-h-[120px] max-h-[280px] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-white/10 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/60 [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-white/85 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/90"
                                     rows="3"></textarea>
                                 <div
-                                    class="flex items-center justify-between gap-3 pt-3 px-3 border-t border-slate-200/50 mt-1">
-                                    <span class="text-xs text-slate-400 hidden sm:inline flex-1">Describe your
-                                        symptoms... Press Enter to start screening.</span>
+                                     class="flex items-center justify-between gap-3 pt-3 px-3 border-t border-slate-200/50 mt-1">
+                                    <span class="text-xs text-slate-400 hidden sm:inline flex-1" data-i18n="hero_hint">Describe your symptoms... Press Enter to start screening.</span>
                                     <button @click="startScreening()" :disabled="screening || !symptoms.trim()"
                                         class="flex-shrink-0 ml-auto text-white font-bold h-10 w-10 sm:h-11 sm:w-11 rounded-full flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105"
                                         style="background: linear-gradient(135deg,#0d9488,#0f766e); box-shadow: 0 4px 16px rgba(13,148,136,0.35);">
