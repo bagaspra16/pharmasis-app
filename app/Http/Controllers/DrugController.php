@@ -32,7 +32,7 @@ class DrugController extends Controller
         $alphaIndex = [];
 
         try {
-            $featured = $this->searchService->getFeatured(8);
+            $featured = $this->searchService->getFeatured(16);
             $alphaIndex = $this->searchService->getAlphaIndex();
         }
         catch (\Exception $e) {

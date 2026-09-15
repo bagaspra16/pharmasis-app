@@ -41,17 +41,25 @@
         </div>
 
         {{-- Content --}}
-        <div class="relative z-10 max-w-3xl mx-auto px-4 py-10 md:py-16 text-center w-full">
+        <div class="relative z-10 max-w-5xl mx-auto px-4 py-10 md:py-16 text-center w-full">
 
-            {{-- Headline --}}
-            <h1 class="font-display text-5xl sm:text-6xl lg:text-7xl text-ink-900 mb-5 leading-[1.02] tracking-tight">
-                Know your
+            {{-- Headline in one single elegant line --}}
+            <h1
+                class="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[4.6rem] text-ink-900 mb-5 leading-tight tracking-tight whitespace-normal">
+                What you feel
                 <span class="italic"
-                    style="background: linear-gradient(135deg,#3EAEB1 10%,#1a7a7d 90%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; padding-right: 0.05em;">health.</span>
+                    style="background: linear-gradient(135deg,#3EAEB1 10%,#1a7a7d 90%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; padding-right: 0.05em;">deserves
+                    a real answer.</span>
             </h1>
-            <p class="text-sm md:text-base text-ink-500 mb-4 max-w-lg mx-auto leading-relaxed">
-                Tell us what you're feeling, answer a few quick AI questions, then get a conclusion tailored to whether
-                you're a healthcare professional or a patient.
+
+            {{-- Richer, wider, and well-explained description --}}
+            <p
+                class="text-sm md:text-[15px] text-slate-600 mb-3 max-w-3xl mx-auto leading-relaxed text-center sm:text-justify md:text-center">
+                Describe what you're feeling in your own words. MediCore AI analyzes your symptoms, verifies medication
+                safety, and creates a clinical-grade report tailored for both patients and healthcare providers.
+            </p>
+            <p class="text-xs text-slate-400 mb-7 max-w-lg mx-auto">
+                No account required. Instant bilingual screening in English and Bahasa Indonesia.
             </p>
 
             {{-- How it works — 3 steps --}}
@@ -59,7 +67,7 @@
                 <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-soft text-primary-dark">
                     <span
                         class="w-4 h-4 rounded-full bg-primary/15 text-primary text-[9px] font-bold flex items-center justify-center">1</span>
-                    Describe symptoms
+                    Describe what you feel
                 </span>
                 <svg class="w-3 h-3 text-ink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -67,7 +75,7 @@
                 <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-soft text-primary-dark">
                     <span
                         class="w-4 h-4 rounded-full bg-primary/15 text-primary text-[9px] font-bold flex items-center justify-center">2</span>
-                    Answer screening
+                    Answer AI screening
                 </span>
                 <svg class="w-3 h-3 text-ink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -75,7 +83,7 @@
                 <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-soft text-primary-dark">
                     <span
                         class="w-4 h-4 rounded-full bg-primary/15 text-primary text-[9px] font-bold flex items-center justify-center">3</span>
-                    Get conclusion
+                    Get your conclusion
                 </span>
             </div>
 
@@ -161,7 +169,7 @@
                             </svg>
                         </button>
                         <p class="text-xs text-slate-500 mt-4 font-medium"
-                            x-text="recording ? 'Recording — tap to stop' : (screening ? 'Preparing questions...' : 'Tap to speak — any language')">
+                            x-text="recording ? 'Recording: tap to stop' : (screening ? 'Preparing clinical questions...' : 'Tap to speak (any language)')">
                         </p>
 
                         <div x-show="recording" x-cloak class="mt-4 mx-auto w-full max-w-sm">
@@ -279,10 +287,251 @@
                 </div>
             </div>{{-- /intake --}}
 
+            {{-- ══════════════ MEDICORE AI RESULT PANEL (phase: medicore) ══════════════ --}}
+            {{-- Shown after MediCore classifies intent as medi_facts or medi_combo --}}
+            <div id="mc-result-panel" x-show="phase === 'medicore'" x-cloak
+                class="w-full max-w-2xl mx-auto mt-8 space-y-4 text-left"
+                x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-y-6"
+                x-transition:enter-end="opacity-100 translate-y-0">
+
+                {{-- Classification Badge + Title + Reset --}}
+                <div class="flex items-center gap-3">
+                    <span class="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider text-white"
+                        :style="mcData?.classification === 'medi_facts' ? 'background:linear-gradient(135deg,#0d9488,#0f766e)' : 'background:linear-gradient(135deg,#7c3aed,#6d28d9)'">
+                        <template x-if="mcData?.classification === 'medi_facts'">📚 Fakta Medis</template>
+                        <template x-if="mcData?.classification !== 'medi_facts'">🔬 Fakta + Screening</template>
+                    </span>
+                    <p class="text-sm font-semibold text-slate-700 flex-1 leading-tight" x-text="mcData?.summary_title">
+                    </p>
+                    <button @click="resetMcPanel()"
+                        class="text-slate-400 hover:text-slate-600 transition-colors flex-shrink-0" title="Mulai ulang">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </button>
+                </div>
+
+                {{-- Fact Card --}}
+                <template x-if="mcData?.medical_facts_payload">
+                    <div class="rounded-3xl overflow-hidden"
+                        style="background:rgba(255,255,255,0.93); backdrop-filter:blur(24px); border:1px solid rgba(255,255,255,0.95); box-shadow:0 8px 32px rgba(62,174,177,0.12);">
+                        <div class="px-6 py-4"
+                            style="background:linear-gradient(135deg,rgba(62,174,177,0.08),rgba(97,186,202,0.06)); border-bottom:1px solid rgba(62,174,177,0.1);">
+                            <div class="flex items-center gap-2">
+                                <span
+                                    class="px-2.5 py-0.5 bg-teal-500/10 text-teal-700 text-[10px] font-bold rounded-full uppercase tracking-wider"
+                                    x-text="mcData.medical_facts_payload.fact_badge || 'Verified Medical Fact'"></span>
+                            </div>
+                            <p class="mt-2 text-sm font-medium text-slate-800 leading-relaxed"
+                                x-text="mcData.medical_facts_payload.core_explanation"></p>
+                        </div>
+                        <template x-if="mcData.medical_facts_payload.key_points?.length">
+                            <div class="divide-y divide-slate-100/70">
+                                <template x-for="(kp, i) in mcData.medical_facts_payload.key_points" :key="i">
+                                    <div class="px-6 py-3.5">
+                                        <p class="text-[10px] font-bold text-primary uppercase tracking-widest mb-1"
+                                            x-text="kp.heading"></p>
+                                        <p class="text-xs text-slate-600 leading-relaxed" x-text="kp.content"></p>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                        <template x-if="mcData.medical_facts_payload.medical_sources?.length">
+                            <div class="px-6 py-3 flex flex-wrap gap-1.5"
+                                style="border-top:1px solid rgba(62,174,177,0.08);">
+                                <template x-for="src in mcData.medical_facts_payload.medical_sources" :key="src">
+                                    <span
+                                        class="px-2 py-0.5 bg-slate-100 text-slate-500 text-[10px] font-medium rounded-full"
+                                        x-text="src"></span>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                {{-- Patient Conclusions --}}
+                <template x-if="mcData?.conclusions?.patient_mode">
+                    <div class="rounded-3xl overflow-hidden"
+                        style="background:rgba(255,255,255,0.93); backdrop-filter:blur(24px); border:1px solid rgba(255,255,255,0.95); box-shadow:0 8px 32px rgba(62,174,177,0.1);">
+                        <div class="px-6 py-4"
+                            style="background:linear-gradient(135deg,rgba(16,185,129,0.06),rgba(5,150,105,0.04)); border-bottom:1px solid rgba(16,185,129,0.1);">
+                            <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Untuk
+                                Pasien / Masyarakat Umum</p>
+                            <p class="text-sm text-slate-700 leading-relaxed"
+                                x-text="mcData.conclusions.patient_mode.explanation"></p>
+                        </div>
+                        <template x-if="mcData.conclusions.patient_mode.self_care_tips?.length">
+                            <div class="px-6 py-4">
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Langkah
+                                    Perawatan Mandiri</p>
+                                <ul class="space-y-1.5">
+                                    <template x-for="tip in mcData.conclusions.patient_mode.self_care_tips" :key="tip">
+                                        <li class="flex items-start gap-2 text-xs text-slate-600">
+                                            <span
+                                                class="w-4 h-4 rounded-full bg-emerald-500/10 text-emerald-600 flex-shrink-0 flex items-center justify-center mt-0.5 text-[9px] font-bold">✓</span>
+                                            <span x-text="tip"></span>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </div>
+                        </template>
+                        <template x-if="mcData.conclusions.patient_mode.recommended_specialist">
+                            <div class="px-6 py-3 flex items-center gap-2"
+                                style="border-top:1px solid rgba(16,185,129,0.08);">
+                                <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                                <p class="text-xs text-slate-500">Dokter yang disarankan: <span
+                                        class="font-semibold text-slate-700"
+                                        x-text="mcData.conclusions.patient_mode.recommended_specialist"></span></p>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                {{-- Clinician Mode Toggle --}}
+                <template x-if="mcData?.conclusions?.clinician_mode">
+                    <div>
+                        <button @click="mcShowClinician = !mcShowClinician"
+                            class="w-full text-left px-5 py-3 rounded-2xl text-xs font-bold text-violet-700 flex items-center justify-between transition-all"
+                            style="background:rgba(124,58,237,0.06); border:1px solid rgba(124,58,237,0.15);">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Mode Klinisi (Dokter / Tenaga Medis)
+                            </span>
+                            <svg class="w-4 h-4 transition-transform duration-200"
+                                :class="mcShowClinician ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div x-show="mcShowClinician" x-cloak x-transition class="mt-2 rounded-3xl overflow-hidden"
+                            style="background:rgba(245,243,255,0.97); border:1px solid rgba(124,58,237,0.15); box-shadow:0 4px 24px rgba(124,58,237,0.10);">
+                            <template x-if="mcData.conclusions.clinician_mode.differential_diagnoses?.length">
+                                <div class="px-6 py-4" style="border-bottom:1px solid rgba(124,58,237,0.08);">
+                                    <p class="text-[10px] font-bold text-violet-600 uppercase tracking-widest mb-2">
+                                        Differential Diagnosis</p>
+                                    <div class="space-y-2">
+                                        <template x-for="dd in mcData.conclusions.clinician_mode.differential_diagnoses"
+                                            :key="dd.disease">
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    <p class="text-xs font-semibold text-slate-800" x-text="dd.disease">
+                                                    </p>
+                                                    <p class="text-[10px] text-slate-400 font-mono" x-text="dd.icd_10">
+                                                    </p>
+                                                </div>
+                                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                                    :class="dd.likelihood === 'High' ? 'bg-red-100 text-red-700' : (dd.likelihood === 'Moderate' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500')"
+                                                    x-text="dd.likelihood"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                            <template x-if="mcData.conclusions.clinician_mode.pathophysiology">
+                                <div class="px-6 py-4" style="border-bottom:1px solid rgba(124,58,237,0.08);">
+                                    <p class="text-[10px] font-bold text-violet-600 uppercase tracking-widest mb-1">
+                                        Patofisiologi</p>
+                                    <p class="text-xs text-slate-700 leading-relaxed"
+                                        x-text="mcData.conclusions.clinician_mode.pathophysiology"></p>
+                                </div>
+                            </template>
+                            <template x-if="mcData.conclusions.clinician_mode.recommended_workup?.length">
+                                <div class="px-6 py-4">
+                                    <p class="text-[10px] font-bold text-violet-600 uppercase tracking-widest mb-2">
+                                        Rekomendasi Workup</p>
+                                    <ul class="space-y-1">
+                                        <template x-for="wu in mcData.conclusions.clinician_mode.recommended_workup"
+                                            :key="wu">
+                                            <li class="text-xs text-slate-600 flex items-center gap-2">
+                                                <span
+                                                    class="w-1.5 h-1.5 rounded-full bg-violet-400 flex-shrink-0"></span>
+                                                <span x-text="wu"></span>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
+                {{-- For medi_combo: note that screening questions will appear below in screening-panel --}}
+                <template x-if="mcData?.classification === 'medi_combo' && phase === 'medicore'">
+                    <div class="px-5 py-3 rounded-2xl flex items-center gap-3 text-sm text-primary"
+                        style="background:rgba(62,174,177,0.06); border:1px solid rgba(62,174,177,0.2);">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Pertanyaan skrining tambahan sedang disiapkan di bawah ↓</span>
+                    </div>
+                </template>
+
+                <p class="text-center text-[10px] text-slate-400 leading-relaxed px-2">
+                    ⚠️ Informasi ini bersifat edukatif dan tidak menggantikan konsultasi dengan tenaga kesehatan
+                    profesional.
+                </p>
+            </div>
+
+            {{-- ══════════════ EMERGENCY PANEL (phase: emergency) ══════════════ --}}
+            <div id="mc-result-panel" x-show="phase === 'emergency'" x-cloak class="w-full max-w-2xl mx-auto mt-8"
+                x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-y-6"
+                x-transition:enter-end="opacity-100 translate-y-0">
+                <div class="rounded-3xl overflow-hidden"
+                    style="background:rgba(254,242,242,0.97); border:2px solid #ef4444; box-shadow:0 12px 40px rgba(239,68,68,0.25);">
+                    <div class="px-6 py-5 bg-red-500 text-white">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl animate-pulse">🚨</span>
+                            <div>
+                                <p class="font-bold text-base"
+                                    x-text="mcData?.emergency_alert?.title || '🚨 Kondisi Darurat Medis'"></p>
+                                <p class="text-xs text-red-100">Terdeteksi oleh MediCore AI</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-6 py-5">
+                        <p class="text-sm text-red-800 leading-relaxed mb-4" x-text="mcData?.emergency_alert?.message">
+                        </p>
+                        <div class="flex flex-wrap gap-2 mb-5">
+                            <template x-for="action in (mcData?.emergency_alert?.actions || [])" :key="action">
+                                <span class="px-3 py-1.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full"
+                                    x-text="action"></span>
+                            </template>
+                        </div>
+                        <div class="flex gap-3 flex-wrap">
+                            <a href="tel:119"
+                                class="flex items-center gap-2 px-5 py-2.5 bg-red-500 text-white text-sm font-bold rounded-full hover:bg-red-600 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                </svg>
+                                Hubungi 119
+                            </a>
+                            <button @click="resetMcPanel()"
+                                class="px-5 py-2.5 border border-red-300 text-red-600 text-sm font-semibold rounded-full hover:bg-red-50 transition-colors">
+                                Kembali
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
             {{-- Error --}}
             <div x-show="error" x-cloak
                 class="mt-4 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl max-w-lg mx-auto"
                 x-text="error"></div>
+
 
             {{-- ══════════════ SCREENING PANEL: questions + concluding ══════════════ --}}
             <div id="screening-panel" x-show="phase === 'questions' || phase === 'concluding'" x-cloak

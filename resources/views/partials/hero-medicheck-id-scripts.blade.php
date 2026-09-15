@@ -41,6 +41,153 @@
         };
     }
 
+    /* ══════════════ MediCore AI — Adaptive Intent Router Component ══════════════ */
+    function mediCoreRouter() {
+        return {
+            // State
+            mcInput: '',
+            mcPhase: 'input',   // 'input' | 'routing' | 'result'
+            mcLoading: false,
+            mcData: null,
+            mcAnswers: {},       // { [questionId]: string[] }
+            mcShowClinician: false,
+            mcRoutingStep: 'Menganalisis input kamu...',
+
+            // Routing step messages for UX feedback
+            _routingSteps: [
+                'Menganalisis input kamu...',
+                'Mengklasifikasi intent medis...',
+                'Merutekan ke pipeline yang tepat...',
+                'Memproses pengetahuan medis...',
+                'Menyiapkan hasil untuk kamu...',
+            ],
+            _routingInterval: null,
+
+            handleMcEnter(e) {
+                if (!e.shiftKey && this.mcInput.trim()) {
+                    e.preventDefault();
+                    this.runMediCore();
+                }
+            },
+
+            async runMediCore() {
+                if (!this.mcInput.trim() || this.mcLoading) return;
+                this.mcLoading = true;
+                this.mcPhase = 'routing';
+                this.mcData = null;
+                this.mcAnswers = {};
+                this.mcShowClinician = false;
+
+                // Cycle through routing step messages for UX
+                let stepIdx = 0;
+                this.mcRoutingStep = this._routingSteps[0];
+                this._routingInterval = setInterval(() => {
+                    stepIdx = (stepIdx + 1) % this._routingSteps.length;
+                    this.mcRoutingStep = this._routingSteps[stepIdx];
+                }, 1800);
+
+                try {
+                    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                    const csrf = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+                    const res = await fetch('/medicheck/route', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrf,
+                        },
+                        body: JSON.stringify({ input: this.mcInput, lang: 'auto' }),
+                    });
+
+                    clearInterval(this._routingInterval);
+
+                    if (!res.ok) {
+                        const errJson = await res.json().catch(() => ({}));
+                        this.mcData = {
+                            classification: 'error',
+                            error: errJson.error || `Server error (${res.status}). Coba lagi.`,
+                        };
+                    } else {
+                        const json = await res.json();
+                        this.mcData = json.data || json;
+                    }
+                } catch (err) {
+                    clearInterval(this._routingInterval);
+                    this.mcData = { classification: 'error', error: 'Tidak dapat terhubung ke server. Periksa koneksi internet kamu.' };
+                }
+
+                this.mcLoading = false;
+                this.mcPhase = 'result';
+
+                // Auto-scroll to result panel
+                this.$nextTick(() => {
+                    const el = this.$el;
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            },
+
+            resetMC() {
+                if (this._routingInterval) clearInterval(this._routingInterval);
+                this.mcPhase = 'input';
+                this.mcData = null;
+                this.mcAnswers = {};
+                this.mcShowClinician = false;
+                this.mcInput = '';
+                this.mcLoading = false;
+            },
+
+            toggleMcAnswer(questionId, option) {
+                if (!this.mcAnswers[questionId]) this.mcAnswers[questionId] = [];
+                const idx = this.mcAnswers[questionId].indexOf(option);
+                if (idx >= 0) {
+                    this.mcAnswers[questionId].splice(idx, 1);
+                } else {
+                    this.mcAnswers[questionId] = [option]; // single-select by default
+                }
+            },
+
+            proceedToClassicScreen() {
+                // Hand off to classic mediCheckHeroId screening flow:
+                // Copy input as firstPrompt and initiate startScreening on parent
+                const heroEl = document.querySelector('[x-data*="mediCheckHeroId"]') ||
+                               document.getElementById('ceksehat-root')?.querySelector('[x-data]');
+                if (heroEl && heroEl._x_dataStack) {
+                    const heroComp = heroEl._x_dataStack[0];
+                    if (heroComp) {
+                        heroComp.symptoms = this.mcInput;
+                        heroComp.activeTab = 'text';
+                        heroComp.$nextTick(() => heroComp.startScreening());
+                        return;
+                    }
+                }
+                // Fallback: set tab & input manually
+                document.querySelector('[x-data*="mediCheckHeroId"] textarea')?.focus();
+            },
+
+            // UI helpers
+            mcClassLabel(cls) {
+                const map = {
+                    medi_facts: '📚 Fakta Medis',
+                    medi_check: '🩺 Screening Gejala',
+                    medi_combo: '🔬 Fakta + Screening',
+                    emergency_alert: '🚨 Darurat',
+                };
+                return map[cls] || cls;
+            },
+
+            mcClassColor(cls) {
+                const map = {
+                    medi_facts: 'background:linear-gradient(135deg,#0d9488,#0f766e)',
+                    medi_check: 'background:linear-gradient(135deg,#3EAEB1,#2d8a8d)',
+                    medi_combo: 'background:linear-gradient(135deg,#7c3aed,#6d28d9)',
+                    emergency_alert: 'background:#ef4444',
+                };
+                return map[cls] || 'background:#64748b';
+            },
+        };
+    }
+
     /* ══════════════ Concluding steps ══════════════ */
     const CONCLUDE_STEPS_ID = [
         { id: 'read',    icon: '1', label: 'Summarizing your answers', detail: 'Building the screening transcript · recognizing clinical entities' },
@@ -60,9 +207,10 @@
             error: '',
 
             /* ── Screening flow ──
-               phase: 'intake' → 'questions' → 'concluding' → 'result' */
+               phase: 'intake' → 'medicore'|'emergency' (medi_facts/emergency)
+                     OR 'intake' → 'questions' → 'concluding' → 'result' (medi_check/medi_combo) */
             phase: 'intake',
-            screening: false,      // loading questions
+            screening: false,      // loading (routing + questions)
             analyzing: false,      // loading conclusion
             questions: [],
             currentQ: 0,
@@ -71,6 +219,10 @@
             result: null,          // full server payload
             conclusion: null,      // result.conclusion (branch-specific shape)
 
+            /* ── MediCore AI result (medi_facts / medi_combo / emergency_alert) ── */
+            mcData: null,
+            mcShowClinician: false,
+            mcAnswers: {},
             /* ── Concluding step animation ── */
             currentStep: -1,
             completedSteps: [],
@@ -181,16 +333,75 @@
                 this.startScreening();
             },
 
-            /* ══════════════ Phase 1 → 2: generate screening questions ══════════════ */
+            /* ══════════════ Phase 0: MediCore AI Intent Router ══════════════
+               Called by BOTH text submit and voice transcribe.
+               1. Calls /medicheck/route to classify intent.
+               2a. medi_facts → phase = 'medicore'  (no questions needed)
+               2b. medi_check → continues to existing /medicheck/screen flow
+               2c. medi_combo → phase = 'medicore' with combo flag, then shows
+                   a "Continue to Screening" button
+               2d. emergency_alert → phase = 'emergency'
+            ══════════════════════════════════════════════════════════════════ */
             async startScreening() {
                 const prompt = (this.symptoms || '').trim();
                 if (!prompt || this.screening) return;
                 this.error = '';
                 this.firstPrompt = prompt;
                 this.screening = true;
+                this.mcData = null;
+                this.mcShowClinician = false;
+                this.mcAnswers = {};
                 this.cancelKiosk();
 
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+                // ── Step 1: Classify intent via MediCore AI ──────────────────────
+                let classification = 'medi_check'; // safe default
+                try {
+                    const routeRes = await fetch('/medicheck/route', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: JSON.stringify({ input: prompt, lang: 'auto' }),
+                    });
+                    if (routeRes.ok) {
+                        const routeJson = await routeRes.json();
+                        const routeData = routeJson.data || routeJson;
+                        classification = routeData.classification || 'medi_check';
+                        this.mcData = routeData;
+                    }
+                } catch (e) {
+                    // Network error during classification: fall through to medi_check
+                    classification = 'medi_check';
+                    this.mcData = null;
+                }
+
+                // ── Step 2: Route based on classification ────────────────────────
+                if (classification === 'emergency_alert') {
+                    this.screening = false;
+                    this.phase = 'emergency';
+                    this.$nextTick(() => setTimeout(() => this.scrollToEl('mc-result-panel', 'smooth'), 80));
+                    return;
+                }
+
+                if (classification === 'medi_facts') {
+                    this.screening = false;
+                    this.phase = 'medicore';
+                    this.$nextTick(() => setTimeout(() => this.scrollToEl('mc-result-panel', 'smooth'), 80));
+                    return;
+                }
+
+                if (classification === 'medi_combo') {
+                    // Show fact card immediately, then ALSO generate screening questions below
+                    this.phase = 'medicore';
+                    this.$nextTick(() => setTimeout(() => this.scrollToEl('mc-result-panel', 'smooth'), 80));
+                    // Fall through to screening to also load questions
+                }
+
+                // ── Step 3: medi_check OR medi_combo → also run screening questions ─
                 try {
                     const body = new FormData();
                     body.append('symptoms', prompt);
@@ -207,6 +418,7 @@
                         else if (typeof data.message === 'string') errMsg = data.message;
                         else if (typeof data.error === 'object') errMsg = Object.values(data.error).flat()[0] || errMsg;
                         this.error = errMsg;
+                        if (classification !== 'medi_combo') this.phase = 'intake';
                     } else {
                         this.questions = (data.questions || []).map(q => {
                             this.answers[q.id] = { chips: [], text: '' };
@@ -218,9 +430,26 @@
                     }
                 } catch (e) {
                     this.error = 'Network error. Please try again.';
+                    if (classification !== 'medi_combo') this.phase = 'intake';
                 } finally {
                     this.screening = false;
                 }
+            },
+
+            /* Reset from medicore/emergency panel back to intake */
+            resetMcPanel() {
+                this.phase = 'intake';
+                this.mcData = null;
+                this.mcShowClinician = false;
+                this.mcAnswers = {};
+            },
+
+            /* Toggle a quick-answer chip on MediCore screening questions */
+            toggleMcChip(questionId, option) {
+                if (!this.mcAnswers[questionId]) this.mcAnswers[questionId] = [];
+                const idx = this.mcAnswers[questionId].indexOf(option);
+                if (idx >= 0) this.mcAnswers[questionId].splice(idx, 1);
+                else this.mcAnswers[questionId] = [option];
             },
 
             /* ══════════════ Phase 2: question stepper ══════════════ */

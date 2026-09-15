@@ -6,6 +6,7 @@ use App\Models\Drug;
 use App\Models\FdaDrug;
 use App\Services\AnalyticsRecorder;
 use App\Services\GroqService;
+use App\Services\MediCoreAiService;
 use App\Services\MedicalPipelineService;
 use App\Services\ScreeningService;
 use Illuminate\Http\Request;
@@ -17,7 +18,8 @@ class MediCheckController extends Controller
     public function __construct(
         private GroqService $groq,
         private MedicalPipelineService $pipeline,
-        private ScreeningService $screening
+        private ScreeningService $screening,
+        private MediCoreAiService $mediCore
     ) {}
 
     /**
@@ -113,6 +115,46 @@ class MediCheckController extends Controller
                 'error_code'  => 'unexpected',
                 'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
             ]);
+            return response()->json(['error' => 'An unexpected error occurred. Please try again.'], 500);
+        }
+    }
+
+    /**
+     * MediCore AI — Intelligent intent router.
+     * Classifies free-form user input into medi_facts | medi_check | medi_combo,
+     * then returns a fully structured adaptive-UI payload.
+     * POST /medicheck/route
+     */
+    public function route(Request $request)
+    {
+        $startedAt = microtime(true);
+        $request->validate([
+            'input' => 'required|string|max:2000',
+            'lang'  => 'nullable|in:en,id,auto',
+        ]);
+
+        try {
+            $input  = trim($request->input('input'));
+            $lang   = $request->input('lang', 'auto');
+
+            $payload = $this->mediCore->process($input, $lang);
+
+            AnalyticsRecorder::medicheck($request, 'route', [
+                'classification' => $payload['classification'] ?? 'unknown',
+                'success'        => true,
+                'duration_ms'    => (int) round((microtime(true) - $startedAt) * 1000),
+            ]);
+
+            return response()->json(['success' => true, 'data' => $payload]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['error' => $e->errors()], 422);
+        } catch (\RuntimeException $e) {
+            Log::error('MediCheck route error', ['message' => $e->getMessage()]);
+            AnalyticsRecorder::medicheck($request, 'route', ['success' => false, 'error_code' => 'ai_unavailable']);
+            return response()->json(['error' => 'AI service is temporarily unavailable. Please try again in a moment.'], 503);
+        } catch (\Exception $e) {
+            Log::error('MediCheck route unexpected error', ['message' => $e->getMessage()]);
             return response()->json(['error' => 'An unexpected error occurred. Please try again.'], 500);
         }
     }

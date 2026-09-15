@@ -117,14 +117,16 @@ class DrugSearchService
     }
 
     /**
-     * Featured/popular drugs for homepage (have uses data).
+     * Featured/popular drugs for homepage (have uses and class data, rotating pool).
      */
-    public function getFeatured(int $limit = 8): \Illuminate\Database\Eloquent\Collection
+    public function getFeatured(int $limit = 16): \Illuminate\Database\Eloquent\Collection
     {
-        return Drug::select(['id', 'name', 'generic_name', 'drug_class', 'alpha_index', 'uses'])
+        return Drug::select(['id', 'name', 'generic_name', 'drug_class', 'alpha_index', 'uses', 'side_effects', 'source', 'translated'])
             ->whereNotNull('uses')
+            ->whereRaw("TRIM(uses) != ''")
             ->whereNotNull('name')
-            ->orderBy('name')
+            ->whereNotNull('drug_class')
+            ->inRandomOrder()
             ->limit($limit)
             ->get();
     }

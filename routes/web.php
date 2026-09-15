@@ -12,6 +12,7 @@ Route::get('/drugs/fda/{slug}', [DrugController::class , 'showFda'])->name('drug
 Route::get('/interactions', [DrugController::class , 'interactionPage'])->name('interactions.index');
 
 // ── MediCheck AI ─────────────────────────────────────────────────────────────
+Route::post('/medicheck/route', [MediCheckController::class, 'route'])->name('medicheck.route');
 Route::post('/medicheck/analyze', [MediCheckController::class, 'analyze'])->name('medicheck.analyze');
 Route::post('/medicheck/transcribe', [MediCheckController::class, 'transcribe'])->name('medicheck.transcribe');
 Route::post('/medicheck/screen', [MediCheckController::class, 'screen'])->name('medicheck.screen');
