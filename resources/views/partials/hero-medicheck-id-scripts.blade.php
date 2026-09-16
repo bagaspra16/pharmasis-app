@@ -97,7 +97,10 @@
                             'Accept': 'application/json',
                             'X-CSRF-TOKEN': csrf,
                         },
-                        body: JSON.stringify({ input: this.mcInput, lang: 'auto' }),
+                        body: JSON.stringify({ 
+                            input: this.mcInput, 
+                            lang: (window.PharmasisI18n ? window.PharmasisI18n.getLanguage() : 'id') 
+                        }),
                     });
 
                     clearInterval(this._routingInterval);
@@ -365,7 +368,10 @@
                             'Accept': 'application/json',
                             'X-CSRF-TOKEN': csrfToken,
                         },
-                        body: JSON.stringify({ input: prompt, lang: 'auto' }),
+                        body: JSON.stringify({ 
+                            input: prompt, 
+                            lang: (window.PharmasisI18n ? window.PharmasisI18n.getLanguage() : 'id') 
+                        }),
                     });
                     if (routeRes.ok) {
                         const routeJson = await routeRes.json();
@@ -405,7 +411,7 @@
                 try {
                     const body = new FormData();
                     body.append('symptoms', prompt);
-                    body.append('lang', 'auto');
+                    body.append('lang', (window.PharmasisI18n ? window.PharmasisI18n.getLanguage() : 'id'));
                     const res = await fetch('/medicheck/screen', {
                         method: 'POST',
                         headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
@@ -529,7 +535,7 @@
                     const body = new FormData();
                     body.append('symptoms', this.firstPrompt);
                     body.append('role', this.role);
-                    body.append('lang', 'auto');
+                    body.append('lang', (window.PharmasisI18n ? window.PharmasisI18n.getLanguage() : 'id'));
                     this.buildQaPayload().forEach((pair, i) => {
                         body.append(`qa[${i}][question]`, pair.question);
                         body.append(`qa[${i}][answer]`, pair.answer);

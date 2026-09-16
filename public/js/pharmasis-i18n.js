@@ -20,6 +20,12 @@ const PHARMASIS_LANGUAGES = [
 const PHARMASIS_TRANSLATIONS = {
     // ── 1. ENGLISH ──
     en: {
+        hero_step_1: 'Describe what you feel',
+        hero_step_2: 'Answer AI screening',
+        hero_step_3: 'Get your conclusion',
+        hero_tab_type: 'Type',
+        hero_tab_voice: 'Voice',
+        hero_tab_search: 'Search Medicine',
         nav_home: 'Home',
         nav_interactions: 'Interactions',
         nav_browse: 'Browse Medicines',
@@ -112,6 +118,12 @@ const PHARMASIS_TRANSLATIONS = {
 
     // ── 2. INDONESIAN ──
     id: {
+        hero_step_1: 'Jelaskan keluhan Anda',
+        hero_step_2: 'Jawab skrining AI',
+        hero_step_3: 'Dapatkan kesimpulan klinis',
+        hero_tab_type: 'Ketik',
+        hero_tab_voice: 'Suara',
+        hero_tab_search: 'Cari Obat',
         nav_home: 'Beranda',
         nav_interactions: 'Interaksi Obat',
         nav_browse: 'Direktori Obat',
@@ -203,6 +215,12 @@ const PHARMASIS_TRANSLATIONS = {
 
     // ── 3. JAPANESE ──
     ja: {
+        hero_step_1: '症状を入力する',
+        hero_step_2: 'AI問診に回答する',
+        hero_step_3: '臨床評価を確認する',
+        hero_tab_type: 'テキスト入力',
+        hero_tab_voice: '音声入力',
+        hero_tab_search: '医薬品検索',
         nav_home: 'ホーム',
         nav_interactions: '薬物相互作用',
         nav_browse: '医薬品ディレクトリ',
@@ -294,6 +312,12 @@ const PHARMASIS_TRANSLATIONS = {
 
     // ── 4. SPANISH ──
     es: {
+        hero_step_1: 'Describe lo que sientes',
+        hero_step_2: 'Responde al triaje AI',
+        hero_step_3: 'Obtén tu conclusión clínica',
+        hero_tab_type: 'Escribir',
+        hero_tab_voice: 'Voz',
+        hero_tab_search: 'Buscar Medicamento',
         nav_home: 'Inicio',
         nav_interactions: 'Interacciones',
         nav_browse: 'Directorio Médico',
@@ -385,6 +409,12 @@ const PHARMASIS_TRANSLATIONS = {
 
     // ── 5. CHINESE ──
     zh: {
+        hero_step_1: '描述身体感受',
+        hero_step_2: '回答 AI 问诊',
+        hero_step_3: '获取临床评估结论',
+        hero_tab_type: '文字输入',
+        hero_tab_voice: '语音输入',
+        hero_tab_search: '药品搜索',
         nav_home: '首页',
         nav_interactions: '药物相互作用',
         nav_browse: '药品目录',
@@ -476,6 +506,12 @@ const PHARMASIS_TRANSLATIONS = {
 
     // ── 6. ARABIC ──
     ar: {
+        hero_step_1: 'صف ما تشعر به',
+        hero_step_2: 'أجب عن فحص الذكاء الاصطناعي',
+        hero_step_3: 'احصل على التقييم السريري',
+        hero_tab_type: 'كتابة',
+        hero_tab_voice: 'صوت',
+        hero_tab_search: 'البحث عن دواء',
         nav_home: 'الرئيسية',
         nav_interactions: 'التفاعلات الدوائية',
         nav_browse: 'دليل الأدوية',
@@ -567,6 +603,12 @@ const PHARMASIS_TRANSLATIONS = {
 
     // ── 7. FRENCH ──
     fr: {
+        hero_step_1: 'Décrivez ce que vous ressentez',
+        hero_step_2: 'Répondez au triage IA',
+        hero_step_3: 'Obtenez votre bilan clinique',
+        hero_tab_type: 'Saisir',
+        hero_tab_voice: 'Voix',
+        hero_tab_search: 'Rechercher un médicament',
         nav_home: 'Accueil',
         nav_interactions: 'Interactions',
         nav_browse: 'Directoire Médical',
@@ -658,6 +700,12 @@ const PHARMASIS_TRANSLATIONS = {
 
     // ── 8. GERMAN ──
     de: {
+        hero_step_1: 'Beschreiben Sie Ihre Symptome',
+        hero_step_2: 'Beantworten Sie die AI-Fragen',
+        hero_step_3: 'Erhalten Sie Ihr Ergebnis',
+        hero_tab_type: 'Tippen',
+        hero_tab_voice: 'Sprache',
+        hero_tab_search: 'Medikament suchen',
         nav_home: 'Startseite',
         nav_interactions: 'Interaktionen',
         nav_browse: 'Arzneimittelverzeichnis',
@@ -749,6 +797,12 @@ const PHARMASIS_TRANSLATIONS = {
 
     // ── 9. KOREAN ──
     ko: {
+        hero_step_1: '증상 설명하기',
+        hero_step_2: 'AI 문진 답변하기',
+        hero_step_3: '임상 분석 결과 확인',
+        hero_tab_type: '직접 입력',
+        hero_tab_voice: '음성 입력',
+        hero_tab_search: '의약품 검색',
         nav_home: '홈',
         nav_interactions: '약물 상호작용',
         nav_browse: '의약품 디렉토리',
@@ -840,6 +894,12 @@ const PHARMASIS_TRANSLATIONS = {
 
     // ── 10. PORTUGUESE ──
     pt: {
+        hero_step_1: 'Descreva o que sente',
+        hero_step_2: 'Responda à triagem IA',
+        hero_step_3: 'Obtenha sua conclusão clínica',
+        hero_tab_type: 'Digitar',
+        hero_tab_voice: 'Voz',
+        hero_tab_search: 'Buscar Medicamento',
         nav_home: 'Início',
         nav_interactions: 'Interações',
         nav_browse: 'Diretório de Medicamentos',
@@ -931,6 +991,12 @@ const PHARMASIS_TRANSLATIONS = {
 
     // ── 11. RUSSIAN ──
     ru: {
+        hero_step_1: 'Опишите ваши симптомы',
+        hero_step_2: 'Ответьте на вопросы ИИ',
+        hero_step_3: 'Получите заключение врача',
+        hero_tab_type: 'Ввод текста',
+        hero_tab_voice: 'Голос',
+        hero_tab_search: 'Поиск лекарств',
         nav_home: 'Главная',
         nav_interactions: 'Взаимодействия',
         nav_browse: 'Справочник лекарств',

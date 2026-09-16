@@ -97,8 +97,8 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <!-- Markdown renderer for AI output -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- Pharmasis Multilingual Localization Engine (i18n) -->
-    <script src="{{ asset('js/pharmasis-i18n.js') }}"></script>
+    <!-- Pharmasis Multilingual Localization Engine (i18n) with Cache-Busting -->
+    <script src="{{ asset('js/pharmasis-i18n.js') }}?v={{ file_exists(public_path('js/pharmasis-i18n.js')) ? filemtime(public_path('js/pharmasis-i18n.js')) : '2.1.0' }}"></script>
 
     {{-- Google Fonts: Geist (body/UI) + Instrument Serif (display) --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">

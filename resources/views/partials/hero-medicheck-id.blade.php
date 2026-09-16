@@ -64,7 +64,7 @@
                 <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-soft text-primary-dark">
                     <span
                         class="w-4 h-4 rounded-full bg-primary/15 text-primary text-[9px] font-bold flex items-center justify-center">1</span>
-                    Describe what you feel
+                    <span data-i18n="hero_step_1">Describe what you feel</span>
                 </span>
                 <svg class="w-3 h-3 text-ink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -72,7 +72,7 @@
                 <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-soft text-primary-dark">
                     <span
                         class="w-4 h-4 rounded-full bg-primary/15 text-primary text-[9px] font-bold flex items-center justify-center">2</span>
-                    Answer AI screening
+                    <span data-i18n="hero_step_2">Answer AI screening</span>
                 </span>
                 <svg class="w-3 h-3 text-ink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -80,7 +80,7 @@
                 <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-soft text-primary-dark">
                     <span
                         class="w-4 h-4 rounded-full bg-primary/15 text-primary text-[9px] font-bold flex items-center justify-center">3</span>
-                    Get your conclusion
+                    <span data-i18n="hero_step_3">Get your conclusion</span>
                 </span>
             </div>
 
@@ -99,7 +99,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
-                        Type
+                        <span data-i18n="hero_tab_type">Type</span>
                     </button>
                     <button @click="activeTab = 'voice'"
                         :class="activeTab === 'voice' ? 'text-white shadow-lg' : 'text-slate-500 hover:text-slate-700 hover:bg-white/60'"
@@ -111,7 +111,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M19 10v2a7 7 0 01-14 0v-2" />
                         </svg>
-                        Voice
+                        <span data-i18n="hero_tab_voice">Voice</span>
                     </button>
                     <button @click="activeTab = 'search'"
                         :class="activeTab === 'search' ? 'text-white shadow-lg' : 'text-slate-500 hover:text-slate-700 hover:bg-white/60'"
@@ -121,7 +121,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        Search Medicine
+                        <span data-i18n="hero_tab_search">Search Medicine</span>
                     </button>
                 </div>
 
