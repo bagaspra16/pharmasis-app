@@ -868,7 +868,7 @@
     </script>
 
     {{-- ════════════════════════════════════════ MINIMALIST BARE iOS SPINNER PRELOADER ════════════════════════════════════════ --}}
-    <div id="pharmasis-lang-preloader" class="hidden fixed inset-0 z-[99999] flex items-center justify-center select-none"
+    <div id="pharmasis-lang-preloader" class="hidden fixed inset-0 z-[99999] flex flex-col items-center justify-center gap-3 select-none"
         style="background: rgba(255,255,255,0.45); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%);">
         
         {{-- Compact Bare Minimalist Dark iOS spinner --}}
@@ -877,6 +877,8 @@
             <div></div><div></div><div></div><div></div>
             <div></div><div></div><div></div><div></div>
         </div>
+        {{-- Language switching text label --}}
+        <p id="pharmasis-preloader-text" class="text-xs font-semibold text-ink-600 tracking-wide mt-1" style="opacity:0.7;">Changing language...</p>
     </div>
 
     @include('partials.cookie-consent')

@@ -51,16 +51,21 @@
             mcData: null,
             mcAnswers: {},       // { [questionId]: string[] }
             mcShowClinician: false,
-            mcRoutingStep: 'Menganalisis input kamu...',
+            mcRoutingStep: 'Analyzing your input...',
 
-            // Routing step messages for UX feedback
-            _routingSteps: [
-                'Menganalisis input kamu...',
-                'Mengklasifikasi intent medis...',
-                'Merutekan ke pipeline yang tepat...',
-                'Memproses pengetahuan medis...',
-                'Menyiapkan hasil untuk kamu...',
-            ],
+            // Routing step messages for UX feedback (i18n-aware)
+            _routingSteps: [],
+
+            _getRoutingSteps() {
+                const i18n = window.PharmasisI18n;
+                return [
+                    i18n ? i18n.t('routing_analyzing', 'Analyzing your input...') : 'Analyzing your input...',
+                    i18n ? i18n.t('routing_classifying', 'Classifying medical intent...') : 'Classifying medical intent...',
+                    i18n ? i18n.t('routing_routing', 'Routing to the right pipeline...') : 'Routing to the right pipeline...',
+                    i18n ? i18n.t('routing_processing', 'Processing medical knowledge...') : 'Processing medical knowledge...',
+                    i18n ? i18n.t('routing_preparing', 'Preparing results for you...') : 'Preparing results for you...',
+                ];
+            },
             _routingInterval: null,
 
             handleMcEnter(e) {
@@ -79,11 +84,12 @@
                 this.mcShowClinician = false;
 
                 // Cycle through routing step messages for UX
+                const steps = this._getRoutingSteps();
                 let stepIdx = 0;
-                this.mcRoutingStep = this._routingSteps[0];
+                this.mcRoutingStep = steps[0];
                 this._routingInterval = setInterval(() => {
-                    stepIdx = (stepIdx + 1) % this._routingSteps.length;
-                    this.mcRoutingStep = this._routingSteps[stepIdx];
+                    stepIdx = (stepIdx + 1) % steps.length;
+                    this.mcRoutingStep = steps[stepIdx];
                 }, 1800);
 
                 try {

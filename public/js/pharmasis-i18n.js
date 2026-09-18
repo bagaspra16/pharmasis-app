@@ -189,7 +189,12 @@ const PHARMASIS_TRANSLATIONS = {
         mc_back: 'Back',
         mc_extra_screening_notice: 'Additional screening questions are being prepared below ↓',
         mc_disclaimer_notice: '⚠️ This information is educational and does not replace consultation with a licensed healthcare professional.',
-        preloader_loading_text: 'Changing language...'
+        preloader_loading_text: 'Changing language...',
+        routing_analyzing: 'Analyzing your input...',
+        routing_classifying: 'Classifying medical intent...',
+        routing_routing: 'Routing to the right pipeline...',
+        routing_processing: 'Processing medical knowledge...',
+        routing_preparing: 'Preparing results for you...',
     },
 
     // ── 2. INDONESIAN ──
@@ -362,7 +367,12 @@ const PHARMASIS_TRANSLATIONS = {
         mc_back: 'Kembali',
         mc_extra_screening_notice: 'Pertanyaan skrining tambahan sedang disiapkan di bawah ↓',
         mc_disclaimer_notice: '⚠️ Informasi ini bersifat edukatif dan tidak menggantikan konsultasi dengan tenaga kesehatan profesional.',
-        preloader_loading_text: 'Memperbarui bahasa...'
+        preloader_loading_text: 'Memperbarui bahasa...',
+        routing_analyzing: 'Menganalisis input Anda...',
+        routing_classifying: 'Mengklasifikasi maksud medis...',
+        routing_routing: 'Merutekan ke pipeline yang tepat...',
+        routing_processing: 'Memproses pengetahuan medis...',
+        routing_preparing: 'Menyiapkan hasil untuk Anda...',
     },
 
     // ── 3. JAPANESE ──
@@ -535,7 +545,12 @@ const PHARMASIS_TRANSLATIONS = {
         mc_back: '戻る',
         mc_extra_screening_notice: '追加のスクリーニング問診を準備しています ↓',
         mc_disclaimer_notice: '⚠️ この情報は教育目的であり、専門医療機関での診断に代わるものではありません。',
-        preloader_loading_text: '言語を切り替えています...'
+        preloader_loading_text: '言語を切り替えています...',
+        routing_analyzing: '入力内容を分析しています...',
+        routing_classifying: '医療の意図を分類しています...',
+        routing_routing: '適切なパイプラインにルーティングしています...',
+        routing_processing: '医療知識を処理しています...',
+        routing_preparing: '結果を準備しています...'
     },
 
     // ── 4. SPANISH ──
@@ -708,7 +723,12 @@ const PHARMASIS_TRANSLATIONS = {
         mc_back: 'Volver',
         mc_extra_screening_notice: 'Se están preparando preguntas de triaje adicionales a continuación ↓',
         mc_disclaimer_notice: '⚠️ Esta información es educativa y no sustituye la consulta con un profesional médico colegiado.',
-        preloader_loading_text: 'Cambiando idioma...'
+        preloader_loading_text: 'Cambiando idioma...',
+        routing_analyzing: 'Analizando tu entrada...',
+        routing_classifying: 'Clasificando la intención médica...',
+        routing_routing: 'Redirigiendo al pipeline correcto...',
+        routing_processing: 'Procesando conocimiento médico...',
+        routing_preparing: 'Preparando resultados para ti...'
     },
 
     // ── 5. CHINESE ──
@@ -881,7 +901,12 @@ const PHARMASIS_TRANSLATIONS = {
         mc_back: '返回',
         mc_extra_screening_notice: '正在下方为您准备补充问诊问题 ↓',
         mc_disclaimer_notice: '⚠️ 本信息仅供参考，不能替代专业医师的临床诊断与治疗。',
-        preloader_loading_text: '正在切换语言...'
+        preloader_loading_text: '正在切换语言...',
+        routing_analyzing: '正在分析您的输入...',
+        routing_classifying: '正在分类医疗意图...',
+        routing_routing: '正在路由到正确的处理管道...',
+        routing_processing: '正在处理医学知识...',
+        routing_preparing: '正在为您准备结果...'
     },
 
     // ── 6. ARABIC ──
@@ -1054,7 +1079,12 @@ const PHARMASIS_TRANSLATIONS = {
         mc_back: 'رجوع',
         mc_extra_screening_notice: 'جارٍ إعداد أسئلة فرز إضافية بالأسفل ↓',
         mc_disclaimer_notice: '⚠️ هذه المعلومات للأغراض التعليمية ولا تحل محل الاستشارة الطبية المتخصصة.',
-        preloader_loading_text: 'جاري تغيير اللغة...'
+        preloader_loading_text: 'جاري تغيير اللغة...',
+        routing_analyzing: 'جاري تحليل مدخلاتك...',
+        routing_classifying: 'جاري تصنيف النية الطبية...',
+        routing_routing: 'جاري التوجيه إلى المسار الصحيح...',
+        routing_processing: 'جاري معالجة المعرفة الطبية...',
+        routing_preparing: 'جاري تحضير النتائج لك...'
     },
 
     // ── 7. FRENCH ──
@@ -1227,7 +1257,12 @@ const PHARMASIS_TRANSLATIONS = {
         mc_back: 'Retour',
         mc_extra_screening_notice: 'Des questions de triage supplémentaires sont préparées ci-dessous ↓',
         mc_disclaimer_notice: '⚠️ Cette information est éducative et ne remplace pas une consultation médicale.',
-        preloader_loading_text: 'Changement de langue en cours...'
+        preloader_loading_text: 'Changement de langue en cours...',
+        routing_analyzing: 'Analyse de votre saisie...',
+        routing_classifying: 'Classification de l\'intention médicale...',
+        routing_routing: 'Orientation vers le bon pipeline...',
+        routing_processing: 'Traitement des connaissances médicales...',
+        routing_preparing: 'Préparation des résultats pour vous...'
     },
 
     // ── 8. GERMAN ──
@@ -1400,7 +1435,12 @@ const PHARMASIS_TRANSLATIONS = {
         mc_back: 'Zurück',
         mc_extra_screening_notice: 'Zusätzliche Screening-Fragen werden unten vorbereitet ↓',
         mc_disclaimer_notice: '⚠️ Diese Informationen dienen der Orientierung und ersetzen keine ärztliche Konsultation.',
-        preloader_loading_text: 'Sprache wird gewechselt...'
+        preloader_loading_text: 'Sprache wird gewechselt...',
+        routing_analyzing: 'Ihre Eingabe wird analysiert...',
+        routing_classifying: 'Medizinische Absicht wird klassifiziert...',
+        routing_routing: 'Wird zur richtigen Pipeline weitergeleitet...',
+        routing_processing: 'Medizinisches Wissen wird verarbeitet...',
+        routing_preparing: 'Ergebnisse werden für Sie vorbereitet...'
     },
 
     // ── 9. KOREAN ──
@@ -1573,7 +1613,12 @@ const PHARMASIS_TRANSLATIONS = {
         mc_back: '뒤로가기',
         mc_extra_screening_notice: '추가 문진 질문이 아래에 준비되고 있습니다 ↓',
         mc_disclaimer_notice: '⚠️ 본 정보는 참고용이며 전문 의료진의 진료를 대신할 수 없습니다.',
-        preloader_loading_text: '언어를 변경하는 중입니다...'
+        preloader_loading_text: '언어를 변경하는 중입니다...',
+        routing_analyzing: '입력 내용을 분석하는 중입니다...',
+        routing_classifying: '의료 의도를 분류하는 중입니다...',
+        routing_routing: '올바른 파이프라인으로 라우팅하는 중입니다...',
+        routing_processing: '의료 지식을 처리하는 중입니다...',
+        routing_preparing: '결과를 준비하는 중입니다...'
     },
 
     // ── 10. PORTUGUESE ──
@@ -1746,7 +1791,12 @@ const PHARMASIS_TRANSLATIONS = {
         mc_back: 'Voltar',
         mc_extra_screening_notice: 'Perguntas adicionais de triagem estão sendo preparadas abaixo ↓',
         mc_disclaimer_notice: '⚠️ Esta informação é educativa e não substitui a consulta com um profissional de saúde.',
-        preloader_loading_text: 'Alterando idioma...'
+        preloader_loading_text: 'Alterando idioma...',
+        routing_analyzing: 'Analisando sua entrada...',
+        routing_classifying: 'Classificando a intenção médica...',
+        routing_routing: 'Roteando para o pipeline correto...',
+        routing_processing: 'Processando conhecimento médico...',
+        routing_preparing: 'Preparando resultados para você...'
     },
 
     // ── 11. RUSSIAN ──
@@ -1919,7 +1969,12 @@ const PHARMASIS_TRANSLATIONS = {
         mc_back: 'Назад',
         mc_extra_screening_notice: 'Дополнительные вопросы скрининга подготавливаются ниже ↓',
         mc_disclaimer_notice: '⚠️ Данная информация носит образовательный характер и не заменяет консультацию врача.',
-        preloader_loading_text: 'Переключение языка...'
+        preloader_loading_text: 'Переключение языка...',
+        routing_analyzing: 'Анализируем ваш ввод...',
+        routing_classifying: 'Классифицируем медицинский запрос...',
+        routing_routing: 'Направляем в нужный конвейер...',
+        routing_processing: 'Обрабатываем медицинские знания...',
+        routing_preparing: 'Подготавливаем результаты для вас...'
     }
 };
 
