@@ -183,17 +183,23 @@ class ScreeningService
      */
     private function langInstruction(string $lang): string
     {
-        if ($lang === 'id') {
-            return 'LANGUAGE DIRECTIVE (MANDATORY): The patient wrote in Bahasa Indonesia. '
-                 . 'You MUST write every field of your JSON response — including question text, hint, '
-                 . 'and every choice option — entirely in Bahasa Indonesia. '
-                 . 'Do NOT use English anywhere in any field value. No exceptions.';
-        }
+        $langNames = [
+            'id' => 'Bahasa Indonesia',
+            'ja' => 'Japanese (日本語)',
+            'es' => 'Spanish (Español)',
+            'zh' => 'Simplified Chinese (简体中文)',
+            'ar' => 'Arabic (العربية)',
+            'fr' => 'French (Français)',
+            'de' => 'German (Deutsch)',
+            'ko' => 'Korean (한국어)',
+            'pt' => 'Portuguese (Português)',
+            'ru' => 'Russian (Русский)',
+            'en' => 'English',
+        ];
 
-        return 'LANGUAGE DIRECTIVE (MANDATORY): The patient wrote in English. '
-             . 'You MUST write every field of your JSON response — including question text, hint, '
-             . 'and every choice option — entirely in English. '
-             . 'Do NOT use Bahasa Indonesia anywhere in any field value. No exceptions.';
+        $targetName = $langNames[$lang] ?? 'English';
+
+        return "LANGUAGE DIRECTIVE (MANDATORY): You MUST write every single field of your JSON response — including question text, hint, differential diagnosis, regimen, self-care advice, and every choice option — entirely and naturally in {$targetName}. Do NOT mix with other languages. No exceptions.";
     }
 
     private function parseJson(string $raw, string $step): array

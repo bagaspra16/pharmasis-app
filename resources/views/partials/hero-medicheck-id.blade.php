@@ -166,7 +166,7 @@
                             </svg>
                         </button>
                         <p class="text-xs text-slate-500 mt-4 font-medium"
-                            x-text="recording ? 'Recording: tap to stop' : (screening ? 'Preparing clinical questions...' : 'Tap to speak (any language)')">
+                            x-text="recording ? (window.PharmasisI18n ? window.PharmasisI18n.t('voice_recording_tap_stop') : 'Recording: tap to stop') : (screening ? (window.PharmasisI18n ? window.PharmasisI18n.t('voice_preparing_questions') : 'Preparing clinical questions...') : (window.PharmasisI18n ? window.PharmasisI18n.t('voice_tap_to_speak') : 'Tap to speak (any language)'))">
                         </p>
 
                         <div x-show="recording" x-cloak class="mt-4 mx-auto w-full max-w-sm">
@@ -176,9 +176,9 @@
                                     <span class="flex items-center gap-1.5">
                                         <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
                                         <span
-                                            class="text-[10px] text-red-500 font-bold tracking-widest uppercase">Recording</span>
+                                            class="text-[10px] text-red-500 font-bold tracking-widest uppercase" data-i18n="voice_recording_badge">Recording</span>
                                     </span>
-                                    <span class="text-[10px] text-slate-400">Voice transcription active</span>
+                                    <span class="text-[10px] text-slate-400" data-i18n="voice_active_transcription">Voice transcription active</span>
                                 </div>
                                 <canvas x-ref="waveCanvas" width="320" height="48"
                                     class="w-full h-12 rounded-lg bg-slate-50/60"></canvas>
@@ -251,10 +251,12 @@
                                     @focus="if(query.length>=2) open=true" @keydown.arrow-down.prevent="focusNext()"
                                     @keydown.arrow-up.prevent="focusPrev()" @keydown.enter.prevent="go()"
                                     placeholder="Search by medicine name..."
+                                    data-i18n-placeholder="search_medicine_placeholder"
                                     class="w-full bg-transparent text-slate-900 placeholder-slate-400 text-sm font-medium focus:outline-none"
                                     autocomplete="off" />
                             </div>
                             <a :href="`/search?q=${encodeURIComponent(query)}`"
+                                data-i18n="search_button"
                                 class="flex-shrink-0 text-white font-bold text-sm px-6 py-3 rounded-full transition-all flex items-center justify-center"
                                 style="background: linear-gradient(135deg,#3EAEB1,#2d8a8d); box-shadow: 0 4px 16px rgba(62,174,177,0.35);">Search</a>
                             <div x-show="open && results.length > 0" x-cloak
@@ -295,8 +297,8 @@
                 <div class="flex items-center gap-3">
                     <span class="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider text-white"
                         :style="mcData?.classification === 'medi_facts' ? 'background:linear-gradient(135deg,#0d9488,#0f766e)' : 'background:linear-gradient(135deg,#7c3aed,#6d28d9)'">
-                        <template x-if="mcData?.classification === 'medi_facts'">📚 Fakta Medis</template>
-                        <template x-if="mcData?.classification !== 'medi_facts'">🔬 Fakta + Screening</template>
+                        <template x-if="mcData?.classification === 'medi_facts'"><span data-i18n="mc_facts_badge">📚 Medical Facts</span></template>
+                        <template x-if="mcData?.classification !== 'medi_facts'"><span data-i18n="mc_combo_badge">🔬 Facts + Screening</span></template>
                     </span>
                     <p class="text-sm font-semibold text-slate-700 flex-1 leading-tight" x-text="mcData?.summary_title">
                     </p>
@@ -353,15 +355,13 @@
                         style="background:rgba(255,255,255,0.93); backdrop-filter:blur(24px); border:1px solid rgba(255,255,255,0.95); box-shadow:0 8px 32px rgba(62,174,177,0.1);">
                         <div class="px-6 py-4"
                             style="background:linear-gradient(135deg,rgba(16,185,129,0.06),rgba(5,150,105,0.04)); border-bottom:1px solid rgba(16,185,129,0.1);">
-                            <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Untuk
-                                Pasien / Masyarakat Umum</p>
+                            <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1" data-i18n="mc_patient_header">For Patient / General Public</p>
                             <p class="text-sm text-slate-700 leading-relaxed"
                                 x-text="mcData.conclusions.patient_mode.explanation"></p>
                         </div>
                         <template x-if="mcData.conclusions.patient_mode.self_care_tips?.length">
                             <div class="px-6 py-4">
-                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Langkah
-                                    Perawatan Mandiri</p>
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2" data-i18n="mc_self_care_header">Self-Care Steps</p>
                                 <ul class="space-y-1.5">
                                     <template x-for="tip in mcData.conclusions.patient_mode.self_care_tips" :key="tip">
                                         <li class="flex items-start gap-2 text-xs text-slate-600">
@@ -381,7 +381,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
-                                <p class="text-xs text-slate-500">Dokter yang disarankan: <span
+                                <p class="text-xs text-slate-500"><span data-i18n="mc_recommended_doctor">Recommended Doctor:</span> <span
                                         class="font-semibold text-slate-700"
                                         x-text="mcData.conclusions.patient_mode.recommended_specialist"></span></p>
                             </div>
@@ -400,7 +400,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
-                                Mode Klinisi (Dokter / Tenaga Medis)
+                                <span data-i18n="mc_mode_clinician">Clinician Mode (Doctor / Healthcare Professional)</span>
                             </span>
                             <svg class="w-4 h-4 transition-transform duration-200"
                                 :class="mcShowClinician ? 'rotate-180' : ''" fill="none" stroke="currentColor"
@@ -469,13 +469,12 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span>Pertanyaan skrining tambahan sedang disiapkan di bawah ↓</span>
+                        <span data-i18n="mc_extra_screening_notice">Additional screening questions are being prepared below ↓</span>
                     </div>
                 </template>
 
-                <p class="text-center text-[10px] text-slate-400 leading-relaxed px-2">
-                    ⚠️ Informasi ini bersifat edukatif dan tidak menggantikan konsultasi dengan tenaga kesehatan
-                    profesional.
+                <p class="text-center text-[10px] text-slate-400 leading-relaxed px-2" data-i18n="mc_disclaimer_notice">
+                    ⚠️ This information is educational and does not replace consultation with a licensed healthcare professional.
                 </p>
             </div>
 
@@ -491,7 +490,7 @@
                             <div>
                                 <p class="font-bold text-base"
                                     x-text="mcData?.emergency_alert?.title || '🚨 Kondisi Darurat Medis'"></p>
-                                <p class="text-xs text-red-100">Terdeteksi oleh MediCore AI</p>
+                                <p class="text-xs text-red-100" data-i18n="mc_emergency_detected">Detected by MediCore AI</p>
                             </div>
                         </div>
                     </div>
@@ -511,11 +510,11 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                 </svg>
-                                Hubungi 119
+                                <span data-i18n="mc_emergency_call_119">Call Emergency (119)</span>
                             </a>
                             <button @click="resetMcPanel()"
-                                class="px-5 py-2.5 border border-red-300 text-red-600 text-sm font-semibold rounded-full hover:bg-red-50 transition-colors">
-                                Kembali
+                                class="px-5 py-2.5 border border-red-300 text-red-600 text-sm font-semibold rounded-full hover:bg-red-50 transition-colors" data-i18n="mc_back">
+                                Back
                             </button>
                         </div>
                     </div>
@@ -542,8 +541,7 @@
                     {{-- Progress header --}}
                     <div class="px-6 pt-5 pb-4" style="border-bottom: 1px solid rgba(62,174,177,0.1);">
                         <div class="flex items-center justify-between mb-3">
-                            <span class="text-[11px] font-bold text-primary uppercase tracking-widest">Symptom
-                                Screening</span>
+                            <span class="text-[11px] font-bold text-primary uppercase tracking-widest" data-i18n="screening_header_title">Symptom Screening</span>
                             <span class="text-[11px] font-semibold text-slate-400"
                                 x-text="`Question ${currentQ + 1} of ${questions.length}`"></span>
                         </div>
@@ -559,8 +557,7 @@
                     {{-- Recap of the initial complaint --}}
                     <div class="px-6 pt-4">
                         <div class="bg-primary/5 rounded-2xl px-4 py-3">
-                            <p class="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Your symptoms
-                            </p>
+                            <p class="text-[10px] font-bold text-primary uppercase tracking-widest mb-1" data-i18n="screening_your_symptoms">Your symptoms</p>
                             <p class="text-sm text-slate-700 italic leading-snug line-clamp-3" x-text="firstPrompt"></p>
                         </div>
                     </div>
@@ -587,14 +584,15 @@
                                             x-text="choice"></button>
                                     </template>
                                     <span x-show="currentQuestion.allow_multiple"
-                                        class="w-full text-[10px] text-slate-400 mt-0.5">You can select more than
-                                        one</span>
+                                        class="w-full text-[10px] text-slate-400 mt-0.5" data-i18n="screening_select_multiple">You can select more than one</span>
                                 </div>
 
                                 {{-- Free text --}}
                                 <div x-show="currentQuestion.free_text !== false">
                                     <textarea x-model="answers[currentQuestion.id].text"
-                                        placeholder="Add your own details here (optional)..." rows="2"
+                                        placeholder="Add your own details here (optional)..."
+                                        data-i18n-placeholder="screening_freetext_placeholder"
+                                        rows="2"
                                         class="w-full bg-white text-slate-900 placeholder-slate-400 text-sm px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10 resize-none"></textarea>
                                 </div>
 
@@ -606,13 +604,13 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M15 19l-7-7 7-7" />
                                         </svg>
-                                        Back
+                                        <span data-i18n="screening_btn_back">Back</span>
                                     </button>
                                     <div x-show="currentQ === 0" class="flex-1"></div>
                                     <button type="button" @click="nextQ()"
                                         class="ml-auto text-sm font-bold text-white px-6 py-2.5 rounded-full transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5"
                                         style="background: linear-gradient(135deg,#0d9488,#0f766e); box-shadow: 0 4px 16px rgba(13,148,136,0.3);">
-                                        <span x-text="currentAnswered() ? 'Continue' : 'Skip'"></span>
+                                        <span x-text="currentAnswered() ? (window.PharmasisI18n ? window.PharmasisI18n.t('screening_btn_continue') : 'Continue') : (window.PharmasisI18n ? window.PharmasisI18n.t('screening_btn_skip') : 'Skip')"></span>
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M9 5l7 7-7 7" />
@@ -633,8 +631,7 @@
                                                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </span>
-                                    <span class="text-[10px] font-bold text-primary uppercase tracking-widest">Final
-                                        step</span>
+                                    <span class="text-[10px] font-bold text-primary uppercase tracking-widest" data-i18n="screening_final_step">Final step</span>
                                 </div>
                                 <h3 class="text-lg font-bold text-slate-800 leading-snug mb-1"
                                     x-text="currentQuestion.question"></h3>
@@ -655,8 +652,7 @@
                                         </div>
                                         <p class="text-sm font-bold text-slate-800 mb-0.5"
                                             x-text="currentQuestion.choices[0]"></p>
-                                        <p class="text-xs text-slate-500 leading-snug">Detailed clinical conclusion:
-                                            differential diagnosis, drug regimen, interactions, and management.</p>
+                                        <p class="text-xs text-slate-500 leading-snug" data-i18n="screening_doctor_card_desc">Detailed clinical conclusion: differential diagnosis, drug regimen, interactions, and management.</p>
                                     </button>
                                     {{-- Patient card --}}
                                     <button type="button" @click="selectRole(currentQuestion.choices[1], 1)"
@@ -671,8 +667,7 @@
                                         </div>
                                         <p class="text-sm font-bold text-slate-800 mb-0.5"
                                             x-text="currentQuestion.choices[1]"></p>
-                                        <p class="text-xs text-slate-500 leading-snug">A reassuring explanation,
-                                            self-care, lifestyle tips, and guidance to a doctor.</p>
+                                        <p class="text-xs text-slate-500 leading-snug" data-i18n="screening_patient_card_desc">A reassuring explanation, self-care, lifestyle tips, and guidance to a doctor.</p>
                                     </button>
                                 </div>
 
@@ -683,7 +678,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M15 19l-7-7 7-7" />
                                         </svg>
-                                        Back
+                                        <span data-i18n="screening_btn_back">Back</span>
                                     </button>
                                 </div>
                             </div>
@@ -701,8 +696,7 @@
                             <path class="opacity-80" fill="currentColor"
                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
-                        <span class="text-xs font-bold text-slate-700 uppercase tracking-widest">Building
-                            conclusion...</span>
+                        <span class="text-xs font-bold text-slate-700 uppercase tracking-widest" data-i18n="concluding_building">Building conclusion...</span>
                     </div>
                     <div class="px-5 py-4 space-y-3">
                         <template x-for="(step, idx) in concludeSteps" :key="step.id">
@@ -743,8 +737,7 @@
                     </div>
                     <div class="px-5 py-2.5"
                         style="border-top: 1px solid rgba(62,174,177,0.1); background: rgba(248,254,254,0.6);">
-                        <p class="text-[10px] text-slate-400 text-center">Please wait, preparing a conclusion
-                            tailored to your role...</p>
+                        <p class="text-[10px] text-slate-400 text-center" data-i18n="concluding_wait">Please wait, preparing a conclusion tailored to your role...</p>
                     </div>
                 </div>
 
@@ -778,7 +771,7 @@
                 <span class="w-px h-7 bg-slate-200 mx-1"></span>
                 <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full"
                     :class="isDoctor ? 'text-primary bg-primary/10' : 'text-emerald-700 bg-emerald-100'"
-                    x-text="isDoctor ? 'Clinical Report' : 'Health Report'"></span>
+                    x-text="isDoctor ? (window.PharmasisI18n ? window.PharmasisI18n.t('result_report_clinical') : 'Clinical Report') : (window.PharmasisI18n ? window.PharmasisI18n.t('result_report_health') : 'Health Report')"></span>
             </div>
             <button @click="resetKiosk()"
                 class="flex items-center gap-1.5 text-[11px] font-semibold px-4 py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all active:scale-95">
@@ -786,7 +779,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                New Analysis
+                <span data-i18n="result_new_analysis">New Analysis</span>
             </button>
         </div>
 
@@ -800,7 +793,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
-                    The symptoms you described
+                    <span data-i18n="result_symptoms_described">The symptoms you described</span>
                 </p>
                 <p class="text-base text-slate-700 italic leading-relaxed mb-3"
                     x-text='"« " + (result?.symptoms || "") + " »"'></p>
@@ -832,9 +825,8 @@
                                 </svg>
                             </span>
                             <div>
-                                <h3 class="text-lg font-bold text-slate-800">Differential Diagnosis</h3>
-                                <p class="text-xs text-slate-400">Possible differentials based on the screening results
-                                </p>
+                                <h3 class="text-lg font-bold text-slate-800" data-i18n="result_differential_title">Differential Diagnosis</h3>
+                                <p class="text-xs text-slate-400" data-i18n="result_differential_desc">Possible differentials based on the screening results</p>
                             </div>
                         </div>
                         <div class="p-6 space-y-2">
@@ -870,8 +862,8 @@
                                 </svg>
                             </span>
                             <div>
-                                <h3 class="text-lg font-bold text-slate-800">Pharmacologic Regimen</h3>
-                                <p class="text-xs text-slate-400">Tap a medicine name for full details</p>
+                                <h3 class="text-lg font-bold text-slate-800" data-i18n="result_regimen_title">Pharmacologic Regimen</h3>
+                                <p class="text-xs text-slate-400" data-i18n="result_regimen_desc">Tap a medicine name for full details</p>
                             </div>
                         </div>
                         <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -900,7 +892,7 @@
 
                     {{-- Interactions --}}
                     <div x-show="conclusion.interactions?.length" class="glass-card rounded-3xl p-6">
-                        <h3 class="text-lg font-bold text-slate-800 mb-3">Drug Interactions</h3>
+                        <h3 class="text-lg font-bold text-slate-800 mb-3" data-i18n="result_interactions_title">Drug Interactions</h3>
                         <div class="space-y-2">
                             <template x-for="i in (conclusion.interactions || [])" :key="i.drug_a + i.drug_b">
                                 <div class="flex items-start gap-2 p-3 rounded-xl"
@@ -923,7 +915,7 @@
                     {{-- Management + Red flags --}}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div x-show="conclusion.management?.length" class="glass-card rounded-3xl p-6">
-                            <h3 class="text-base font-bold text-slate-800 mb-3">Management</h3>
+                            <h3 class="text-base font-bold text-slate-800 mb-3" data-i18n="result_management_title">Management</h3>
                             <ul class="space-y-2">
                                 <template x-for="(m, mi) in (conclusion.management || [])" :key="mi">
                                     <li class="flex items-start gap-2 text-sm text-slate-600">
@@ -938,7 +930,7 @@
                             <h3 class="text-base font-bold text-red-700 mb-3 flex items-center gap-2">
                                 <span
                                     class="w-6 h-6 rounded-lg bg-red-500 text-white flex items-center justify-center font-black">!</span>
-                                Red Flags
+                                <span data-i18n="result_redflags_title">Red Flags</span>
                             </h3>
                             <ul class="space-y-2">
                                 <template x-for="(w, wi) in (conclusion.red_flags || [])" :key="wi">
@@ -954,7 +946,7 @@
                     {{-- Clinical summary + ICD-10 --}}
                     <div x-show="conclusion.clinical_summary || conclusion.icd10" class="glass-card rounded-3xl p-6">
                         <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
-                            <h3 class="text-base font-bold text-slate-800">Clinical Summary</h3>
+                            <h3 class="text-base font-bold text-slate-800" data-i18n="result_summary_title">Clinical Summary</h3>
                             <span x-show="conclusion.icd10"
                                 class="text-xs font-mono font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
                                 ICD-10: <span x-text="conclusion.icd10"></span>
@@ -967,9 +959,8 @@
                     <div
                         class="rounded-2xl p-4 border border-dashed border-slate-200 bg-slate-50/60 flex items-center justify-between flex-wrap gap-3">
                         <div class="flex-1 min-w-[12rem]">
-                            <p class="text-sm font-bold text-slate-700 mb-0.5">Clinical document</p>
-                            <p class="text-xs text-slate-500">Export this formal summary for medical records or
-                                referrals.</p>
+                            <p class="text-sm font-bold text-slate-700 mb-0.5" data-i18n="result_export_pdf_title">Clinical document</p>
+                            <p class="text-xs text-slate-500" data-i18n="result_export_pdf_desc">Export this formal summary for medical records or referrals.</p>
                         </div>
                         <button @click="savePdf()"
                             class="inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-bold text-white transition-all hover:scale-105"
@@ -978,7 +969,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
-                            Clinical PDF
+                            <span data-i18n="result_export_pdf_btn">Clinical PDF</span>
                         </button>
                     </div>
                 </div>
@@ -1011,8 +1002,7 @@
 
                     {{-- Assumed condition --}}
                     <div x-show="conclusion.assumed_condition?.name" class="glass-card rounded-3xl p-6">
-                        <p class="text-[11px] font-bold text-primary uppercase tracking-widest mb-1.5">Likely
-                            Condition</p>
+                        <p class="text-[11px] font-bold text-primary uppercase tracking-widest mb-1.5" data-i18n="result_likely_condition">Likely Condition</p>
                         <h3 class="text-xl font-bold text-slate-800 mb-2" x-text="conclusion.assumed_condition?.name">
                         </h3>
                         <p class="text-sm text-slate-600 leading-relaxed"
@@ -1030,7 +1020,7 @@
                                             d="M5 13l4 4L19 7" />
                                     </svg>
                                 </span>
-                                Self-Care
+                                <span data-i18n="result_selfcare_title">Self-Care</span>
                             </h3>
                             <ul class="space-y-2">
                                 <template x-for="(s, si) in (conclusion.self_care || [])" :key="si">
@@ -1051,7 +1041,7 @@
                                             d="M13 10V3L4 14h7v7l9-11h-7z" />
                                     </svg>
                                 </span>
-                                Lifestyle Adjustments
+                                <span data-i18n="result_lifestyle_title">Lifestyle Adjustments</span>
                             </h3>
                             <ul class="space-y-2">
                                 <template x-for="(s, si) in (conclusion.lifestyle || [])" :key="si">
@@ -1070,7 +1060,7 @@
                         <h3 class="text-base font-bold text-amber-800 mb-2 flex items-center gap-2">
                             <span
                                 class="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center font-black">!</span>
-                            When to Seek Medical Care
+                            <span data-i18n="result_seek_care_title">When to Seek Medical Care</span>
                         </h3>
                         <p class="text-sm text-amber-900 leading-relaxed" x-text="conclusion.when_to_seek_care"></p>
                     </div>
@@ -1078,13 +1068,11 @@
                     {{-- Which doctor + What to ask --}}
                     <div class="glass-card rounded-3xl p-6">
                         <div x-show="conclusion.which_doctor" class="mb-4 pb-4 border-b border-slate-100">
-                            <p class="text-[11px] font-bold text-primary uppercase tracking-widest mb-1">You Should See
-                            </p>
+                            <p class="text-[11px] font-bold text-primary uppercase tracking-widest mb-1" data-i18n="result_should_see_title">You Should See</p>
                             <p class="text-lg font-bold text-slate-800" x-text="conclusion.which_doctor"></p>
                         </div>
                         <div x-show="conclusion.what_to_ask_doctor?.length">
-                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">What to Ask
-                                Your Doctor</p>
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2" data-i18n="result_what_to_ask_title">What to Ask Your Doctor</p>
                             <ul class="space-y-2">
                                 <template x-for="(q, qi) in (conclusion.what_to_ask_doctor || [])" :key="qi">
                                     <li class="flex items-start gap-2 text-sm text-slate-600">
@@ -1114,7 +1102,7 @@
                     <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
                         <span
                             class="w-9 h-9 bg-primary/15 rounded-2xl flex items-center justify-center text-lg flex-shrink-0">📍</span>
-                        Nearby Healthcare Facilities
+                        <span data-i18n="result_facilities_title">Nearby Healthcare Facilities</span>
                     </h3>
                     <div x-show="nearbyLoading" class="flex items-center gap-1.5">
                         <svg class="w-3.5 h-3.5 text-primary animate-spin" fill="none" viewBox="0 0 24 24">
@@ -1207,9 +1195,7 @@
                     <span class="text-xs font-bold text-slate-500">Pharmasis <span
                             class="text-primary">MediCheck</span></span>
                 </div>
-                <p class="text-[11px] text-slate-300 mt-0.5">This report is for educational purposes only. Always
-                    consult
-                    a healthcare professional.</p>
+                <p class="text-[11px] text-slate-300 mt-0.5" data-i18n="result_disclaimer">This report is for educational purposes only. Always consult a healthcare professional.</p>
             </div>
 
             {{-- Action Bar --}}
@@ -1230,7 +1216,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                     </svg>
-                    Share
+                    <span data-i18n="result_btn_share">Share</span>
                 </button>
                 <button @click="savePdf()"
                     class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold transition-all hover:scale-105 active:scale-95"
@@ -1239,7 +1225,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    Save PDF
+                    <span data-i18n="result_btn_save_pdf">Save PDF</span>
                 </button>
                 <button @click="resetKiosk()"
                     class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold transition-all hover:scale-105 active:scale-95 bg-slate-100 text-slate-600 hover:bg-slate-200">
@@ -1247,7 +1233,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
-                    Start Over
+                    <span data-i18n="result_btn_start_over">Start Over</span>
                 </button>
             </div>
 
@@ -1354,21 +1340,18 @@
                         <span class="text-2xl font-bold text-primary" x-text="kioskCountdown"></span>
                     </div>
                 </div>
-                <h3 class="text-lg font-bold text-ink-900 mb-1">Finished reading?</h3>
+                <h3 class="text-lg font-bold text-ink-900 mb-1" data-i18n="kiosk_title">Finished reading?</h3>
                 <p class="text-sm text-ink-500 mb-5 leading-relaxed">
-                    This page will reset automatically in <span class="font-bold text-primary"
-                        x-text="kioskCountdown"></span> seconds
-                    so it's ready for the next person.
+                    <span x-text="(window.PharmasisI18n ? window.PharmasisI18n.t('kiosk_desc').replace('{0}', kioskCountdown) : `This page will reset automatically in ${kioskCountdown} seconds so it\'s ready for the next person.`)"></span>
                 </p>
                 <div class="flex gap-3">
                     <button @click="snoozeKiosk()"
-                        class="flex-1 px-4 py-3 rounded-full text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors">Wait</button>
+                        class="flex-1 px-4 py-3 rounded-full text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors" data-i18n="kiosk_wait">Wait</button>
                     <button @click="resetKiosk()"
                         class="flex-1 px-4 py-3 rounded-full text-sm font-bold text-white transition-all"
-                        style="background: linear-gradient(135deg,#3EAEB1,#2d8a8d); box-shadow: 0 4px 16px rgba(62,174,177,0.35);">Done</button>
+                        style="background: linear-gradient(135deg,#3EAEB1,#2d8a8d); box-shadow: 0 4px 16px rgba(62,174,177,0.35);" data-i18n="kiosk_done">Done</button>
                 </div>
-                <p class="text-[10px] text-ink-400 mt-4">"Wait" adds 1 more minute · "Done" starts over right
-                    away</p>
+                <p class="text-[10px] text-ink-400 mt-4" data-i18n="kiosk_hint">"Wait" adds 1 more minute · "Done" starts over right away</p>
             </div>
         </div>{{-- /kiosk --}}
 

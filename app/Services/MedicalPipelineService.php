@@ -243,13 +243,25 @@ class MedicalPipelineService
 
     private function langInstruction(string $lang): string
     {
-        // Auto-detect: AI reads the input language and responds in the same language.
-        // Do NOT translate or force a language — match whatever the user typed/spoke.
-        return 'IMPORTANT: Detect the language of the patient\'s symptom input automatically. '
-             . 'If the patient wrote or spoke in Bahasa Indonesia, respond entirely in Bahasa Indonesia. '
-             . 'If the patient used English, respond entirely in English. '
-             . 'If mixed, use whichever language dominates. '
-             . 'Never translate the input — always mirror the patient\'s own language in every field of your JSON response.';
+        $langNames = [
+            'id' => 'Bahasa Indonesia',
+            'ja' => 'Japanese (日本語)',
+            'es' => 'Spanish (Español)',
+            'zh' => 'Simplified Chinese (简体中文)',
+            'ar' => 'Arabic (العربية)',
+            'fr' => 'French (Français)',
+            'de' => 'German (Deutsch)',
+            'ko' => 'Korean (한국어)',
+            'pt' => 'Portuguese (Português)',
+            'ru' => 'Russian (Русский)',
+            'en' => 'English',
+        ];
+
+        if (isset($langNames[$lang])) {
+            return "LANGUAGE DIRECTIVE (MANDATORY): You MUST write every field of your JSON response entirely and naturally in {$langNames[$lang]}. No exceptions.";
+        }
+
+        return 'IMPORTANT: Detect the language of the patient\'s symptom input automatically and mirror that exact language across all fields of your JSON response.';
     }
 
     private function buildProfileContext(array $profile): string

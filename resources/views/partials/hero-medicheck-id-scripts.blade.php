@@ -257,16 +257,31 @@
             _kioskAppear: null,
 
             /* ── Placeholder typewriter ── */
-            placeholderExamples: [
-                'Example: "I\'ve had a dry cough and a 38 degree fever since yesterday..."',
-                'Example: "My lower right abdomen hurts badly, I feel nauseous, and I vomited twice..."',
-                'Example: "Blocked nose, sneezing every morning, with a history of mild asthma..."',
-                'Example: "My head spins when I get out of bed and my ears are ringing..."'
-            ],
+            get placeholderExamples() {
+                if (window.PharmasisI18n) {
+                    return window.PharmasisI18n.getExamples();
+                }
+                return [
+                    'Example: "I\'ve had a dry cough and a 38 degree fever since yesterday..."',
+                    'Example: "My lower right abdomen hurts badly, I feel nauseous, and I vomited twice..."',
+                    'Example: "Blocked nose, sneezing every morning, with a history of mild asthma..."',
+                    'Example: "My head spins when I get out of bed and my ears are ringing..."'
+                ];
+            },
             currentPlaceholderIdx: 0,
             _placeholderTick: null,
 
-            get concludeSteps() { return CONCLUDE_STEPS_ID; },
+            get concludeSteps() {
+                if (window.PharmasisI18n) {
+                    return [
+                        { id: 'read', icon: '1', label: window.PharmasisI18n.t('concluding_step1_label', 'Summarizing your answers'), detail: window.PharmasisI18n.t('concluding_step1_detail', 'Building the screening transcript · recognizing clinical entities') },
+                        { id: 'reason', icon: '2', label: window.PharmasisI18n.t('concluding_step2_label', 'Forming a likely condition'), detail: window.PharmasisI18n.t('concluding_step2_detail', 'Differential diagnosis · clinical reasoning') },
+                        { id: 'plan', icon: '3', label: window.PharmasisI18n.t('concluding_step3_label', 'Building recommendations'), detail: window.PharmasisI18n.t('concluding_step3_detail', 'Medicines / care · safety · next steps') },
+                        { id: 'done', icon: '4', label: window.PharmasisI18n.t('concluding_step4_label', 'Conclusion ready to display'), detail: window.PharmasisI18n.t('concluding_step4_detail', 'Validated JSON · report tailored to your role') },
+                    ];
+                }
+                return CONCLUDE_STEPS_ID;
+            },
 
             get isDoctor() { return this.role === 'doctor'; },
             get roleQuestion() { return this.questions.find(q => q.is_role); },
@@ -297,6 +312,12 @@
                     }
                 } catch (e) { /* ignore restore errors */ }
                 this.initPlaceholder();
+
+                // Re-trigger placeholder animation when user switches language
+                window.addEventListener('pharmasis:languageChanged', () => {
+                    this.currentPlaceholderIdx = 0;
+                    this.initPlaceholder();
+                });
             },
 
             /* ── Placeholder typewriter ── */
@@ -305,7 +326,10 @@
                 if (this._placeholderTick) clearTimeout(this._placeholderTick);
                 let isDeleting = false, charIdx = 0, typingSpeed = 70;
                 const type = () => {
-                    const example = this.placeholderExamples[this.currentPlaceholderIdx];
+                    const examples = this.placeholderExamples;
+                    if (!examples || !examples.length) return;
+                    if (this.currentPlaceholderIdx >= examples.length) this.currentPlaceholderIdx = 0;
+                    const example = examples[this.currentPlaceholderIdx] || '';
                     let text = '';
                     if (isDeleting) { text = example.substring(0, charIdx - 1); charIdx--; typingSpeed = 30; }
                     else { text = example.substring(0, charIdx + 1); charIdx++; typingSpeed = 50; }
@@ -313,10 +337,10 @@
                         ? this.$refs.symptomTextarea
                         : document.querySelector('textarea[x-model="symptoms"]');
                     if (el) el.setAttribute('placeholder', text);
-                    if (!isDeleting && charIdx === example.length) { typingSpeed = 3500; isDeleting = true; }
-                    else if (isDeleting && charIdx === 0) {
+                    if (!isDeleting && charIdx >= example.length) { typingSpeed = 3500; isDeleting = true; }
+                    else if (isDeleting && charIdx <= 0) {
                         isDeleting = false;
-                        this.currentPlaceholderIdx = (this.currentPlaceholderIdx + 1) % this.placeholderExamples.length;
+                        this.currentPlaceholderIdx = (this.currentPlaceholderIdx + 1) % examples.length;
                         typingSpeed = 500;
                     }
                     this._placeholderTick = setTimeout(type, typingSpeed);
@@ -924,15 +948,16 @@
             async copyResult() {
                 const text = this.buildReport();
                 if (!text) return;
+                const copiedMsg = window.PharmasisI18n ? window.PharmasisI18n.t('result_btn_copied', 'Copied!') : 'Copied!';
                 try {
                     await navigator.clipboard.writeText(text);
-                    this.copyFeedback = 'Copied!';
+                    this.copyFeedback = copiedMsg;
                     setTimeout(() => this.copyFeedback = '', 2000);
                 } catch (e) {
                     const ta = document.createElement('textarea');
                     ta.value = text; document.body.appendChild(ta); ta.select();
                     document.execCommand('copy'); document.body.removeChild(ta);
-                    this.copyFeedback = 'Copied!';
+                    this.copyFeedback = copiedMsg;
                     setTimeout(() => this.copyFeedback = '', 2000);
                 }
             },

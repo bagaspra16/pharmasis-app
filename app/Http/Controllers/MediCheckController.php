@@ -32,7 +32,7 @@ class MediCheckController extends Controller
         $request->validate([
             'symptoms'   => 'nullable|string|max:2000',
             'audio'      => 'nullable|file|mimes:webm,ogg,mp4,wav,m4a,mp3|max:20480',
-            'lang'       => 'nullable|in:en,id,auto',
+            'lang'       => 'nullable|in:en,id,ja,es,zh,ar,fr,de,ko,pt,ru,auto',
             'mode'       => 'nullable|in:classic,journey',
             'age'        => 'nullable|integer|min:0|max:120',
             'weight'     => 'nullable|numeric|min:0|max:500',
@@ -130,7 +130,7 @@ class MediCheckController extends Controller
         $startedAt = microtime(true);
         $request->validate([
             'input' => 'required|string|max:2000',
-            'lang'  => 'nullable|in:en,id,auto',
+            'lang'  => 'nullable|in:en,id,ja,es,zh,ar,fr,de,ko,pt,ru,auto',
         ]);
 
         try {
@@ -205,7 +205,7 @@ class MediCheckController extends Controller
         $startedAt = microtime(true);
         $request->validate([
             'symptoms' => 'required|string|max:2000',
-            'lang'     => 'nullable|in:en,id,auto',
+            'lang'     => 'nullable|in:en,id,ja,es,zh,ar,fr,de,ko,pt,ru,auto',
         ]);
 
         try {
@@ -250,7 +250,7 @@ class MediCheckController extends Controller
             'qa.*.question' => 'nullable|string|max:1000',
             'qa.*.answer'   => 'nullable|string|max:2000',
             'role'          => 'required|in:doctor,patient',
-            'lang'          => 'nullable|in:en,id,auto',
+            'lang'          => 'nullable|in:en,id,ja,es,zh,ar,fr,de,ko,pt,ru,auto',
         ]);
 
         try {
@@ -311,12 +311,14 @@ class MediCheckController extends Controller
     }
 
     /**
-     * Resolve 'auto' to 'en' or 'id' with a light heuristic on the input text,
-     * so the appended role question matches the language the AI will answer in.
+     * Resolve 'auto' to a known language code with heuristic on input text.
      */
     private function resolveLang(string $lang, string $text): string
     {
-        if ($lang === 'en' || $lang === 'id') return $lang;
+        $supported = ['en', 'id', 'ja', 'es', 'zh', 'ar', 'fr', 'de', 'ko', 'pt', 'ru'];
+        if (in_array($lang, $supported, true)) {
+            return $lang;
+        }
 
         $t = ' ' . mb_strtolower($text) . ' ';
         $idHits = 0;
@@ -336,18 +338,71 @@ class MediCheckController extends Controller
      */
     private function roleQuestion(string $lang): array
     {
-        $id = $lang !== 'en';
+        $translations = [
+            'en' => [
+                'question' => 'Before we conclude — are you a healthcare professional/doctor, or a patient/member of the public?',
+                'hint'     => 'Your answer determines the level of medical detail we present.',
+                'choices'  => ['Healthcare professional / Doctor', 'Patient / General public'],
+            ],
+            'id' => [
+                'question' => 'Sebelum kami simpulkan — apakah Anda seorang tenaga kesehatan/dokter, atau pasien/masyarakat umum?',
+                'hint'     => 'Jawaban Anda menentukan tingkat kedetailan medis yang kami tampilkan.',
+                'choices'  => ['Tenaga kesehatan / Dokter', 'Pasien / Masyarakat umum'],
+            ],
+            'ja' => [
+                'question' => '結果を表示する前に — あなたは医療従事者・医師ですか、それとも患者・一般の方ですか？',
+                'hint'     => 'ご選択いただいた立場に合わせて、最適な医療情報レベルで表示します。',
+                'choices'  => ['医療従事者 / 医師', '患者 / 一般の方'],
+            ],
+            'es' => [
+                'question' => 'Antes de concluir — ¿es usted un profesional de la salud/médico o un paciente/público general?',
+                'hint'     => 'Su respuesta determina el nivel de detalle clínico que presentaremos.',
+                'choices'  => ['Profesional de la salud / Médico', 'Paciente / Público general'],
+            ],
+            'zh' => [
+                'question' => '在得出结论之前 — 您是医疗专业人员/医生，还是患者/普通公众？',
+                'hint'     => '您的回答将决定我们所呈现的医学细节和专业深度。',
+                'choices'  => ['医务人员 / 医生', '患者 / 普通公众'],
+            ],
+            'ar' => [
+                'question' => 'قبل أن نلخص — هل أنت ممارس صحي / طبيب أم مريض / من عامة الجمهور؟',
+                'hint'     => 'تحدد إجابتك مستوى التفاصيل الطبية المعروضة.',
+                'choices'  => ['ممارس صحي / طبيب', 'مريض / عامة الجمهور'],
+            ],
+            'fr' => [
+                'question' => 'Avant de conclure — êtes-vous un professionnel de santé/médecin ou un patient/grand public ?',
+                'hint'     => 'Votre réponse détermine le niveau de détail médical présenté.',
+                'choices'  => ['Professionnel de santé / Médecin', 'Patient / Grand public'],
+            ],
+            'de' => [
+                'question' => 'Bevor wir zusammenfassen — sind Sie medizinisches Fachpersonal/Arzt oder Patient/Privatperson?',
+                'hint'     => 'Ihre Antwort bestimmt den Detaillierungsgrad der dargestellten medizinischen Informationen.',
+                'choices'  => ['Medizinisches Fachpersonal / Arzt', 'Patient / Allgemeinheit'],
+            ],
+            'ko' => [
+                'question' => '결과를 종합하기 전에 — 귀하는 의료 전문가/의사입니까, 아니면 환자/일반인입니까?',
+                'hint'     => '답변에 따라 제공되는 임상 정보의 상세 수준이 달라집니다.',
+                'choices'  => ['의료 전문가 / 의사', '환자 / 일반 대중'],
+            ],
+            'pt' => [
+                'question' => 'Antes de concluirmos — você é um profissional de saúde/médico ou um paciente/público geral?',
+                'hint'     => 'Sua resposta define o nível de detalhamento médico apresentado.',
+                'choices'  => ['Profissional de saúde / Médico', 'Paciente / Público geral'],
+            ],
+            'ru' => [
+                'question' => 'Прежде чем подвести итог — вы медицинский работник/врач или пациент/пользователь?',
+                'hint'     => 'Ваш ответ определяет уровень детализации медицинской информации.',
+                'choices'  => ['Медицинский специалист / Врач', 'Пациент / Пользователь'],
+            ],
+        ];
+
+        $t = $translations[$lang] ?? $translations['en'];
+
         return [
             'id'             => 'role',
-            'question'       => $id
-                ? 'Sebelum kami simpulkan — apakah Anda seorang tenaga kesehatan/dokter, atau pasien/masyarakat umum?'
-                : 'Before we conclude — are you a healthcare professional/doctor, or a patient/member of the public?',
-            'hint'           => $id
-                ? 'Jawaban Anda menentukan tingkat kedetailan medis yang kami tampilkan.'
-                : 'Your answer determines the level of medical detail we present.',
-            'choices'        => $id
-                ? ['Tenaga kesehatan / Dokter', 'Pasien / Masyarakat umum']
-                : ['Healthcare professional / Doctor', 'Patient / General public'],
+            'question'       => $t['question'],
+            'hint'           => $t['hint'],
+            'choices'        => $t['choices'],
             'allow_multiple' => false,
             'free_text'      => false,
             'is_role'        => true,

@@ -389,14 +389,23 @@ class MediCoreAiService
 
     private function langInstruction(string $lang): string
     {
-        if ($lang === 'id') {
-            return 'LANGUAGE DIRECTIVE (MANDATORY): The user wrote in Bahasa Indonesia. '
-                 . 'You MUST write every field of your JSON response entirely in Bahasa Indonesia. '
-                 . 'Do NOT use English anywhere in any field value. No exceptions.';
-        }
-        return 'LANGUAGE DIRECTIVE (MANDATORY): The user wrote in English. '
-             . 'You MUST write every field of your JSON response entirely in English. '
-             . 'Do NOT use Bahasa Indonesia anywhere in any field value. No exceptions.';
+        $langNames = [
+            'id' => 'Bahasa Indonesia',
+            'ja' => 'Japanese (日本語)',
+            'es' => 'Spanish (Español)',
+            'zh' => 'Simplified Chinese (简体中文)',
+            'ar' => 'Arabic (العربية)',
+            'fr' => 'French (Français)',
+            'de' => 'German (Deutsch)',
+            'ko' => 'Korean (한국어)',
+            'pt' => 'Portuguese (Português)',
+            'ru' => 'Russian (Русский)',
+            'en' => 'English',
+        ];
+
+        $targetName = $langNames[$lang] ?? 'English';
+
+        return "LANGUAGE DIRECTIVE (MANDATORY): You MUST write every single field of your JSON response — including facts, titles, summaries, conclusions, self-care steps, and clinical reasoning — entirely and naturally in {$targetName}. Do NOT mix with other languages. No exceptions.";
     }
 
     private function parseJson(string $raw, string $step): array
