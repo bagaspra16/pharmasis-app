@@ -1,3 +1,4 @@
+<script>
 /**
  * Pharmasis Multilingual Localization Engine (i18n) & AI Drug Humanizer
  * Supports 11 Global Languages with Clean Minimalist iOS Glass Preloader
@@ -3215,8 +3216,10 @@ window.PharmasisI18n = {
     }
 };
 
+// Initialize immediately so Alpine.js and inline scripts have instant access
 window.PharmasisI18n.init();
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => window.PharmasisI18n.applyLanguage(window.PharmasisI18n.getLanguage(), false));
 }
+</script>
