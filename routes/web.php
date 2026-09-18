@@ -20,3 +20,20 @@ Route::post('/medicheck/conclude', [MediCheckController::class, 'conclude'])->na
 Route::post('/medicheck/nearby', [MediCheckController::class, 'nearby'])->name('medicheck.nearby');
 Route::get('/medicheck/history', [MediCheckController::class, 'history'])->name('medicheck.history');
 Route::get('/medicheck/history/{id}', [MediCheckController::class, 'historyItem'])->name('medicheck.history.item');
+
+// ── i18n Static Asset Fallback Route ─────────────────────────────────────────
+Route::get('/js/pharmasis-i18n.js', function () {
+    $paths = [
+        public_path('js/pharmasis-i18n.js'),
+        base_path('public/js/pharmasis-i18n.js'),
+    ];
+    foreach ($paths as $path) {
+        if (file_exists($path)) {
+            return response(file_get_contents($path), 200, [
+                'Content-Type' => 'application/javascript; charset=utf-8',
+                'Cache-Control' => 'public, max-age=31536000',
+            ]);
+        }
+    }
+    abort(404);
+});
