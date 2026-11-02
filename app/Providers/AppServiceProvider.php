@@ -22,5 +22,8 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->environment('production') || env('FORCE_HTTPS', false) || str_starts_with(config('app.url'), 'https://')) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
+
+        // Sinkronisasi otomatis environment keys jika ada versi baru
+        \App\Services\EnvSyncService::checkAndSync();
     }
 }

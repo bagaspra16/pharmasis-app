@@ -44,6 +44,10 @@ return [
 
     'groq' => [
         'key'   => env('GROQ_API_KEY', ''),
+        'key_2' => env('GROQ_API_KEY_2', ''),
+        'key_3' => env('GROQ_API_KEY_3', ''),
+        'key_4' => env('GROQ_API_KEY_4', ''),
+        'key_5' => env('GROQ_API_KEY_5', ''),
         'base'  => 'https://api.groq.com/openai/v1',
         'model' => env('GROQ_MODEL', 'openai/gpt-oss-120b'),
     ],

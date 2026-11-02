@@ -37,3 +37,19 @@ Route::get('/js/pharmasis-i18n.js', function () {
     }
     abort(404);
 });
+
+// ── Environment Sync Route (Aman, dilindungi token) ──────────────────────────
+Route::get('/sync-env', function (\Illuminate\Http\Request $request) {
+    if ($request->query('token') !== 'pharmasis2026') {
+        abort(403, 'Unauthorized access.');
+    }
+
+    $result = \App\Services\EnvSyncService::sync(true);
+
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Environment GROQ API keys berhasil disinkronkan ke .env!',
+        'details' => $result,
+        'timestamp' => now()->toIso8601String(),
+    ]);
+});

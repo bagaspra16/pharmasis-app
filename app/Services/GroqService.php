@@ -16,10 +16,10 @@ class GroqService
         // Load all available API keys — rotate across them to avoid rate limits
         $keys = array_filter([
             config('services.groq.key', env('GROQ_API_KEY', '')),
-            env('GROQ_API_KEY_2', ''),
-            env('GROQ_API_KEY_3', ''),
-            env('GROQ_API_KEY_4', ''),
-            env('GROQ_API_KEY_5', ''),
+            config('services.groq.key_2', env('GROQ_API_KEY_2', '')),
+            config('services.groq.key_3', env('GROQ_API_KEY_3', '')),
+            config('services.groq.key_4', env('GROQ_API_KEY_4', '')),
+            config('services.groq.key_5', env('GROQ_API_KEY_5', '')),
         ]);
 
         $this->apiKeys = array_values($keys);
