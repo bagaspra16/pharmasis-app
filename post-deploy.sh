@@ -46,3 +46,4 @@ php artisan route:cache
 php artisan view:cache
 
 echo "✅ Post-deploy selesai!"
+
