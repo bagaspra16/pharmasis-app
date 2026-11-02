@@ -44,7 +44,7 @@ set_env() {
 #   dst.
 # Lalu file ini akan membacanya secara aman.
 
-SECRETS_FILE="/etc/pharmasis/secrets.sh"
+SECRETS_FILE="$(dirname "$0")/.secrets"
 
 if [ -f "$SECRETS_FILE" ]; then
     # shellcheck source=/dev/null
@@ -55,11 +55,13 @@ if [ -f "$SECRETS_FILE" ]; then
     set_env "GROQ_API_KEY_4" "${GROQ_API_KEY_4}"
     set_env "GROQ_API_KEY_5" "${GROQ_API_KEY_5}"
     set_env "GROQ_MODEL"     "${GROQ_MODEL:-openai/gpt-oss-120b}"
-    echo "✅ GROQ API Keys berhasil dimuat dari $SECRETS_FILE"
+    echo "✅ GROQ API Keys berhasil dimuat dari .secrets"
 else
-    echo "⚠️  File secrets tidak ditemukan: $SECRETS_FILE"
-    echo "   Buat file tersebut di server dan isi dengan GROQ_API_KEY, dst."
-    echo "   (Lihat README atau deploy guide untuk contoh isinya)"
+    echo "⚠️  File .secrets tidak ditemukan di dalam folder project"
+    echo "   Buat file pharmasis-app/.secrets dan isi dengan:"
+    echo "     export GROQ_API_KEY=\"gsk_...\""
+    echo "     export GROQ_API_KEY_2=\"gsk_...\""
+    echo "     dst."
 fi
 
 # Hapus file backup sementara dari sed
