@@ -50,6 +50,14 @@ if (!hash_equals($expected, $hubSig)) {
     exit('Forbidden');
 }
 
+// ── Cek event ping (saat pertama kali webhook dibuat / ditest) ────────────────
+$event = $_SERVER['HTTP_X_GITHUB_EVENT'] ?? '';
+if ($event === 'ping') {
+    http_response_code(200);
+    logMsg('PONG: Webhook GitHub berhasil terhubung ke server!');
+    exit('PONG');
+}
+
 // ── Cek branch ───────────────────────────────────────────────────────────────
 $data   = json_decode($payload, true);
 $branch = basename($data['ref'] ?? '');

@@ -5,6 +5,9 @@
 
     RewriteEngine On
 
+    # Redirect/Rewrite /public/webhook.php to webhook.php
+    RewriteRule ^public/webhook\.php$ webhook.php [L]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
