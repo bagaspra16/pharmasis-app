@@ -60,13 +60,16 @@ class MedicalPipelineService
               . '"how_to_take":"Specific instructions: with/without food, timing, water amount, do not crush etc.",'
               . '"side_effects":["common side effect 1","common side effect 2"],'
               . '"contraindications":["e.g. pregnancy","e.g. liver disease"],'
-              . '"otc":true,'
-              . '"reference_source":"e.g. WHO Essential Medicines / FDA / MedlinePlus"'
+              . '"otc":true'
               . '}],"pharmacist_notes":"Overall prescribing notes and important warnings"}'
             ],
         ], ['temperature' => 0.3, 'max_tokens' => 2048, 'response_format' => ['type' => 'json_object']]);
 
         $step2 = $this->parseJson($step2Raw, 'step2');
+        // Model-written source names are not references.
+        foreach (array_keys($step2['drugs'] ?? []) as $i) {
+            unset($step2['drugs'][$i]['reference_source']);
+        }
 
         // ── Step 3: Interaction Check ───────────────────────────────────────────
         $drugNames = collect($step2['drugs'] ?? [])->pluck('name')->join(', ');
@@ -163,7 +166,6 @@ class MedicalPipelineService
                     'route'             => $d['route'] ?? '',
                     'side_effects'      => $d['side_effects'] ?? [],
                     'contraindications' => $d['contraindications'] ?? [],
-                    'reference_source'  => $d['reference_source'] ?? '',
                 ],
                 'db_url'   => $d['db_url'] ?? null,
                 'db_found' => $d['db_found'] ?? false,

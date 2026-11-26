@@ -320,7 +320,7 @@
                             <div class="flex items-center gap-2">
                                 <span
                                     class="px-2.5 py-0.5 bg-teal-500/10 text-teal-700 text-[10px] font-bold rounded-full uppercase tracking-wider"
-                                    x-text="mcData.medical_facts_payload.fact_badge || 'Verified Medical Fact'"></span>
+                                    x-text="mcData.evidence?.labels.ai_summary || 'AI-generated summary'"></span>
                             </div>
                             <p class="mt-2 text-sm font-medium text-slate-800 leading-relaxed"
                                 x-text="mcData.medical_facts_payload.core_explanation"></p>
@@ -333,16 +333,6 @@
                                             x-text="kp.heading"></p>
                                         <p class="text-xs text-slate-600 leading-relaxed" x-text="kp.content"></p>
                                     </div>
-                                </template>
-                            </div>
-                        </template>
-                        <template x-if="mcData.medical_facts_payload.medical_sources?.length">
-                            <div class="px-6 py-3 flex flex-wrap gap-1.5"
-                                style="border-top:1px solid rgba(62,174,177,0.08);">
-                                <template x-for="src in mcData.medical_facts_payload.medical_sources" :key="src">
-                                    <span
-                                        class="px-2 py-0.5 bg-slate-100 text-slate-500 text-[10px] font-medium rounded-full"
-                                        x-text="src"></span>
                                 </template>
                             </div>
                         </template>
@@ -472,6 +462,8 @@
                         <span data-i18n="mc_extra_screening_notice">Additional screening questions are being prepared below ↓</span>
                     </div>
                 </template>
+
+                @include('partials.evidence-panel', ['expr' => 'mcData?.evidence'])
 
                 <p class="text-center text-[10px] text-slate-400 leading-relaxed px-2" data-i18n="mc_disclaimer_notice">
                     ⚠️ This information is educational and does not replace consultation with a licensed healthcare professional.
@@ -808,6 +800,9 @@
             </div>
 
             {{-- ════════════════════════════════════════════════════════════════ --}}
+            {{-- ════════════════════════ EVIDENCE ═══════════════════════════════ --}}
+            @include('partials.evidence-panel', ['expr' => 'conclusion?.evidence'])
+
             {{-- ════════════════════════ DOCTOR BRANCH ══════════════════════════ --}}
             {{-- ════════════════════════════════════════════════════════════════ --}}
             <template x-if="isDoctor && conclusion">

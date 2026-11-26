@@ -42,7 +42,7 @@ Respond ONLY in valid JSON (no markdown, no extra text):
 {"risk_level":"minor|moderate|major|unknown","summary":"1-2 sentence plain-language summary."}
 PROMPT;
 
-        return $this->callAI($prompt, $cacheKey, 0.2, 300);
+        return $this->callAI($prompt, $cacheKey, 0.2, 1500);
     }
 
     /**
@@ -52,7 +52,7 @@ PROMPT;
     {
         $ids = [$drugA->id, $drugB->id];
         sort($ids);
-        $cacheKey = 'ai_interaction_inf_v2_' . md5(implode('_', $ids));
+        $cacheKey = 'ai_interaction_inf_v3_' . md5(implode('_', $ids));
         if (Cache::has($cacheKey)) {
             return Cache::get($cacheKey);
         }
@@ -77,13 +77,13 @@ Drug 2: "{$drugB->name}"
 
 Based on these drug classes and their individual warnings, analyze the likelihood of an interaction or compounded adverse effect. 
 Give a cautious, conservative assessment based on the provided data.
-Clearly state this is an inference based on individual drug profiles. Avoid definitive claims. Default to minor/unknown if no clear concern exists.
+Clearly state this is an inference based on individual drug profiles. Avoid definitive claims. Absence of information is not evidence of safety: use unknown if the text shows no clear concern.
 
 Respond ONLY in valid JSON (no markdown, no extra text):
 {"risk_level":"minor|moderate|major|unknown","summary":"AI-generated inference based on individual FDA drug profiles: [2-3 sentence explanation combining reasoning from classes and warnings]"}
 PROMPT;
 
-        return $this->callAI($prompt, $cacheKey, 0.3, 400);
+        return $this->callAI($prompt, $cacheKey, 0.3, 1500);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -97,6 +97,7 @@ PROMPT;
             ], [
                 'temperature' => $temperature,
                 'max_tokens' => $maxTokens,
+                'reasoning_effort' => 'low',
                 'response_format' => ['type' => 'json_object'] // Ensure strict JSON output
             ]);
 
@@ -124,6 +125,6 @@ PROMPT;
 
     private function fallback(string $riskLevel, string $summary): array
     {
-        return ['risk_level' => $riskLevel, 'summary' => $summary];
+        return ['risk_level' => $riskLevel, 'summary' => $summary, 'failed' => true];
     }
 }

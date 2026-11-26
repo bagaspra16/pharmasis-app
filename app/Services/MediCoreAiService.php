@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Services\Evidence\EvidenceService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
@@ -27,7 +28,7 @@ class MediCoreAiService
     // medi_check / medi_combo are never cached (personal + contextual).
     private const FACTS_CACHE_TTL_DAYS = 7;
 
-    public function __construct(private GroqService $groq) {}
+    public function __construct(private GroqService $groq, private EvidenceService $evidence) {}
 
     /**
      * Main entry point.
@@ -66,20 +67,25 @@ class MediCoreAiService
             $screeningPayload = null;
             $conclusions      = null;
 
-            $cacheKey = 'medicore_facts_' . md5($input . '_' . $resolvedLang);
+            $cacheKey = 'medicore_facts_v2_' . md5($input . '_' . $resolvedLang);
+
+            if ($classification === 'medi_facts' && Cache::has($cacheKey)) {
+                return Cache::get($cacheKey);
+            }
+
+            // Sources are retrieved first so the answer can be written from them.
+            $grounding = $this->evidence->ground($input);
+            $grounded  = trim($langInstr . "\n\n" . $grounding['block']);
 
             if ($classification === 'medi_facts') {
-                if (Cache::has($cacheKey)) {
-                    return Cache::get($cacheKey);
-                }
-                $factsPayload = $this->generateFactsPayload($input, $langInstr);
-                $conclusions  = $this->generateFactsConclusions($input, $langInstr);
+                $factsPayload = $this->generateFactsPayload($input, $grounded);
+                $conclusions  = $this->generateFactsConclusions($input, $grounded);
             } elseif ($classification === 'medi_check') {
                 $screeningPayload = $this->generateScreeningPayload($input, $langInstr);
-                $conclusions      = $this->generateCheckConclusions($input, $langInstr);
+                $conclusions      = $this->generateCheckConclusions($input, $grounded);
             } else {
                 // medi_combo: dual processing
-                [$factsPayload, $screeningPayload, $conclusions] = $this->generateComboPayload($input, $langInstr);
+                [$factsPayload, $screeningPayload, $conclusions] = $this->generateComboPayload($input, $grounded);
             }
 
             // Phase 3: Assemble final structured payload
@@ -94,7 +100,15 @@ class MediCoreAiService
                 conclusions:      $conclusions,
             );
 
-            if ($classification === 'medi_facts') {
+            $result['evidence'] = $this->evidence->assess(
+                ['facts' => $factsPayload, 'conclusions' => $conclusions],
+                $input,
+                $resolvedLang,
+                grounding: $grounding
+            );
+
+            // An unchecked answer is not cached, so the next request retries the check.
+            if ($classification === 'medi_facts' && $result['evidence']['status'] !== 'unavailable') {
                 Cache::put($cacheKey, $result, now()->addDays(self::FACTS_CACHE_TTL_DAYS));
             }
 
@@ -156,7 +170,7 @@ class MediCoreAiService
               . '"emergency_message":"Only fill if is_emergency=true: clear instructions to call emergency services immediately",'
               . '"emergency_numbers":{"id":"119","international":"112"}}'
             ],
-        ], ['temperature' => 0.1, 'max_tokens' => 450, 'response_format' => ['type' => 'json_object']]);
+        ], ['temperature' => 0.1, 'max_tokens' => 1500, 'reasoning_effort' => 'low', 'response_format' => ['type' => 'json_object']]);
 
         return $this->parseJson($raw, 'classify');
     }
@@ -167,26 +181,25 @@ class MediCoreAiService
     {
         $raw = $this->groq->chat(self::MODEL, [
             ['role' => 'system', 'content' =>
-                "You are a board-certified medical knowledge engine. Provide accurate, evidence-based medical facts. "
+                "You are a medical information writer. Give accurate, cautious medical facts. Do not name or invent sources or citations. "
               . "Structure your output into clear educational chunks. "
               . "CRITICAL: Return ONLY valid JSON. No conversational text.\n{$langInstr}",
             ],
             ['role' => 'user', 'content' =>
                 "Medical question: \"{$input}\"\n\n"
               . "Return JSON:\n"
-              . '{"fact_badge":"Verified Medical Fact",'
-              . '"core_explanation":"Concise primary answer (2-3 sentences)",'
+              . '{"core_explanation":"Concise primary answer (2-3 sentences)",'
               . '"key_points":['
               .   '{"heading":"Mechanism","content":"..."},'
               .   '{"heading":"Common Causes","content":"..."},'
               .   '{"heading":"Health Impact","content":"..."}'
               . '],'
-              . '"medical_sources":["WHO Guidelines","OpenFDA Database","Clinical Evidence"],'
               . '"disclaimer":"Educational information only. Not a substitute for professional medical advice."}'
             ],
-        ], ['temperature' => 0.2, 'max_tokens' => 900, 'response_format' => ['type' => 'json_object']]);
+        ], ['temperature' => 0.2, 'max_tokens' => 2500, 'reasoning_effort' => 'low', 'response_format' => ['type' => 'json_object']]);
 
-        return $this->parseJson($raw, 'facts_payload');
+        // References come only from EvidenceService, never from the model.
+        return array_diff_key($this->parseJson($raw, 'facts_payload'), ['medical_sources' => 1, 'fact_badge' => 1]);
     }
 
     private function generateFactsConclusions(string $input, string $langInstr): array
@@ -212,7 +225,7 @@ class MediCoreAiService
               .   '"drug_regimen_considerations":"Pharmacological considerations or N/A"'
               . '}}'
             ],
-        ], ['temperature' => 0.3, 'max_tokens' => 1200, 'response_format' => ['type' => 'json_object']]);
+        ], ['temperature' => 0.3, 'max_tokens' => 3000, 'reasoning_effort' => 'low', 'response_format' => ['type' => 'json_object']]);
 
         return $this->parseJson($raw, 'facts_conclusions');
     }
@@ -236,7 +249,7 @@ class MediCoreAiService
               .   '{"id":"q1","question":"...","hint":"brief helper text","options":["option 1","option 2","option 3"]}'
               . ']}'
             ],
-        ], ['temperature' => 0.35, 'max_tokens' => 900, 'response_format' => ['type' => 'json_object']]);
+        ], ['temperature' => 0.35, 'max_tokens' => 2500, 'reasoning_effort' => 'low', 'response_format' => ['type' => 'json_object']]);
 
         return $this->parseJson($raw, 'screening_payload');
     }
@@ -264,7 +277,7 @@ class MediCoreAiService
               .   '"drug_regimen_considerations":"Initial pharmacological considerations"'
               . '}}'
             ],
-        ], ['temperature' => 0.3, 'max_tokens' => 1200, 'response_format' => ['type' => 'json_object']]);
+        ], ['temperature' => 0.3, 'max_tokens' => 3000, 'reasoning_effort' => 'low', 'response_format' => ['type' => 'json_object']]);
 
         return $this->parseJson($raw, 'check_conclusions');
     }

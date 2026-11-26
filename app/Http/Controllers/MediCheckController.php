@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Drug;
 use App\Models\FdaDrug;
 use App\Services\AnalyticsRecorder;
+use App\Services\Evidence\EvidenceService;
 use App\Services\GroqService;
 use App\Services\MediCoreAiService;
 use App\Services\MedicalPipelineService;
@@ -19,7 +20,8 @@ class MediCheckController extends Controller
         private GroqService $groq,
         private MedicalPipelineService $pipeline,
         private ScreeningService $screening,
-        private MediCoreAiService $mediCore
+        private MediCoreAiService $mediCore,
+        private EvidenceService $evidence
     ) {}
 
     /**
@@ -72,6 +74,12 @@ class MediCheckController extends Controller
             if (isset($result['step2']['drugs']) && is_array($result['step2']['drugs'])) {
                 $this->crossReferenceDrugs($result['step2']['drugs']);
             }
+
+            $result['evidence'] = $this->evidence->assess(
+                array_intersect_key($result, array_flip(['step1', 'step2', 'step3', 'step4'])),
+                $symptoms,
+                $this->resolveLang($lang, $symptoms)
+            );
 
             // ── Save to session history (max 5) ─────────────────────────────────
             $history = session('medicheck_history', []);
@@ -259,12 +267,16 @@ class MediCheckController extends Controller
             $lang     = $request->input('lang', 'auto');
             $qa       = $request->input('qa', []);
 
-            $conclusion = $this->screening->conclude($symptoms, $qa, $role, $lang);
+            $grounding = $this->evidence->ground($symptoms . "\n" . implode("\n", array_filter(array_column($qa, 'answer'))));
+            $conclusion = $this->screening->conclude($symptoms, $qa, $role, $lang, $grounding['block']);
 
             // Cross-reference clinical drug list with the DB (doctor branch only).
             if ($role === 'doctor' && isset($conclusion['drugs']) && is_array($conclusion['drugs'])) {
                 $this->crossReferenceDrugs($conclusion['drugs']);
             }
+
+            // Kept inside the conclusion so history and exports carry the references.
+            $conclusion['evidence'] = $this->evidence->assess($conclusion, $symptoms, $this->resolveLang($lang, $symptoms), grounding: $grounding);
 
             $result = [
                 'symptoms'   => $symptoms,

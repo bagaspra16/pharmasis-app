@@ -321,6 +321,8 @@
                         </div>
                     </div>
 
+                    @include('partials.evidence-panel', ['expr' => 'results?.evidence'])
+
                     {{-- Disclaimer Strip --}}
                     <div class="flex items-start gap-3 pt-4 border-t border-slate-200">
                         <svg class="w-4 h-4 text-slate-300 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"

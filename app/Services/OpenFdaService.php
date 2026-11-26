@@ -53,7 +53,7 @@ class OpenFdaService
 
             // ── Pre-cache each drug individually by slug so getBySlug() hits cache ──
             foreach ($normalized as $drug) {
-                Cache::put('openfda_drug_' . md5($drug['slug']), $drug, self::CACHE_TTL);
+                Cache::put('openfda_drug_v2_' . md5($drug['slug']), $drug, self::CACHE_TTL);
             }
 
             return $normalized;
@@ -68,7 +68,7 @@ class OpenFdaService
     public function getBySlug(string $slug): ?array
     {
         // 1. Check if we already have it from a previous search
-        $cached = Cache::get('openfda_drug_' . md5($slug));
+        $cached = Cache::get('openfda_drug_v2_' . md5($slug));
         if ($cached)
             return $cached;
 
@@ -102,7 +102,7 @@ class OpenFdaService
                             continue;
 
                         // Cache this result for future use
-                        Cache::put('openfda_drug_' . md5($drug['slug']), $drug, self::CACHE_TTL);
+                        Cache::put('openfda_drug_v2_' . md5($drug['slug']), $drug, self::CACHE_TTL);
 
                         // Return the closest match (prefer slug match)
                         if ($drug['slug'] === $slug)
@@ -144,7 +144,7 @@ class OpenFdaService
 
                     // Pre-cache each for detail page
                     foreach ($normalized as $drug) {
-                        Cache::put('openfda_drug_' . md5($drug['slug']), $drug, self::CACHE_TTL);
+                        Cache::put('openfda_drug_v2_' . md5($drug['slug']), $drug, self::CACHE_TTL);
                     }
 
                     return collect($normalized)->map(fn($d) => [
@@ -186,7 +186,7 @@ class OpenFdaService
 
                         // Pre-cache each for detail navigation
                         foreach ($batch as $drug) {
-                            Cache::put('openfda_drug_' . md5($drug['slug']), $drug, self::CACHE_TTL);
+                            Cache::put('openfda_drug_v2_' . md5($drug['slug']), $drug, self::CACHE_TTL);
                         }
                     }
                 }
@@ -245,7 +245,10 @@ class OpenFdaService
             'source' => 'OpenFDA',
             'translated' => true,
             'is_fda' => true,
-            'url' => 'https://open.fda.gov/apis/drug/label/',
+            'url' => !empty($r['set_id'])
+                ? 'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=' . rawurlencode($r['set_id'])
+                : null,
+            'effective_date' => preg_match('/^(\d{4})(\d{2})(\d{2})$/', $r['effective_time'] ?? '', $m) ? "{$m[1]}-{$m[2]}-{$m[3]}" : null,
         ];
 
         return $data;

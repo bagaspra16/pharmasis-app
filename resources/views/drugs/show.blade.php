@@ -143,6 +143,18 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
                         </svg>
                         <span x-text="isBookmarked('{{ $drug->id }}') ? 'Bookmarked' : 'Bookmark'"></span>
                     </button>
+                    @php($labelDate = $fdaMode ? $drug->updated_at_label : null)
+                    <p class="w-full text-xs text-slate-500 leading-relaxed">
+                        @if($labelDate)
+                            Label effective {{ $labelDate }}.
+                            @if(\Illuminate\Support\Carbon::parse($labelDate)->lt(now()->subDays(config('evidence.stale_after_days.drug_label'))))
+                                <strong class="text-amber-800">May be outdated.</strong>
+                            @endif
+                        @else
+                            Source date not stated.
+                        @endif
+                        AI-simplified or translated text is not independently verified; compare it with the original source.
+                    </p>
                     @if($drug->url)
                     <a href="{{ $drug->url }}" target="_blank" rel="noopener"
                         class="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:border-primary hover:text-primary transition-all text-sm font-medium">
@@ -150,7 +162,7 @@ $riskColor = $riskColors[$riskLevel] ?? $riskColors['minor'];
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         </svg>
-                        Source ({{ $drug->source ?? 'WebMD' }})
+                        Source ({{ $drug->source ?? 'unspecified' }})
                     </a>
                     @endif
                 </div>

@@ -62,12 +62,11 @@ class GroqService
             ->post("{$this->apiBase}/chat/completions", $payload);
 
         if ($response->failed()) {
-            // If rate limited, try next key
-            if ($response->status() === 429 && count($this->apiKeys) > 1) {
+            // If rate limited, try each remaining key once
+            for ($try = 1; $try < count($this->apiKeys) && $response->status() === 429; $try++) {
                 Log::warning("GroqService rate limited on key, trying next key", ['model' => $model]);
-                $nextKey = $this->getNextKey();
                 $response = Http::timeout(60)
-                    ->withToken($nextKey)
+                    ->withToken($this->getNextKey())
                     ->post("{$this->apiBase}/chat/completions", $payload);
             }
 

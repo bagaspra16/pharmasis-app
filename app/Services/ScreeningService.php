@@ -46,7 +46,7 @@ class ScreeningService
               . '}]}'
               . "\nProvide between 3 and 5 questions. Use an empty choices array [] if a question is best answered freely."
             ],
-        ], ['temperature' => 0.4, 'max_tokens' => 1200, 'response_format' => ['type' => 'json_object']]);
+        ], ['temperature' => 0.4, 'max_tokens' => 2500, 'reasoning_effort' => 'low', 'response_format' => ['type' => 'json_object']]);
 
         $parsed = $this->parseJson($raw, 'screen_questions');
         $questions = $parsed['questions'] ?? [];
@@ -73,10 +73,10 @@ class ScreeningService
      * @param  array<int,array{question:string,answer:string}> $qa
      * @param  string $role  'doctor' or 'patient'
      */
-    public function conclude(string $firstPrompt, array $qa, string $role, string $lang = 'auto'): array
+    public function conclude(string $firstPrompt, array $qa, string $role, string $lang = 'auto', string $reference = ''): array
     {
         $resolvedLang = $lang === 'auto' ? $this->detectLang($firstPrompt) : $lang;
-        $langInstr    = $this->langInstruction($resolvedLang);
+        $langInstr    = trim($this->langInstruction($resolvedLang) . "\n\n" . $reference);
         $transcript   = $this->buildTranscript($firstPrompt, $qa);
 
         return $role === 'doctor'
@@ -106,7 +106,7 @@ class ScreeningService
               . '"icd10":"e.g. J06.9",'
               . '"clinical_summary":"formal one-paragraph summary in medical terminology"}'
             ],
-        ], ['temperature' => 0.3, 'max_tokens' => 3000, 'response_format' => ['type' => 'json_object']]);
+        ], ['temperature' => 0.3, 'max_tokens' => 4500, 'reasoning_effort' => 'low', 'response_format' => ['type' => 'json_object']]);
 
         return $this->parseJson($raw, 'conclude_doctor') + ['mode' => 'doctor'];
     }
@@ -136,7 +136,7 @@ class ScreeningService
               . '"what_to_ask_doctor":["a concrete question to ask the doctor"],'
               . '"disclaimer":"gentle reminder this is educational and not a diagnosis"}'
             ],
-        ], ['temperature' => 0.5, 'max_tokens' => 2400, 'response_format' => ['type' => 'json_object']]);
+        ], ['temperature' => 0.5, 'max_tokens' => 3500, 'reasoning_effort' => 'low', 'response_format' => ['type' => 'json_object']]);
 
         return $this->parseJson($raw, 'conclude_patient') + ['mode' => 'patient'];
     }

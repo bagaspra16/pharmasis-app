@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Drug;
+use App\Services\Evidence\EvidenceService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -11,8 +12,11 @@ class InteractionService
     private AiInteractionService $aiService;
     private OpenFdaService $openFdaService;
 
-    public function __construct(AiInteractionService $aiService, OpenFdaService $openFdaService)
+    private EvidenceService $evidence;
+
+    public function __construct(AiInteractionService $aiService, OpenFdaService $openFdaService, EvidenceService $evidence)
     {
+        $this->evidence = $evidence;
         $this->aiService = $aiService;
         $this->openFdaService = $openFdaService;
     }
@@ -147,7 +151,8 @@ class InteractionService
                 'coverage' => $coverage,
                 'risk_level' => $riskLevel,
                 'summary' => $aiResult['summary'] ?? 'Unable to generate summary.',
-                'confidence' => $confidence
+                'confidence' => $confidence,
+                'failed' => !empty($aiResult['failed']),
             ];
         }
 
@@ -166,7 +171,22 @@ class InteractionService
             'disclaimer_required' => true,
             'data_source' => $coverageCount > 0 ? 'label_text' : 'ai_inferred',
             'db_offline' => $dbOffline,
+            'evidence' => $this->assessEvidence($drugs, $results),
         ];
+    }
+
+    private function assessEvidence(Collection $drugs, array $results): array
+    {
+        $names = $drugs->map(fn ($d) => strtolower($d->generic_name ?: $d->name))->values()->all();
+
+        return $this->evidence->assess(
+            ['interactions' => array_map(fn ($r) => [
+                'drug_a' => $r['drug_a'], 'drug_b' => $r['drug_b'], 'effect' => $r['summary'], 'coverage' => $r['coverage'],
+            ], array_values(array_filter($results, fn ($r) => !$r['failed'])))],
+            '',
+            'en',
+            ['drugs' => $names, 'keywords' => array_merge($names, ['interaction', 'concomitant', 'coadministration'])]
+        );
     }
 
     /**

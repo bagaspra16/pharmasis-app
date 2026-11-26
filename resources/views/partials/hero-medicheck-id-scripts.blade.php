@@ -947,6 +947,15 @@
                     if (c.what_to_ask_doctor?.length) { t += 'WHAT TO ASK YOUR DOCTOR:\n'; c.what_to_ask_doctor.forEach(s => t += `- ${s}\n`); }
                     if (c.disclaimer) t += `\n${c.disclaimer}\n`;
                 }
+                const ev = c.evidence;
+                if (ev) {
+                    t += `\n${ev.labels.title.toUpperCase()}\n${ev.labels.status[ev.status]}\n`;
+                    ev.claims.forEach(x => {
+                        const refs = [...x.supports, ...x.contradicts].map(q => `[${q.source}]`).join('');
+                        t += `- (${ev.labels.claim[x.status]}) ${x.text} ${refs}\n`;
+                    });
+                    ev.sources.forEach(s => { t += `[${s.id}] ${s.title}. ${s.publisher}. ${s.date || ev.labels.no_date}. ${s.url}\n`; });
+                }
                 t += watermark;
                 return t;
             },
@@ -1055,6 +1064,18 @@
                     if (c.which_doctor) html += '<p style="font-size:0.85rem;margin:0.5rem 0;"><strong>You should see:</strong> ' + this._esc(c.which_doctor) + '</p>';
                     list('What to Ask Your Doctor', c.what_to_ask_doctor);
                     if (c.disclaimer) html += '<p style="font-size:0.75rem;color:#94a3b8;font-style:italic;margin:1rem 0 0;border-top:1px solid #e2e8f0;padding-top:0.75rem;">' + this._esc(c.disclaimer) + '</p>';
+                }
+
+                const ev = c.evidence;
+                if (ev) {
+                    const small = 'font-size:0.75rem;color:#334155;margin:0 0 0.3rem;word-break:break-word;';
+                    html += '<h2 style="font-size:0.95rem;color:#0f172a;margin:1rem 0 0.4rem;">' + this._esc(ev.labels.title) + '</h2>';
+                    html += '<p style="' + small + '"><strong>' + this._esc(ev.labels.status[ev.status]) + '</strong></p>';
+                    ev.claims.forEach(x => {
+                        const refs = [...x.supports, ...x.contradicts].map(q => '[' + q.source + ']').join('');
+                        html += '<p style="' + small + '">(' + this._esc(ev.labels.claim[x.status]) + ') ' + this._esc(x.text) + ' ' + this._esc(refs) + '</p>';
+                    });
+                    ev.sources.forEach(s => html += '<p style="' + small + '">[' + this._esc(s.id) + '] ' + this._esc(s.title) + '. ' + this._esc(s.publisher) + '. ' + this._esc(s.date || ev.labels.no_date) + '. ' + this._esc(s.url) + '</p>');
                 }
 
                 html += '<div style="margin-top:1.5rem;padding-top:0.6rem;border-top:1px solid #e2e8f0;display:flex;align-items:center;gap:8px;">';

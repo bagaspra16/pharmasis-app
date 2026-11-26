@@ -46,7 +46,7 @@ class DrugDTO
         $this->url              = $data['url']            ?? null;
         $this->translated       = $data['translated']     ?? true;
         $this->is_fda           = $data['is_fda']         ?? true;
-        $this->updated_at_label = null; // FDA data doesn't carry a specific date
+        $this->updated_at_label = $data['effective_date'] ?? null; // label effective date
     }
 
     // ── Accessors matching Drug model ─────────────────────────────────────────

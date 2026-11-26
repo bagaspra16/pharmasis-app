@@ -1,0 +1,1359 @@
+{
+    "summary": {
+        "run_at": "2026-11-26T22:32:16+00:00",
+        "cases": 8,
+        "cases_with_report": 8,
+        "cases_unavailable": 1,
+        "claims": 110,
+        "claims_supported": 15,
+        "critical_unsupported": 45,
+        "reference_urls": 7,
+        "reference_urls_ok": 7,
+        "citation_accuracy": "not measured: needs human review of each claim and quote below",
+        "citation_coverage": 0.136
+    },
+    "results": [
+        {
+            "case": {
+                "id": "facts-en-ibuprofen",
+                "type": "route",
+                "lang": "en",
+                "input": "What is the maximum daily dose of ibuprofen for an adult?"
+            },
+            "report": {
+                "status": "partial",
+                "claims": [
+                    {
+                        "id": 3,
+                        "text": "Do not exceed 2400 mg total in 24 hours",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 1,
+                        "text": "The maximum daily dose of ibuprofen for an adult, as indicated in the prescribing information, is up to 2400 mg per day.",
+                        "critical": true,
+                        "status": "supported",
+                        "supports": [
+                            {
+                                "source": "S1",
+                                "quote": "Reported side effects were higher at doses of 3200 mg/day than at doses of 2400 mg or less per day"
+                            }
+                        ],
+                        "contradicts": [],
+                        "level": "established"
+                    },
+                    {
+                        "id": 2,
+                        "text": "At doses up to 2400 mg daily, fecal blood loss does not exceed the normal range and is less than that seen with aspirin, but higher doses may increase risk of gastrointestinal side effects.",
+                        "critical": true,
+                        "status": "supported",
+                        "supports": [
+                            {
+                                "source": "S1",
+                                "quote": "Studies using 51Cr-tagged red cells indicate that fecal blood loss associated with ibuprofen tablets in doses up to 2400 mg daily did not exceed the normal range, and was significantly less than that seen in aspirin-treated patients"
+                            }
+                        ],
+                        "contradicts": [],
+                        "level": "established"
+                    },
+                    {
+                        "id": 4,
+                        "text": "Maximum daily dose is 2400 mg; use the lowest effective dose and shortest duration.",
+                        "critical": true,
+                        "status": "supported",
+                        "supports": [
+                            {
+                                "source": "S1",
+                                "quote": "To minimize the potential risk for an adverse CV event in NSAID-treated patients, use the lowest effective dose for the shortest duration possible."
+                            },
+                            {
+                                "source": "S1",
+                                "quote": "Reported side effects were higher at doses of 3200 mg/day than at doses of 2400 mg or less per day"
+                            }
+                        ],
+                        "contradicts": [],
+                        "level": "established"
+                    },
+                    {
+                        "id": 5,
+                        "text": "Avoid concurrent enteric‑coated low‑dose aspirin unless aspirin is taken at least 2 hours before ibuprofen; otherwise antiplatelet effect may be reduced.",
+                        "critical": true,
+                        "status": "supported",
+                        "supports": [
+                            {
+                                "source": "S1",
+                                "quote": "The interaction is alleviated if immediate-release low-dose aspirin is dosed at least 2 hours prior to a once daily regimen of ibuprofen; however, this finding cannot be extended to enteric-coated low-dose aspirin"
+                            }
+                        ],
+                        "contradicts": [],
+                        "level": "established"
+                    },
+                    {
+                        "id": 7,
+                        "text": "Ibuprofen works by inhibiting cyclooxygenase enzymes, reducing prostaglandin synthesis and thereby decreasing inflammation and pain.",
+                        "critical": false,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 8,
+                        "text": "Ibuprofen is commonly used for mild to moderate pain, fever, and inflammatory conditions such as arthritis.",
+                        "critical": false,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 9,
+                        "text": "The highest amount of ibuprofen that is considered safe for an adult in a single day is 2400 milligrams, taken in divided doses as needed.",
+                        "critical": false,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 11,
+                        "text": "Take ibuprofen with food or milk to reduce stomach upset",
+                        "critical": false,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 12,
+                        "text": "Ibuprofen is a non‑steroidal anti‑inflammatory drug that inhibits cyclooxygenase enzymes, reducing prostaglandin synthesis and thereby decreasing inflammation, pain, and fever.",
+                        "critical": false,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 13,
+                        "text": "Assess renal function before high‑dose therapy",
+                        "critical": false,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 14,
+                        "text": "Evaluate gastrointestinal risk factors",
+                        "critical": false,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 6,
+                        "text": "This dose should be used only when necessary and for the shortest duration possible.",
+                        "critical": false,
+                        "status": "supported",
+                        "supports": [
+                            {
+                                "source": "S1",
+                                "quote": "To minimize the potential risk for an adverse CV event in NSAID-treated patients, use the lowest effective dose for the shortest duration possible."
+                            }
+                        ],
+                        "contradicts": [],
+                        "level": "established"
+                    },
+                    {
+                        "id": 10,
+                        "text": "Take the lowest effective dose for the shortest time needed",
+                        "critical": false,
+                        "status": "supported",
+                        "supports": [
+                            {
+                                "source": "S1",
+                                "quote": "To minimize the potential risk for an adverse CV event in NSAID-treated patients, use the lowest effective dose for the shortest duration possible."
+                            }
+                        ],
+                        "contradicts": [],
+                        "level": "established"
+                    }
+                ],
+                "sources": [
+                    {
+                        "id": "S1",
+                        "type": "drug_label",
+                        "tier": 1,
+                        "title": "Ibuprofen prescribing label (Preferred Pharmaceuticals Inc.)",
+                        "publisher": "U.S. Food and Drug Administration / DailyMed",
+                        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=a0861feb-87ff-473c-aa84-88343b1a592c",
+                        "date": "2026-11-17",
+                        "date_kind": "effective",
+                        "stale": false
+                    }
+                ],
+                "summary": {
+                    "total": 14,
+                    "supported": 6,
+                    "critical_unsupported": 1,
+                    "coverage": 0.429,
+                    "sources_retrieved": 1
+                },
+                "failed_providers": [],
+                "checked_at": "2026-11-26"
+            }
+        },
+        {
+            "case": {
+                "id": "facts-id-parasetamol",
+                "type": "route",
+                "lang": "id",
+                "input": "Berapa dosis aman parasetamol untuk orang dewasa?"
+            },
+            "report": {
+                "status": "insufficient",
+                "claims": [
+                    {
+                        "id": 1,
+                        "text": "Dosis aman parasetamol untuk orang dewasa (berat ≥50 kg) adalah 1.000 mg tiap 6 jam atau 650 mg tiap 4 jam, dengan dosis tunggal maksimum 1.000 mg dan dosis harian total tidak boleh melebihi 4.000 mg (termasuk semua bentuk pemberian).",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 2,
+                        "text": "1.000 mg setiap 6 jam atau 650 mg setiap 4 jam untuk dewasa dengan berat badan ≥50 kg.",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 3,
+                        "text": "Dosis tunggal maksimum 1.000 mg; dosis harian total maksimum 4.000 mg dari semua sumber parasetamol.",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 4,
+                        "text": "Untuk dewasa dengan berat <50 kg, dosis disesuaikan 15 mg/kg tiap 6 jam atau 12,5 mg/kg tiap 4 jam, dengan batas harian 75 mg/kg.",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 5,
+                        "text": "Dosis aman parasetamol untuk orang dewasa (berat ≥ 50 kg) adalah 1.000 mg setiap 6 jam atau 650 mg setiap 4 jam, dengan dosis tunggal maksimum 1.000 mg dan total harian tidak boleh melebihi 4.000 mg (termasuk semua bentuk pemberian).",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 6,
+                        "text": "Jangan mengonsumsi lebih dari 4.000 mg parasetamol dalam 24 jam, termasuk obat kombinasi yang mengandung parasetamol",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 7,
+                        "text": "Jika rasa sakit tidak berkurang setelah dosis maksimal, hubungi tenaga kesehatan untuk evaluasi lebih lanjut",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 8,
+                        "text": "Dosis oral atau injeksi tidak memerlukan penyesuaian bila berat badan ≥50 kg; berikan 1.000 mg tiap 6 jam atau 650 mg tiap 4 jam, pastikan interval minimum 4 jam, dosis tunggal ≤1.000 mg, dan total harian ≤4.000 mg termasuk semua produk yang mengandung parasetamol.",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 9,
+                        "text": "Parasetamol bekerja dengan menghambat sintesis prostaglandin di sistem saraf pusat, sehingga mengurangi persepsi nyeri tanpa efek antiinflamasi yang signifikan.",
+                        "critical": false,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 10,
+                        "text": "Anamnesis lengkap mengenai pola nyeri dan penggunaan obat lain",
+                        "critical": false,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 11,
+                        "text": "Pemeriksaan fisik muskuloskeletal",
+                        "critical": false,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 12,
+                        "text": "Jika nyeri tidak membaik, pertimbangkan radiografi atau USG sesuai lokasi cedera",
+                        "critical": false,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    }
+                ],
+                "sources": [],
+                "summary": {
+                    "total": 12,
+                    "supported": 0,
+                    "critical_unsupported": 8,
+                    "coverage": 0,
+                    "sources_retrieved": 3
+                },
+                "failed_providers": [],
+                "checked_at": "2026-11-26"
+            }
+        },
+        {
+            "case": {
+                "id": "facts-en-hypertension",
+                "type": "route",
+                "lang": "en",
+                "input": "What is hypertension and what health problems can it cause?"
+            },
+            "report": {
+                "status": "unavailable",
+                "claims": [
+                    {
+                        "id": 1,
+                        "text": "Lowering blood pressure reduces the risk of fatal and non‑fatal events such as strokes and myocardial infarctions.",
+                        "critical": true,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 2,
+                        "text": "Hypertension raises the risk of fatal and non‑fatal cardiovascular events, primarily strokes and myocardial infarctions, and may contribute to left ventricular hypertrophy.",
+                        "critical": true,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 3,
+                        "text": "The higher pressure imposes greater wall stress on arteries, promotes vascular remodeling, and accelerates atherosclerosis, thereby raising the likelihood of fatal and non‑fatal events such as stroke and myocardial infarction.",
+                        "critical": true,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 4,
+                        "text": "First‑line therapy often includes an ACE inhibitor (e.g., lisinopril), an ARB (e.g., losartan), a calcium‑channel blocker (e.g., amlodipine), or a thiazide diuretic (e.g., hydrochlorothiazide).",
+                        "critical": true,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 5,
+                        "text": "Choice depends on patient comorbidities, tolerance, and potential drug interactions.",
+                        "critical": true,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 6,
+                        "text": "Combination therapy may be needed if target blood pressure is not reached with a single agent.",
+                        "critical": true,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 7,
+                        "text": "Monitor renal function and electrolytes, especially when using ACE inhibitors or ARBs with diuretics.",
+                        "critical": true,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 8,
+                        "text": "Hypertension is a condition where systolic or diastolic blood pressure is elevated, increasing cardiovascular risk.",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 9,
+                        "text": "Elevated systolic or diastolic pressure causes increased cardiovascular risk, and the absolute risk increase per mmHg is greater at higher blood pressures.",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 10,
+                        "text": "The provided information does not cover specific causes of hypertension.",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 11,
+                        "text": "Hypertension is a condition where the pressure of blood flowing through your arteries is consistently too high.",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 12,
+                        "text": "This high pressure makes the heart work harder and can damage blood vessels over time, increasing the risk of serious problems such as strokes and heart attacks.",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 13,
+                        "text": "Follow a low‑sodium diet",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 14,
+                        "text": "Exercise regularly, aiming for at least 150 minutes of moderate activity each week",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 15,
+                        "text": "Limit alcohol intake and quit smoking if you smoke",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 16,
+                        "text": "Monitor your blood pressure at home and keep a log for your doctor",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 17,
+                        "text": "Hypertension reflects elevated systolic or diastolic arterial pressure, which increases cardiovascular risk.",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 18,
+                        "text": "The absolute risk increase per mmHg is greater at higher pressures, so even modest reductions can provide substantial benefit.",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 19,
+                        "text": "Office blood pressure measurement on at least two separate visits",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 20,
+                        "text": "Ambulatory blood pressure monitoring if white‑coat effect is suspected",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 21,
+                        "text": "Basic metabolic panel and renal function tests",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 22,
+                        "text": "Electrolytes and fasting lipid profile",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 23,
+                        "text": "Urinalysis for proteinuria",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    }
+                ],
+                "sources": [],
+                "summary": {
+                    "total": 23,
+                    "supported": 0,
+                    "critical_unsupported": 7,
+                    "coverage": 0,
+                    "sources_retrieved": 0
+                },
+                "failed_providers": [],
+                "checked_at": "2026-11-26"
+            }
+        },
+        {
+            "case": {
+                "id": "facts-id-dbd",
+                "type": "route",
+                "lang": "id",
+                "input": "Apa itu demam berdarah dengue dan apa tanda bahayanya?"
+            },
+            "report": {
+                "status": "partial",
+                "claims": [
+                    {
+                        "id": 1,
+                        "text": "Tanda bahaya muncul setelah demam mereda, seperti nyeri perut berat, muntah berulang, perdarahan, atau kelelahan yang berlebihan, dan memerlukan penanganan medis segera.",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 2,
+                        "text": "Jika setelah demam reda muncul nyeri perut berat, muntah tiga kali atau lebih dalam 24 jam, pendarahan dari hidung atau gusi, muntah darah, atau darah dalam tinja, itu tanda bahaya yang memerlukan penanganan medis segera karena dapat menjadi demam berdarah dengue berat.",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 3,
+                        "text": "Gunakan parasetamol untuk menurunkan demam dan mengurangi nyeri, hindari aspirin atau ibuprofen",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 4,
+                        "text": "Tidak ada obat spesifik untuk dengue; berikan parasetamol untuk mengontrol demam dan nyeri.",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 5,
+                        "text": "Hindari aspirin, NSAID, atau obat anti‑koagulan karena meningkatkan risiko perdarahan.",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 6,
+                        "text": "Pada kasus berat, pertimbangkan cairan intravena dan perawatan di rumah sakit.",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 9,
+                        "text": "Gigitan nyamuk Aedes selama periode aktif siang hari di daerah tropis atau subtropis.",
+                        "critical": false,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 11,
+                        "text": "Gejalanya meliputi demam tinggi, mual, muntah, ruam, serta nyeri pada mata, otot, sendi, atau tulang dan biasanya berlangsung 2‑7 hari.",
+                        "critical": false,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 12,
+                        "text": "Istirahat cukup dan minum banyak cairan untuk mencegah dehidrasi",
+                        "critical": false,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 13,
+                        "text": "Lindungi diri dari gigitan nyamuk dengan memakai pakaian lengan panjang, kelambu, dan obat nyamuk selama siang hari",
+                        "critical": false,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 16,
+                        "text": "Tes darah untuk deteksi antigen NS1 atau antibodi IgM/IgG dengue",
+                        "critical": false,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 17,
+                        "text": "Hitung trombosit, hematokrit, fungsi hati (AST/ALT), CRP, albumin",
+                        "critical": false,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 7,
+                        "text": "Demam berdarah dengue adalah infeksi virus yang ditularkan melalui gigitan nyamuk Aedes yang terinfeksi.",
+                        "critical": false,
+                        "status": "supported",
+                        "supports": [
+                            {
+                                "source": "S2",
+                                "quote": "Dengue is a viral infection caused by the dengue virus (DENV), which is transmitted to humans through the bite of infected mosquitoes."
+                            }
+                        ],
+                        "contradicts": [],
+                        "level": "established"
+                    },
+                    {
+                        "id": 8,
+                        "text": "Virus dengue masuk ke tubuh manusia lewat gigitan nyamuk Aedes yang terinfeksi.",
+                        "critical": false,
+                        "status": "supported",
+                        "supports": [
+                            {
+                                "source": "S2",
+                                "quote": "Dengue is a viral infection caused by the dengue virus (DENV), which is transmitted to humans through the bite of infected mosquitoes."
+                            }
+                        ],
+                        "contradicts": [],
+                        "level": "established"
+                    },
+                    {
+                        "id": 10,
+                        "text": "Sebagian orang mengalami gejala ringan, tetapi sekitar 1 dari 20 yang sakit dapat berkembang menjadi demam berdarah dengue berat yang menyebabkan syok, perdarahan internal, atau kematian.",
+                        "critical": false,
+                        "status": "supported",
+                        "supports": [
+                            {
+                                "source": "S1",
+                                "quote": "About 1 in 20 people who get sick with dengue will develop severe dengue."
+                            }
+                        ],
+                        "contradicts": [],
+                        "level": "established"
+                    },
+                    {
+                        "id": 14,
+                        "text": "Infeksi dengue disebabkan oleh virus dengue (DENV) yang masuk ke tubuh melalui gigitan nyamuk Aedes.",
+                        "critical": false,
+                        "status": "supported",
+                        "supports": [
+                            {
+                                "source": "S2",
+                                "quote": "Dengue is a viral infection caused by the dengue virus (DENV), which is transmitted to humans through the bite of infected mosquitoes."
+                            }
+                        ],
+                        "contradicts": [],
+                        "level": "established"
+                    },
+                    {
+                        "id": 15,
+                        "text": "Virus menginfeksi sel-sel mononuklear, memicu respons imun yang berlebihan, termasuk peningkatan sitokin (misalnya interleukin‑8) dan peningkatan enzim hati (AST), serta penurunan albumin, yang dapat menyebabkan permeabilitas kapiler meningkat, perdarahan, dan syok pada bentuk berat (demam berdarah dengue berat).",
+                        "critical": false,
+                        "status": "supported",
+                        "supports": [
+                            {
+                                "source": "S3",
+                                "quote": "elevated C-reactive protein, aspartate aminotransferase, interleukin-8 and decreased albumin levels were strongly associated with dengue haemorrhagic fever"
+                            }
+                        ],
+                        "contradicts": [],
+                        "level": "research"
+                    }
+                ],
+                "sources": [
+                    {
+                        "id": "S1",
+                        "type": "health_topic",
+                        "tier": 1,
+                        "title": "Dengue",
+                        "publisher": "MedlinePlus, U.S. National Library of Medicine",
+                        "url": "https://medlineplus.gov/dengue.html",
+                        "date": null,
+                        "date_kind": null,
+                        "stale": false
+                    },
+                    {
+                        "id": "S2",
+                        "type": "who_fact_sheet",
+                        "tier": 2,
+                        "title": "WHO fact sheet: Dengue",
+                        "publisher": "World Health Organization",
+                        "url": "https://www.who.int/news-room/fact-sheets/detail/dengue-and-severe-dengue",
+                        "date": "2025-08-21",
+                        "date_kind": "updated",
+                        "stale": false
+                    },
+                    {
+                        "id": "S3",
+                        "type": "systematic_review",
+                        "tier": 3,
+                        "title": "Early biomarkers for prediction of severe manifestations of dengue fever: a systematic review and a meta-analysis.",
+                        "publisher": "Scientific reports",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/37838744/",
+                        "date": "2023",
+                        "date_kind": "published",
+                        "stale": false
+                    }
+                ],
+                "summary": {
+                    "total": 17,
+                    "supported": 5,
+                    "critical_unsupported": 6,
+                    "coverage": 0.294,
+                    "sources_retrieved": 4
+                },
+                "failed_providers": [],
+                "checked_at": "2026-11-26"
+            }
+        },
+        {
+            "case": {
+                "id": "patient-en-headache",
+                "type": "conclude",
+                "role": "patient",
+                "lang": "en",
+                "input": "I have had a mild headache for two days after long screen use."
+            },
+            "report": {
+                "status": "partial",
+                "claims": [
+                    {
+                        "id": 1,
+                        "text": "If the headache becomes sudden and severe, is accompanied by fever, stiff neck, visual changes, confusion, weakness, or if it worsens despite self‑care, seek medical attention right away.",
+                        "critical": true,
+                        "status": "supported",
+                        "supports": [
+                            {
+                                "source": "S1",
+                                "quote": "Get medical help right away if you have a headache after a blow to your head, or if you have a headache along with a stiff neck, fever, confusion, loss of consciousness, or pain in the eye or ear."
+                            }
+                        ],
+                        "contradicts": [],
+                        "level": "established"
+                    },
+                    {
+                        "id": 2,
+                        "text": "It’s a common, mild headache caused by tight muscles in the neck, shoulders and scalp, often triggered by staring at screens for a long time without breaks.",
+                        "critical": false,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 3,
+                        "text": "Take a short break from the screen every 30 minutes, stretch the neck and shoulders, and consider an over‑the‑counter pain reliever such as ibuprofen or acetaminophen if needed.",
+                        "critical": false,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 4,
+                        "text": "Improve posture while using devices, stay hydrated, ensure regular sleep, and limit continuous screen time by using the 20‑20‑20 rule (every 20 minutes look at something 20 feet away for 20 seconds).",
+                        "critical": false,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    }
+                ],
+                "sources": [
+                    {
+                        "id": "S1",
+                        "type": "health_topic",
+                        "tier": 1,
+                        "title": "Headache",
+                        "publisher": "MedlinePlus, U.S. National Library of Medicine",
+                        "url": "https://medlineplus.gov/headache.html",
+                        "date": null,
+                        "date_kind": null,
+                        "stale": false
+                    }
+                ],
+                "summary": {
+                    "total": 4,
+                    "supported": 1,
+                    "critical_unsupported": 0,
+                    "coverage": 0.25,
+                    "sources_retrieved": 4
+                },
+                "failed_providers": [],
+                "checked_at": "2026-11-26"
+            }
+        },
+        {
+            "case": {
+                "id": "doctor-en-asthma",
+                "type": "conclude",
+                "role": "doctor",
+                "lang": "en",
+                "input": "Adult with known asthma, nocturnal wheeze for one week, no fever."
+            },
+            "report": {
+                "status": "partial",
+                "claims": [
+                    {
+                        "id": 1,
+                        "text": "Ventolin (Albuterol): 90 mcg per actuation, 2 puffs every 4‑6 hours as needed for wheeze, Use PRN; reassess in 48 h",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 2,
+                        "text": "Ventolin contraindication: Known hypersensitivity to albuterol or any component of the formulation",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 3,
+                        "text": "Ventolin notes: Educate patient on proper inhaler technique; avoid excessive use (>8 puffs/24 h) which may indicate uncontrolled asthma",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 4,
+                        "text": "Flovent Diskus (Fluticasone propionate): 250 µg per inhalation, 2 inhalations twice daily, Continue long‑term; increase step if symptoms persist after 2 weeks",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 5,
+                        "text": "Flovent Diskus contraindication: Active untreated fungal, bacterial, or viral infection of the respiratory tract",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 7,
+                        "text": "Flovent Diskus notes: Rinse mouth after each use to prevent oral candidiasis",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 8,
+                        "text": "Prednisone (Prednisone): 40 mg orally, once daily, 5 days then taper if symptoms improve",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 10,
+                        "text": "Prednisone contraindication: Uncontrolled diabetes mellitus",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 11,
+                        "text": "Prednisone contraindication: Active peptic ulcer disease",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 12,
+                        "text": "Prednisone notes: Monitor blood glucose; advise patient to take with food to reduce gastric irritation",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 13,
+                        "text": "Albuterol + Beta‑blockers (e.g., propranolol): Beta‑blockers antagonize bronchodilatory effect and may precipitate bronchospasm",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 14,
+                        "text": "Albuterol + Beta‑blockers (e.g., propranolol) management: Discontinue non‑selective beta‑blocker; if cardio‑vascular indication requires beta‑blockade, use highly cardio‑selective agent (e.g., bisoprolol) with caution",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 16,
+                        "text": "Prednisone + Non‑steroidal anti‑inflammatory drugs (NSAIDs) management: Prescribe gastro‑protective agent (e.g., PPI) if NSAID needed; limit NSAID use",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 17,
+                        "text": "Fluticasone + Ritonavir (or strong CYP3A4 inhibitors): Reduced metabolism of fluticasone leading to systemic corticosteroid effects",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 18,
+                        "text": "Fluticasone + Ritonavir (or strong CYP3A4 inhibitors) management: Consider dose reduction of fluticasone or switch to alternative inhaled steroid; monitor for adrenal suppression",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 19,
+                        "text": "Identify and avoid asthma triggers (e.g., allergens, smoke, cold air)",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 20,
+                        "text": "Increasing frequency of nighttime symptoms (>2 per week)",
+                        "critical": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 21,
+                        "text": "Use of SABA >8 puffs in 24 h",
+                        "critical": true,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 22,
+                        "text": "New onset dyspnea at rest, chest tightness, or cyanosis",
+                        "critical": true,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 23,
+                        "text": "Peak expiratory flow <50% predicted",
+                        "critical": true,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 24,
+                        "text": "Signs of respiratory fatigue or altered mental status",
+                        "critical": true,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 6,
+                        "text": "Flovent Diskus contraindication: Hypersensitivity to fluticasone",
+                        "critical": true,
+                        "status": "supported",
+                        "supports": [
+                            {
+                                "source": "S2",
+                                "quote": "XHANCE is contraindicated in patients with hypersensitivity to any of the ingredients"
+                            }
+                        ],
+                        "contradicts": [],
+                        "level": "established"
+                    },
+                    {
+                        "id": 9,
+                        "text": "Prednisone contraindication: Systemic fungal infection",
+                        "critical": true,
+                        "status": "supported",
+                        "supports": [
+                            {
+                                "source": "S3",
+                                "quote": "Prednisone tablets are contraindicated in systemic fungal infections"
+                            }
+                        ],
+                        "contradicts": [],
+                        "level": "established"
+                    },
+                    {
+                        "id": 15,
+                        "text": "Prednisone + Non‑steroidal anti‑inflammatory drugs (NSAIDs): Increased risk of gastrointestinal ulceration and bleeding",
+                        "critical": true,
+                        "status": "supported",
+                        "supports": [
+                            {
+                                "source": "S3",
+                                "quote": "Concomitant use of aspirin (or other nonsteroidal anti-inflammatory agents ) and corticosteroids increases the risk of gastrointestinal side effects"
+                            }
+                        ],
+                        "contradicts": [],
+                        "level": "established"
+                    },
+                    {
+                        "id": 25,
+                        "text": "Adult with known asthma presents with nocturnal wheeze for one week without fever, consistent with worsening airway inflammation and bronchoconstriction",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 26,
+                        "text": "Can cause nocturnal cough and wheeze, but less likely without rhinitis symptoms",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 27,
+                        "text": "Reflux can trigger nocturnal bronchospasm, but no typical heartburn reported",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 28,
+                        "text": "Absence of dyspnea at rest, orthopnea, or peripheral edema makes this unlikely",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 29,
+                        "text": "May mimic dyspnea but does not explain wheeze",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 30,
+                        "text": "Ventolin mechanism: Stimulates β2‑adrenergic receptors causing bronchodilation by relaxing airway smooth muscle",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 31,
+                        "text": "Flovent Diskus mechanism: Reduces airway inflammation by binding glucocorticoid receptors and inhibiting cytokine production",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 32,
+                        "text": "Prednisone mechanism: Potent anti‑inflammatory effect suppressing eosinophilic airway inflammation",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 33,
+                        "text": "Assess inhaler technique and adherence; provide education and spacer if needed",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 34,
+                        "text": "Implement a written asthma action plan with step‑up therapy for nighttime symptoms",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 35,
+                        "text": "Schedule follow‑up in 48‑72 hours to evaluate response to SABA and oral steroid",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 36,
+                        "text": "The patient is an adult with established asthma presenting with a one‑week history of nocturnal wheeze without fever, indicative of an acute exacerbation likely driven by airway inflammation and bronchoconstriction.",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 37,
+                        "text": "High‑dose inhaled corticosteroid therapy is escalated, a short‑acting β2‑agonist is prescribed for symptomatic relief, and a brief course of oral prednisone is added to achieve rapid anti‑inflammatory control.",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    },
+                    {
+                        "id": 38,
+                        "text": "Education on inhaler technique, trigger avoidance, and a structured asthma action plan are essential, with close follow‑up to monitor response and to watch for red‑flag features that would necessitate urgent escalation or referral.",
+                        "critical": false,
+                        "status": "unchecked",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    }
+                ],
+                "sources": [
+                    {
+                        "id": "S2",
+                        "type": "drug_label",
+                        "tier": 1,
+                        "title": "Fluticasone Propionate prescribing label (Paratek Pharmaceuticals, Inc.)",
+                        "publisher": "U.S. Food and Drug Administration / DailyMed",
+                        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=44fcea33-8cfa-3a5c-e063-6394a90aafb2",
+                        "date": "2026-10-23",
+                        "date_kind": "effective",
+                        "stale": false
+                    },
+                    {
+                        "id": "S3",
+                        "type": "drug_label",
+                        "tier": 1,
+                        "title": "Prednisone prescribing label (Bryant Ranch Prepack)",
+                        "publisher": "U.S. Food and Drug Administration / DailyMed",
+                        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=55aedced-d945-4bd2-9aa8-0f18b89a0e7f",
+                        "date": "2026-11-09",
+                        "date_kind": "effective",
+                        "stale": false
+                    }
+                ],
+                "summary": {
+                    "total": 38,
+                    "supported": 3,
+                    "critical_unsupported": 21,
+                    "coverage": 0.079,
+                    "sources_retrieved": 5
+                },
+                "failed_providers": [],
+                "checked_at": "2026-11-26"
+            }
+        },
+        {
+            "case": {
+                "id": "interaction-warfarin-ibuprofen",
+                "type": "interaction",
+                "drugs": [
+                    "warfarin",
+                    "ibuprofen"
+                ]
+            },
+            "report": {
+                "status": "insufficient",
+                "claims": [
+                    {
+                        "id": 1,
+                        "text": "Warfarin Sodium + Ibuprofen: AI-generated inference based on individual FDA drug profiles: Warfarin carries a major bleeding risk and requires INR monitoring, while ibuprofen, an NSAID, can impair platelet function and increase gastrointestinal bleeding. Combined use may amplify bleeding potential, suggesting a moderate concern for interaction, though specific data are lacking.",
+                        "critical": true,
+                        "inference": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    }
+                ],
+                "sources": [],
+                "summary": {
+                    "total": 1,
+                    "supported": 0,
+                    "critical_unsupported": 1,
+                    "coverage": 0,
+                    "sources_retrieved": 2
+                },
+                "failed_providers": [],
+                "checked_at": "2026-11-26"
+            }
+        },
+        {
+            "case": {
+                "id": "interaction-no-label-text",
+                "type": "interaction",
+                "drugs": [
+                    "amoxicillin",
+                    "loratadine"
+                ]
+            },
+            "report": {
+                "status": "insufficient",
+                "claims": [
+                    {
+                        "id": 1,
+                        "text": "Amoxicillin + Loratadine: AI-generated inference based on individual FDA drug profiles: Both amoxicillin and loratadine have distinct mechanisms and no documented interaction, but the lack of specific warnings for amoxicillin and the allergy warning for loratadine suggest caution. In the absence of clear evidence, the interaction risk cannot be definitively assessed and is considered unknown.",
+                        "critical": true,
+                        "inference": true,
+                        "status": "unsupported",
+                        "supports": [],
+                        "contradicts": [],
+                        "level": null
+                    }
+                ],
+                "sources": [],
+                "summary": {
+                    "total": 1,
+                    "supported": 0,
+                    "critical_unsupported": 1,
+                    "coverage": 0,
+                    "sources_retrieved": 4
+                },
+                "failed_providers": [],
+                "checked_at": "2026-11-26"
+            }
+        }
+    ]
+}

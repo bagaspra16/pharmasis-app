@@ -1,0 +1,10 @@
+[
+    {"id": "facts-en-ibuprofen", "type": "route", "lang": "en", "input": "What is the maximum daily dose of ibuprofen for an adult?"},
+    {"id": "facts-id-parasetamol", "type": "route", "lang": "id", "input": "Berapa dosis aman parasetamol untuk orang dewasa?"},
+    {"id": "facts-en-hypertension", "type": "route", "lang": "en", "input": "What is hypertension and what health problems can it cause?"},
+    {"id": "facts-id-dbd", "type": "route", "lang": "id", "input": "Apa itu demam berdarah dengue dan apa tanda bahayanya?"},
+    {"id": "patient-en-headache", "type": "conclude", "role": "patient", "lang": "en", "input": "I have had a mild headache for two days after long screen use."},
+    {"id": "doctor-en-asthma", "type": "conclude", "role": "doctor", "lang": "en", "input": "Adult with known asthma, nocturnal wheeze for one week, no fever."},
+    {"id": "interaction-warfarin-ibuprofen", "type": "interaction", "drugs": ["warfarin", "ibuprofen"]},
+    {"id": "interaction-no-label-text", "type": "interaction", "drugs": ["amoxicillin", "loratadine"]}
+]
