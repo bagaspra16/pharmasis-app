@@ -448,7 +448,9 @@
                         body
                     });
                     const data = await res.json();
-                    if (!res.ok || !data.success) {
+                    if (data.triage?.category === 'emergency') {
+                        this.showEmergency(data.triage);
+                    } else if (!res.ok || !data.success) {
                         let errMsg = 'Failed to prepare questions. Please try again.';
                         if (typeof data.error === 'string') errMsg = data.error;
                         else if (typeof data.message === 'string') errMsg = data.message;
@@ -470,6 +472,15 @@
                 } finally {
                     this.screening = false;
                 }
+            },
+
+            /* Rule-based emergency: show guidance at once, ask nothing more. */
+            showEmergency(triage) {
+                this.mcData = { classification: 'emergency_alert', triage };
+                this.screening = false;
+                this.analyzing = false;
+                this.phase = 'emergency';
+                this.$nextTick(() => setTimeout(() => this.scrollToEl('mc-triage-panel', 'smooth'), 80));
             },
 
             /* Reset from medicore/emergency panel back to intake */
@@ -497,6 +508,15 @@
                     if (i >= 0) a.chips.splice(i, 1); else a.chips.push(choice);
                 } else {
                     a.chips = a.chips[0] === choice ? [] : [choice];
+                }
+                if (!q?.triage_key) return;
+                // "None of these" and a listed item cannot both be selected.
+                const none = q.choices[q.values.indexOf('none')];
+                if (none && q.allow_multiple && a.chips.includes(choice)) {
+                    a.chips = choice === none ? [none] : a.chips.filter(c => c !== none);
+                }
+                if (q.escalation && choice !== none && a.chips.includes(choice)) {
+                    this.showEmergency(q.escalation);
                 }
             },
             chipSelected(qId, choice) {
@@ -529,7 +549,7 @@
             /* ══════════════ Phase 3 → 4: conclude ══════════════ */
             buildQaPayload() {
                 return this.questions
-                    .filter(q => !q.is_role)
+                    .filter(q => !q.is_role && !q.triage_key)
                     .map(q => {
                         const a = this.answers[q.id] || { chips: [], text: '' };
                         const parts = [];
@@ -570,6 +590,12 @@
                         body.append(`qa[${i}][question]`, pair.question);
                         body.append(`qa[${i}][answer]`, pair.answer);
                     });
+                    // Safety answers are sent as fixed codes, not as translated text.
+                    this.questions.filter(q => q.triage_key).forEach(q => {
+                        const values = (this.answers[q.id]?.chips || []).map(c => q.values[q.choices.indexOf(c)]).filter(Boolean);
+                        if (q.allow_multiple) values.forEach(v => body.append(`triage[${q.triage_key}][]`, v));
+                        else if (values.length) body.append(`triage[${q.triage_key}]`, values[0]);
+                    });
 
                     const res = await fetch('/medicheck/conclude', {
                         method: 'POST',
@@ -579,6 +605,10 @@
                     const data = await res.json();
 
                     clearInterval(stepTimer);
+                    if (data.data?.conclusion?.triage?.category === 'emergency') {
+                        this.showEmergency(data.data.conclusion.triage);
+                        return;
+                    }
                     await this.finishSteps();
 
                     if (!res.ok || !data.success) {
@@ -947,6 +977,11 @@
                     if (c.what_to_ask_doctor?.length) { t += 'WHAT TO ASK YOUR DOCTOR:\n'; c.what_to_ask_doctor.forEach(s => t += `- ${s}\n`); }
                     if (c.disclaimer) t += `\n${c.disclaimer}\n`;
                 }
+                const tri = c.triage;
+                if (tri) {
+                    t += `\n${tri.labels.heading.toUpperCase()}: ${tri.title}\n${tri.meaning}\n`;
+                    [...tri.next_steps, ...tri.missing, tri.watch_for, tri.labels.not_diagnosis].filter(Boolean).forEach(x => t += `- ${x}\n`);
+                }
                 const ev = c.evidence;
                 if (ev) {
                     t += `\n${ev.labels.title.toUpperCase()}\n${ev.labels.status[ev.status]}\n`;
@@ -1066,6 +1101,12 @@
                     if (c.disclaimer) html += '<p style="font-size:0.75rem;color:#94a3b8;font-style:italic;margin:1rem 0 0;border-top:1px solid #e2e8f0;padding-top:0.75rem;">' + this._esc(c.disclaimer) + '</p>';
                 }
 
+                const tri = c.triage;
+                if (tri) {
+                    html += '<h2 style="font-size:1rem;color:#0f172a;margin:1rem 0 0.4rem;">' + this._esc(tri.labels.heading + ': ' + tri.title) + '</h2>';
+                    [tri.meaning, ...tri.next_steps, ...tri.missing, tri.watch_for, tri.labels.not_diagnosis].filter(Boolean)
+                        .forEach(x => html += '<p style="font-size:0.8rem;color:#334155;margin:0 0 0.3rem;">' + this._esc(x) + '</p>');
+                }
                 const ev = c.evidence;
                 if (ev) {
                     const small = 'font-size:0.75rem;color:#334155;margin:0 0 0.3rem;word-break:break-word;';

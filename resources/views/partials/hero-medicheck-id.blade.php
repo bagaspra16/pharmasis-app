@@ -471,7 +471,12 @@
             </div>
 
             {{-- ══════════════ EMERGENCY PANEL (phase: emergency) ══════════════ --}}
-            <div id="mc-result-panel" x-show="phase === 'emergency'" x-cloak class="w-full max-w-2xl mx-auto mt-8"
+            <div id="mc-triage-panel" x-show="phase === 'emergency' && mcData?.triage" x-cloak class="w-full max-w-2xl mx-auto mt-8">
+                @include('partials.triage-card', ['expr' => 'mcData?.triage'])
+                <button type="button" @click="resetMcPanel()" class="mt-3 px-5 py-2.5 border border-slate-300 text-slate-700 text-sm font-semibold rounded-full" data-i18n="mc_back">Back</button>
+            </div>
+
+            <div id="mc-result-panel" x-show="phase === 'emergency' && !mcData?.triage" x-cloak class="w-full max-w-2xl mx-auto mt-8"
                 x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-y-6"
                 x-transition:enter-end="opacity-100 translate-y-0">
                 <div class="rounded-3xl overflow-hidden"
@@ -800,6 +805,8 @@
             </div>
 
             {{-- ════════════════════════════════════════════════════════════════ --}}
+            @include('partials.triage-card', ['expr' => 'conclusion?.triage'])
+
             {{-- ════════════════════════ EVIDENCE ═══════════════════════════════ --}}
             @include('partials.evidence-panel', ['expr' => 'conclusion?.evidence'])
 

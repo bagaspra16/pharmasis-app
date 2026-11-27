@@ -93,7 +93,7 @@ class ClaimExtractor
             }
 
             foreach ($node as $key => $value) {
-                if ($key === 'evidence' || $key === 'qa') {
+                if ($key === 'evidence' || $key === 'qa' || $key === 'triage') {
                     continue;
                 }
                 $this->walk($value, is_string($key) ? $key : $field, $claims);

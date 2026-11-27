@@ -10,6 +10,7 @@ use App\Services\GroqService;
 use App\Services\MediCoreAiService;
 use App\Services\MedicalPipelineService;
 use App\Services\ScreeningService;
+use App\Services\Triage\TriageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -21,7 +22,8 @@ class MediCheckController extends Controller
         private MedicalPipelineService $pipeline,
         private ScreeningService $screening,
         private MediCoreAiService $mediCore,
-        private EvidenceService $evidence
+        private EvidenceService $evidence,
+        private TriageService $triage
     ) {}
 
     /**
@@ -220,8 +222,25 @@ class MediCheckController extends Controller
             $symptoms = trim($request->input('symptoms'));
             $lang     = $request->input('lang', 'auto');
 
-            $questions = $this->screening->generateQuestions($symptoms, $lang);
-            $questions[] = $this->roleQuestion($this->resolveLang($lang, $symptoms));
+            $resolved = $this->resolveLang($lang, $symptoms);
+            // Emergency signs: escalate now and ask nothing.
+            if ($alert = $this->triage->emergencyFromText($symptoms, $resolved)) {
+                return response()->json(['success' => true, 'questions' => [], 'triage' => $alert]);
+            }
+
+            if ($this->triage->isActive()) {
+                // The safety questions do not depend on the AI service being up.
+                try {
+                    $generated = $this->screening->generateQuestions($symptoms, $lang);
+                } catch (\RuntimeException $e) {
+                    Log::warning('MediCheck screen: follow-up questions unavailable', ['message' => $e->getMessage()]);
+                    $generated = [];
+                }
+                $questions = array_merge($this->triage->questions($resolved), $generated);
+            } else {
+                $questions = $this->screening->generateQuestions($symptoms, $lang);
+            }
+            $questions[] = $this->roleQuestion($resolved);
 
             AnalyticsRecorder::medicheck($request, 'screen', [
                 'questions_generated' => count($questions),
@@ -259,6 +278,13 @@ class MediCheckController extends Controller
             'qa.*.answer'   => 'nullable|string|max:2000',
             'role'          => 'required|in:doctor,patient',
             'lang'          => 'nullable|in:en,id,ja,es,zh,ar,fr,de,ko,pt,ru,auto',
+            'triage'           => 'nullable|array',
+            'triage.red_flags' => 'nullable|array|max:20',
+            'triage.red_flags.*' => 'string|max:40',
+            'triage.age'       => 'nullable|string|max:20',
+            'triage.duration'  => 'nullable|string|max:20',
+            'triage.risk'      => 'nullable|array|max:5',
+            'triage.risk.*'    => 'string|max:20',
         ]);
 
         try {
@@ -267,8 +293,29 @@ class MediCheckController extends Controller
             $lang     = $request->input('lang', 'auto');
             $qa       = $request->input('qa', []);
 
+            $triage = $this->triage->isActive()
+                ? $this->triage->assess($symptoms, $qa ?? [], $request->input('triage', []) ?? [], $this->resolveLang($lang, $symptoms))
+                : null;
+            // An emergency returns at once, without waiting for the written conclusion.
+            if (($triage['category'] ?? null) === 'emergency') {
+                AnalyticsRecorder::medicheck($request, 'conclude', ['role' => $role, 'success' => true]);
+
+                return response()->json(['success' => true, 'data' => [
+                    'symptoms' => $symptoms, 'lang' => $lang, 'role' => $role, 'qa' => $qa,
+                    'conclusion' => ['mode' => $role, 'triage' => $triage], 'timestamp' => now()->toISOString(),
+                ]]);
+            }
+
             $grounding = $this->evidence->ground($symptoms . "\n" . implode("\n", array_filter(array_column($qa, 'answer'))));
             $conclusion = $this->screening->conclude($symptoms, $qa, $role, $lang, $grounding['block']);
+
+            if ($triage) {
+                $conclusion['triage'] = $triage;
+                // No comforting opener unless the rules found the picture routine.
+                if ($triage['category'] !== 'routine') {
+                    unset($conclusion['reassurance']);
+                }
+            }
 
             // Cross-reference clinical drug list with the DB (doctor branch only).
             if ($role === 'doctor' && isset($conclusion['drugs']) && is_array($conclusion['drugs'])) {

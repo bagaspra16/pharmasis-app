@@ -1,0 +1,1037 @@
+{
+    "version": "0.1-draft",
+    "findings": {
+        "chest_pain": {
+            "label": {
+                "en": "Chest pain, pressure or tightness",
+                "id": "Nyeri, tekanan atau sesak di dada"
+            },
+            "negatable": true,
+            "patterns": [
+                "chest (pain|pressure|tightness|discomfort)",
+                "(pain|pressure|tight\\w*|heav\\w+|crushing|squeezing) (in|on) (my |the |his |her )?chest",
+                "chest\\b.{0,25}\\b(hurts?|tight|heavy|crushing|painful)",
+                "nyeri dada",
+                "sakit dada",
+                "dada\\b.{0,25}\\b(sakit|nyeri|tertekan|terhimpit|ditindih)"
+            ]
+        },
+        "severe_breathing": {
+            "label": {
+                "en": "Severe difficulty breathing",
+                "id": "Sangat sulit bernapas"
+            },
+            "negatable": false,
+            "patterns": [
+                "(can ?not|can'?t|unable to|struggling to|hard to|difficulty) breath\\w*",
+                "severe (shortness of breath|breathing)",
+                "gasping",
+                "choking",
+                "sesak (na[pf]as )?(berat|parah|sekali|banget)",
+                "(barely|hardly) (catch my breath|breathe)",
+                "suffocat\\w+",
+                "breathing (feels )?impossible",
+                "(na[pf]as|bernapas).{0,15}sesak (berat|sekali|parah)",
+                "(tidak|gak|ga|nggak|susah|sulit) (bisa )?(ber)?na[pf]as"
+            ]
+        },
+        "blue_skin": {
+            "label": {
+                "en": "Blue, grey or very pale lips or skin",
+                "id": "Bibir atau kulit membiru atau sangat pucat"
+            },
+            "negatable": true,
+            "patterns": [
+                "(lips?|skin|face)\\b.{0,25}\\b(blue|grey|gray)",
+                "(blue|grey|gray) lips",
+                "(bibir|kulit).{0,20}(biru|membiru|kebiruan)"
+            ]
+        },
+        "stroke_signs": {
+            "label": {
+                "en": "Face drooping, arm or leg weakness, or speech trouble",
+                "id": "Wajah mencong, lengan atau kaki lemah, atau bicara pelo"
+            },
+            "negatable": true,
+            "patterns": [
+                "face\\b.{0,20}droop\\w*",
+                "droop\\w* (face|on one side)",
+                "slurr?ed speech",
+                "speech\\b.{0,15}slurr?\\w*",
+                "(can ?not|can'?t|trouble|difficulty) (speak|talk)\\w*",
+                "(numb\\w*|weak\\w*)\\b.{0,30}\\b(one side|face|arm|leg)",
+                "(face|arm|leg)\\b.{0,20}\\b(numb|weak|paraly)\\w*",
+                "sudden\\w*.{0,20}(trouble seeing|vision loss|lost (my )?vision)",
+                "\\bpelo\\b",
+                "(wajah|muka|mulut).{0,15}(mencong|miring|turun)",
+                "(tangan|lengan|kaki|separuh badan).{0,25}(lemas|lemah|lumpuh|mati rasa|tidak bisa (di)?(angkat|gerak))",
+                "bicara.{0,12}(cadel|tidak jelas)"
+            ]
+        },
+        "unconscious": {
+            "label": {
+                "en": "Passed out or hard to wake",
+                "id": "Pingsan atau sulit dibangunkan"
+            },
+            "negatable": true,
+            "patterns": [
+                "passed out",
+                "pass(ing)? out",
+                "faint(ed|ing)\\b",
+                "unconscious",
+                "unresponsive",
+                "not waking( up)?",
+                "(can ?not|can'?t|won'?t) (be )?(woken|wake)",
+                "lost consciousness",
+                "pingsan",
+                "tidak sadar\\w*",
+                "tak sadar\\w*",
+                "(tidak|susah|sulit) (bisa )?dibangunkan"
+            ]
+        },
+        "seizure": {
+            "label": {
+                "en": "Seizure or fit",
+                "id": "Kejang"
+            },
+            "negatable": true,
+            "patterns": [
+                "seizures?\\b",
+                "convuls\\w+",
+                "having a fit",
+                "kejang"
+            ]
+        },
+        "heavy_bleeding": {
+            "label": {
+                "en": "Heavy bleeding or bleeding that will not stop",
+                "id": "Perdarahan banyak atau tidak berhenti"
+            },
+            "negatable": false,
+            "patterns": [
+                "bleed\\w*.{0,20}(won'?t|will not|does not|doesn'?t|cannot|can'?t) stop",
+                "(won'?t|will not|can'?t|cannot) stop (the )?bleed\\w*",
+                "(heavy|severe|a lot of) (bleeding|blood)",
+                "(per)?darah\\w*.{0,20}(tidak|gak|ga|nggak) (mau |bisa )?berhenti",
+                "perdarahan (hebat|banyak)",
+                "terus berdarah",
+                "bleeding non-?stop",
+                "blood is pouring"
+            ]
+        },
+        "vomit_blood": {
+            "label": {
+                "en": "Vomiting or coughing up much blood, or black stool",
+                "id": "Muntah darah atau BAB hitam"
+            },
+            "negatable": true,
+            "patterns": [
+                "(vomit\\w*|throw\\w* up) blood",
+                "coffee ground",
+                "ground coffee",
+                "black (and sticky )?(poo|stool)\\w*",
+                "muntah darah",
+                "(bab|tinja|feses) (berwarna )?hitam"
+            ]
+        },
+        "suicidal": {
+            "label": {
+                "en": "Thoughts of suicide or self-harm",
+                "id": "Pikiran bunuh diri atau menyakiti diri"
+            },
+            "negatable": false,
+            "patterns": [
+                "suicid\\w+",
+                "kill(ing)? (myself|himself|herself|themselves)",
+                "end(ing)? (my|his|her) life",
+                "thinking about ending it",
+                "(do not|don'?t) want to (be alive|live)( anymore)?",
+                "want to die",
+                "hurt(ing)? myself",
+                "self[- ]harm\\w*",
+                "bunuh diri",
+                "ingin mati",
+                "mau mati",
+                "mengakhiri hidup",
+                "(menyakiti|melukai) diri",
+                "no way out",
+                "hidup.{0,25}(tidak|gak|nggak) ada harapan"
+            ]
+        },
+        "airway_swelling": {
+            "label": {
+                "en": "Swelling of throat, tongue or lips, or cannot swallow",
+                "id": "Tenggorokan, lidah atau bibir bengkak, atau tidak bisa menelan"
+            },
+            "negatable": true,
+            "patterns": [
+                "(throat|tongue|lips?|mouth)\\b.{0,20}\\bswell\\w*",
+                "swollen (throat|tongue|lips?)",
+                "(can ?not|can'?t|unable to|hard to|difficulty) swallow\\w*",
+                "anaphyla\\w+",
+                "(tenggorokan|lidah|bibir).{0,20}bengkak",
+                "(tidak|susah|sulit) (bisa )?menelan"
+            ]
+        },
+        "sudden_severe_headache": {
+            "label": {
+                "en": "Sudden severe headache",
+                "id": "Sakit kepala hebat mendadak"
+            },
+            "negatable": true,
+            "patterns": [
+                "worst headache",
+                "sudden\\w*.{0,20}(severe|extreme\\w*|terrible) headache",
+                "headache.{0,40}sudden\\w*",
+                "thunderclap",
+                "sakit kepala (hebat |parah )?(men)?dadak",
+                "sakit kepala (paling )?(hebat|parah) (seumur hidup|yang pernah)"
+            ]
+        },
+        "stiff_neck_or_rash": {
+            "label": {
+                "en": "Stiff neck, or a rash that does not fade",
+                "id": "Leher kaku, atau ruam yang tidak memudar"
+            },
+            "negatable": true,
+            "patterns": [
+                "stiff neck",
+                "neck (is )?stiff",
+                "rash.{0,30}(not|n't) fade",
+                "leher kaku",
+                "kaku kuduk"
+            ]
+        },
+        "confusion": {
+            "label": {
+                "en": "Sudden confusion",
+                "id": "Linglung atau bingung mendadak"
+            },
+            "negatable": true,
+            "patterns": [
+                "confus(ed|ion)",
+                "disoriented",
+                "linglung",
+                "bicara ngawur"
+            ]
+        },
+        "poisoning": {
+            "label": {
+                "en": "Swallowed something harmful or overdose",
+                "id": "Menelan zat berbahaya atau overdosis"
+            },
+            "negatable": true,
+            "patterns": [
+                "overdos\\w+",
+                "poison(ed|ing)\\b",
+                "swallow\\w*.{0,30}(pills|bleach|chemical|poison|battery|bottle)",
+                "(took|taken|taking) too many (pills|tablets)",
+                "minum (terlalu )?banyak obat",
+                "keracunan (obat|bahan kimia)",
+                "(minum|menelan|tertelan).{0,25}(racun|pemutih|bahan kimia|baterai|obat terlalu banyak)"
+            ]
+        },
+        "severe_abdo": {
+            "label": {
+                "en": "Sudden or severe stomach pain",
+                "id": "Nyeri perut hebat atau mendadak"
+            },
+            "negatable": true,
+            "patterns": [
+                "(severe|sudden) (stomach|abdominal|tummy|belly) pain",
+                "(stomach|abdominal|tummy|belly) pain.{0,30}(severe|sudden)",
+                "(belly|stomach|abdomen) is (rigid|hard)",
+                "nyeri perut (hebat|berat|mendadak)",
+                "sakit perut (hebat|parah|mendadak|sekali)"
+            ]
+        },
+        "head_injury": {
+            "label": {
+                "en": "Head injury",
+                "id": "Cedera kepala"
+            },
+            "negatable": true,
+            "patterns": [
+                "(hit|hurt|bumped|banged) (my|his|her|their) head",
+                "head (injury|trauma)",
+                "kepala.{0,15}(terbentur|terpukul)",
+                "(terbentur|benturan).{0,15}kepala",
+                "cedera kepala"
+            ]
+        },
+        "dengue": {
+            "label": {
+                "en": "Dengue fever mentioned",
+                "id": "Demam berdarah disebut"
+            },
+            "negatable": true,
+            "patterns": [
+                "dengue",
+                "demam berdarah",
+                "\\bdbd\\b"
+            ]
+        },
+        "gum_nose_bleed": {
+            "label": {
+                "en": "Bleeding gums or nose",
+                "id": "Gusi berdarah atau mimisan"
+            },
+            "negatable": true,
+            "patterns": [
+                "bleeding gums",
+                "gums (are )?bleeding",
+                "nose ?bleed\\w*",
+                "gusi berdarah",
+                "mimisan"
+            ]
+        },
+        "persistent_vomiting": {
+            "label": {
+                "en": "Repeated vomiting or cannot keep fluids down",
+                "id": "Muntah terus atau cairan tidak bisa masuk"
+            },
+            "negatable": true,
+            "patterns": [
+                "keep (vomiting|being sick|throwing up)",
+                "(can ?not|can'?t) keep (any )?(fluids?|water|anything) down",
+                "vomit\\w* (non-?stop|repeatedly|constantly)",
+                "muntah (terus|berkali)"
+            ]
+        },
+        "fever": {
+            "label": {
+                "en": "Fever",
+                "id": "Demam"
+            },
+            "negatable": true,
+            "patterns": [
+                "fever(ish)?\\b",
+                "high temperature",
+                "demam"
+            ]
+        },
+        "dehydration": {
+            "label": {
+                "en": "Signs of dehydration",
+                "id": "Tanda dehidrasi"
+            },
+            "negatable": true,
+            "patterns": [
+                "dehydrat\\w+",
+                "(barely|hardly|not) (urinat\\w+|pee\\w*)",
+                "very dizzy",
+                "dehidrasi",
+                "jarang (buang air kecil|kencing|pipis)"
+            ]
+        },
+        "diarrhoea": {
+            "label": {
+                "en": "Diarrhoea",
+                "id": "Diare"
+            },
+            "negatable": true,
+            "patterns": [
+                "diarrh?o?ea",
+                "loose stools?",
+                "diare",
+                "mencret"
+            ]
+        },
+        "blood_in_stool": {
+            "label": {
+                "en": "Blood in stool",
+                "id": "Darah pada tinja"
+            },
+            "negatable": true,
+            "patterns": [
+                "bloody (diarrh\\w+|stool\\w*|poo)",
+                "blood in (my |the )?(stool|poo)",
+                "(bab|diare|tinja) berdarah"
+            ]
+        },
+        "urinary": {
+            "label": {
+                "en": "Pain when urinating",
+                "id": "Nyeri saat buang air kecil"
+            },
+            "negatable": true,
+            "patterns": [
+                "(burn\\w*|pain\\w*|hurts?) (when|while) (i )?(pee|urinat)\\w*",
+                "(perih|sakit|nyeri|panas) (saat|waktu|ketika) (buang air kecil|kencing|pipis)",
+                "anyang"
+            ]
+        },
+        "back_pain": {
+            "label": {
+                "en": "Lower back or flank pain",
+                "id": "Nyeri pinggang atau punggung bawah"
+            },
+            "negatable": true,
+            "patterns": [
+                "lower back",
+                "flank",
+                "nyeri pinggang",
+                "sakit pinggang"
+            ]
+        },
+        "bite": {
+            "label": {
+                "en": "Animal or human bite",
+                "id": "Gigitan hewan atau manusia"
+            },
+            "negatable": true,
+            "patterns": [
+                "(dog|cat|monkey|animal|human|snake|bat)\\b.{0,15}\\b(bit|bite|bitten)",
+                "bitten by",
+                "(digigit|gigitan) (anjing|kucing|monyet|ular|hewan|orang)"
+            ]
+        },
+        "wound_infection": {
+            "label": {
+                "en": "Hot, swollen or pus-filled skin or wound",
+                "id": "Kulit atau luka panas, bengkak atau bernanah"
+            },
+            "negatable": true,
+            "patterns": [
+                "\\bpus\\b",
+                "(wound|cut|skin).{0,40}(hot|swollen)",
+                "cellulitis",
+                "(luka|kulit).{0,30}(nanah|bengkak)"
+            ]
+        },
+        "eye_pain": {
+            "label": {
+                "en": "Very painful eye",
+                "id": "Mata sangat sakit"
+            },
+            "negatable": true,
+            "patterns": [
+                "eye\\b.{0,15}\\b(pain\\w*|hurts?)",
+                "(painful|sore) eye",
+                "mata.{0,15}(sakit|nyeri)"
+            ]
+        },
+        "vision_change": {
+            "label": {
+                "en": "Change in vision",
+                "id": "Perubahan penglihatan"
+            },
+            "negatable": true,
+            "patterns": [
+                "vision\\b.{0,15}\\b(blurr?\\w*|loss|lost|change\\w*)",
+                "(blurr?y|double|loss of) vision",
+                "(penglihatan|pandangan).{0,15}(kabur|hilang|ganda)"
+            ]
+        },
+        "pregnant": {
+            "label": {
+                "en": "Pregnant",
+                "id": "Hamil"
+            },
+            "negatable": true,
+            "patterns": [
+                "\\bpregnan\\w+",
+                "\\bhamil\\b"
+            ]
+        },
+        "infant_young": {
+            "label": {
+                "en": "Baby under 3 months",
+                "id": "Bayi di bawah 3 bulan"
+            },
+            "negatable": true,
+            "patterns": [
+                "(baby|infant).{0,20}\\b([12]|one|two)[ -]months?",
+                "\\b([0-9]|1[0-2])[ -]weeks?[ -]old",
+                "bayi.{0,20}\\b([012]|satu|dua) bulan",
+                "bayi baru lahir",
+                "newborn"
+            ]
+        },
+        "coughing_blood": {
+            "label": {
+                "en": "Coughing up blood",
+                "id": "Batuk darah"
+            },
+            "negatable": true,
+            "patterns": [
+                "cough\\w* (up )?blood",
+                "blood when (i )?cough",
+                "batuk (ber)?darah"
+            ]
+        },
+        "common_cold": {
+            "label": {
+                "en": "Cold symptoms",
+                "id": "Gejala pilek"
+            },
+            "negatable": true,
+            "patterns": [
+                "runny nose",
+                "stuffy nose",
+                "blocked nose",
+                "\\bsneez\\w+",
+                "common cold",
+                "\\bpilek\\b",
+                "hidung (meler|tersumbat)",
+                "bersin"
+            ]
+        },
+        "sore_throat": {
+            "label": {
+                "en": "Sore throat",
+                "id": "Sakit tenggorokan"
+            },
+            "negatable": true,
+            "patterns": [
+                "sore throat",
+                "throat (is )?(sore|scratchy)",
+                "(sakit|radang) tenggorokan",
+                "tenggorokan.{0,12}(sakit|gatal|perih)"
+            ]
+        },
+        "headache": {
+            "label": {
+                "en": "Headache",
+                "id": "Sakit kepala"
+            },
+            "negatable": true,
+            "patterns": [
+                "headache",
+                "sakit kepala"
+            ]
+        }
+    },
+    "rules": [
+        {
+            "id": "EM01",
+            "level": "emergency",
+            "any": [
+                "chest_pain"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Chest pain",
+                "url": "https://www.nhs.uk/symptoms/chest-pain/",
+                "quote": "you get sudden pain or discomfort in your chest that does not go away"
+            },
+            "adaptation": "Any chest pain escalates, including intermittent pain that the source sends to a GP."
+        },
+        {
+            "id": "EM02",
+            "level": "emergency",
+            "any": [
+                "severe_breathing"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Shortness of breath",
+                "url": "https://www.nhs.uk/symptoms/shortness-of-breath/",
+                "quote": "you have severe difficulty breathing"
+            },
+            "adaptation": "Any \"cannot or hard to breathe\" wording escalates."
+        },
+        {
+            "id": "EM03",
+            "level": "emergency",
+            "any": [
+                "blue_skin"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Shortness of breath",
+                "url": "https://www.nhs.uk/symptoms/shortness-of-breath/",
+                "quote": "your lips or skin are turning very pale, blue or grey"
+            },
+            "adaptation": ""
+        },
+        {
+            "id": "EM04",
+            "level": "emergency",
+            "any": [
+                "stroke_signs"
+            ],
+            "source": {
+                "publisher": "CDC",
+                "title": "Signs and symptoms of stroke",
+                "url": "https://www.cdc.gov/stroke/signs-symptoms/index.html",
+                "quote": "Sudden numbness or weakness in the face, arm, or leg, especially on one side of the body."
+            },
+            "adaptation": "Escalates even when onset is not described as sudden."
+        },
+        {
+            "id": "EM05",
+            "level": "emergency",
+            "any": [
+                "unconscious"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Fainting",
+                "url": "https://www.nhs.uk/conditions/fainting/",
+                "quote": "cannot be woken up within 1 minute"
+            },
+            "adaptation": "Any fainting escalates; the source sends recovered fainting to a GP."
+        },
+        {
+            "id": "EM06",
+            "level": "emergency",
+            "any": [
+                "seizure"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Fainting",
+                "url": "https://www.nhs.uk/conditions/fainting/",
+                "quote": "is shaking or jerking (having a seizure or fit)"
+            },
+            "adaptation": "Any seizure escalates."
+        },
+        {
+            "id": "EM07",
+            "level": "emergency",
+            "any": [
+                "heavy_bleeding"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Cuts and grazes",
+                "url": "https://www.nhs.uk/conditions/cuts-and-grazes/",
+                "quote": "you have a cut and cannot stop the bleeding"
+            },
+            "adaptation": "Applied to bleeding from any site."
+        },
+        {
+            "id": "EM08",
+            "level": "emergency",
+            "any": [
+                "vomit_blood"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Diarrhoea and vomiting",
+                "url": "https://www.nhs.uk/symptoms/diarrhoea-and-vomiting/",
+                "quote": "vomit blood or have vomit that looks like ground coffee"
+            },
+            "adaptation": "Black stool grouped here."
+        },
+        {
+            "id": "EM09",
+            "level": "emergency",
+            "any": [
+                "suicidal"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Help for suicidal thoughts",
+                "url": "https://www.nhs.uk/mental-health/feelings-symptoms-behaviours/behaviours/help-for-suicidal-thoughts/",
+                "quote": "you feel that you may be about to harm yourself, call 999"
+            },
+            "adaptation": "Any suicidal or self-harm statement escalates."
+        },
+        {
+            "id": "EM10",
+            "level": "emergency",
+            "any": [
+                "airway_swelling"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Anaphylaxis",
+                "url": "https://www.nhs.uk/conditions/anaphylaxis/",
+                "quote": "your lips, mouth, throat or tongue suddenly become swollen"
+            },
+            "adaptation": ""
+        },
+        {
+            "id": "EM11",
+            "level": "emergency",
+            "any": [
+                "sudden_severe_headache"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Headaches",
+                "url": "https://www.nhs.uk/symptoms/headaches/",
+                "quote": "it started suddenly and is extremely painful"
+            },
+            "adaptation": ""
+        },
+        {
+            "id": "EM12",
+            "level": "emergency",
+            "any": [
+                "stiff_neck_or_rash"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Headaches",
+                "url": "https://www.nhs.uk/symptoms/headaches/",
+                "quote": "has a very high temperature, a stiff neck, or bright lights are bothering you"
+            },
+            "adaptation": "Stiff neck alone escalates."
+        },
+        {
+            "id": "EM13",
+            "level": "emergency",
+            "any": [
+                "confusion"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Shortness of breath",
+                "url": "https://www.nhs.uk/symptoms/shortness-of-breath/",
+                "quote": "you feel suddenly confused"
+            },
+            "adaptation": ""
+        },
+        {
+            "id": "EM14",
+            "level": "emergency",
+            "any": [
+                "poisoning"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Poisoning",
+                "url": "https://www.nhs.uk/conditions/poisoning/",
+                "quote": "may have swallowed, touched or breathed in something harmful"
+            },
+            "adaptation": ""
+        },
+        {
+            "id": "EM15",
+            "level": "emergency",
+            "any": [
+                "severe_abdo"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Stomach ache",
+                "url": "https://www.nhs.uk/symptoms/stomach-ache/",
+                "quote": "it started suddenly and is severe"
+            },
+            "adaptation": "Severe OR sudden escalates; the source requires both."
+        },
+        {
+            "id": "EM16",
+            "level": "emergency",
+            "all": [
+                "dengue"
+            ],
+            "any": [
+                "gum_nose_bleed",
+                "persistent_vomiting",
+                "severe_abdo"
+            ],
+            "source": {
+                "publisher": "CDC",
+                "title": "Symptoms of dengue and testing",
+                "url": "https://www.cdc.gov/dengue/signs-symptoms/index.html",
+                "quote": "Immediately go to a local clinic or emergency room if you or a family member has any of the following warning signs"
+            },
+            "adaptation": ""
+        },
+        {
+            "id": "EM17",
+            "level": "emergency",
+            "all": [
+                "infant_young",
+                "fever"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Sepsis",
+                "url": "https://www.nhs.uk/conditions/sepsis/",
+                "quote": "38C or more in babies under 3 months old"
+            },
+            "adaptation": "SOURCE CONFLICT: NHS \"fever in children\" says call 111 (urgent); NHS \"sepsis\" says call 999. Higher level chosen."
+        },
+        {
+            "id": "EM18",
+            "level": "emergency",
+            "all": [
+                "eye_pain",
+                "vision_change"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Red eye",
+                "url": "https://www.nhs.uk/symptoms/red-eye/",
+                "quote": "you have any changes to your sight"
+            },
+            "adaptation": "Source applies this to a red eye."
+        },
+        {
+            "id": "UR01",
+            "level": "urgent",
+            "all": [
+                "fever"
+            ],
+            "duration": [
+                "3_to_7",
+                "over_7"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "High temperature (fever) in adults",
+                "url": "https://www.nhs.uk/symptoms/fever-in-adults/",
+                "quote": "not getting better or is getting worse"
+            },
+            "adaptation": "3 days chosen as the cut-off; the source gives none."
+        },
+        {
+            "id": "UR02",
+            "level": "urgent",
+            "any": [
+                "persistent_vomiting"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Diarrhoea and vomiting",
+                "url": "https://www.nhs.uk/symptoms/diarrhoea-and-vomiting/",
+                "quote": "cannot keep fluid down"
+            },
+            "adaptation": ""
+        },
+        {
+            "id": "UR03",
+            "level": "urgent",
+            "any": [
+                "dehydration"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Diarrhoea and vomiting",
+                "url": "https://www.nhs.uk/symptoms/diarrhoea-and-vomiting/",
+                "quote": "signs of dehydration"
+            },
+            "adaptation": "Applied without first trying rehydration solution."
+        },
+        {
+            "id": "UR04",
+            "level": "urgent",
+            "all": [
+                "diarrhoea"
+            ],
+            "duration": [
+                "over_7"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Diarrhoea and vomiting",
+                "url": "https://www.nhs.uk/symptoms/diarrhoea-and-vomiting/",
+                "quote": "diarrhoea for more than 7 days"
+            },
+            "adaptation": ""
+        },
+        {
+            "id": "UR05",
+            "level": "urgent",
+            "any": [
+                "blood_in_stool"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Diarrhoea and vomiting",
+                "url": "https://www.nhs.uk/symptoms/diarrhoea-and-vomiting/",
+                "quote": "bloody diarrhoea or bleeding from the bottom"
+            },
+            "adaptation": ""
+        },
+        {
+            "id": "UR06",
+            "level": "urgent",
+            "all": [
+                "urinary"
+            ],
+            "any": [
+                "back_pain",
+                "fever",
+                "pregnant"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Urinary tract infections",
+                "url": "https://www.nhs.uk/conditions/urinary-tract-infections-utis/",
+                "quote": "you have pain in the lower tummy or in the back, just under the ribs"
+            },
+            "adaptation": ""
+        },
+        {
+            "id": "UR07",
+            "level": "urgent",
+            "any": [
+                "bite"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Animal and human bites",
+                "url": "https://www.nhs.uk/conditions/animal-and-human-bites/",
+                "quote": "you were bitten on your hands, feet, face or head"
+            },
+            "adaptation": "Any bite is at least urgent. Local rabies protocol must be reviewed."
+        },
+        {
+            "id": "UR08",
+            "level": "urgent",
+            "any": [
+                "wound_infection"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Cellulitis",
+                "url": "https://www.nhs.uk/conditions/cellulitis/",
+                "quote": "your skin is painful, hot and swollen"
+            },
+            "adaptation": ""
+        },
+        {
+            "id": "UR09",
+            "level": "urgent",
+            "any": [
+                "eye_pain"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Red eye",
+                "url": "https://www.nhs.uk/symptoms/red-eye/",
+                "quote": "your eye is very painful and red"
+            },
+            "adaptation": "Redness not required."
+        },
+        {
+            "id": "UR10",
+            "level": "urgent",
+            "any": [
+                "head_injury"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Head injury and concussion",
+                "url": "https://www.nhs.uk/conditions/head-injury-and-concussion/",
+                "quote": "recently had a head injury"
+            },
+            "adaptation": "Any recent head injury is at least urgent."
+        },
+        {
+            "id": "UR11",
+            "level": "urgent",
+            "any": [
+                "pregnant"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Urinary tract infections",
+                "url": "https://www.nhs.uk/conditions/urinary-tract-infections-utis/",
+                "quote": "you're pregnant"
+            },
+            "adaptation": "Any complaint in pregnancy is at least urgent; the source applies this to urine infection only."
+        },
+        {
+            "id": "UR12",
+            "level": "urgent",
+            "any": [
+                "coughing_blood"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Shortness of breath",
+                "url": "https://www.nhs.uk/symptoms/shortness-of-breath/",
+                "quote": "you're coughing up blood"
+            },
+            "adaptation": ""
+        },
+        {
+            "id": "UR13",
+            "level": "urgent",
+            "any": [
+                "infant_young"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Diarrhoea and vomiting",
+                "url": "https://www.nhs.uk/symptoms/diarrhoea-and-vomiting/",
+                "quote": "you're worried about a baby under 12 months"
+            },
+            "adaptation": "Any complaint in a baby under 3 months is at least urgent."
+        },
+        {
+            "id": "UR14",
+            "level": "urgent",
+            "risk": [
+                "immune"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Sore throat",
+                "url": "https://www.nhs.uk/symptoms/sore-throat/",
+                "quote": "you have a weakened immune system"
+            },
+            "adaptation": "Applied to any complaint."
+        },
+        {
+            "id": "UR15",
+            "level": "urgent",
+            "risk": [
+                "pregnant"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Urinary tract infections",
+                "url": "https://www.nhs.uk/conditions/urinary-tract-infections-utis/",
+                "quote": "you're pregnant"
+            },
+            "adaptation": "As UR11, from the context question."
+        },
+        {
+            "id": "UR16",
+            "level": "urgent",
+            "any": [
+                "vision_change"
+            ],
+            "source": {
+                "publisher": "NHS",
+                "title": "Headaches",
+                "url": "https://www.nhs.uk/symptoms/headaches/",
+                "quote": "vision or eye problems"
+            },
+            "adaptation": "Headache not required."
+        }
+    ],
+    "routine": [
+        {
+            "id": "RT01",
+            "finding": "common_cold",
+            "source": {
+                "publisher": "NHS",
+                "title": "Common cold",
+                "url": "https://www.nhs.uk/conditions/common-cold/",
+                "quote": "your cold symptoms do not get better after 10 days"
+            },
+            "adaptation": "Only for ages 5 to 64, with all warning signs explicitly denied, a stated duration, no risk condition and no other symptom."
+        },
+        {
+            "id": "RT02",
+            "finding": "sore_throat",
+            "source": {
+                "publisher": "NHS",
+                "title": "Sore throat",
+                "url": "https://www.nhs.uk/symptoms/sore-throat/",
+                "quote": "sore throat does not improve after a week"
+            },
+            "adaptation": "Only for ages 5 to 64, with all warning signs explicitly denied, a stated duration, no risk condition and no other symptom."
+        },
+        {
+            "id": "RT03",
+            "finding": "headache",
+            "source": {
+                "publisher": "NHS",
+                "title": "Headaches",
+                "url": "https://www.nhs.uk/symptoms/headaches/",
+                "quote": "not getting better or is getting worse"
+            },
+            "adaptation": "Only for ages 5 to 64, with all warning signs explicitly denied, a stated duration, no risk condition and no other symptom."
+        }
+    ]
+}

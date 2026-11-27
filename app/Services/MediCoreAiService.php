@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Services\Evidence\EvidenceService;
+use App\Services\Triage\TriageService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
@@ -28,7 +29,7 @@ class MediCoreAiService
     // medi_check / medi_combo are never cached (personal + contextual).
     private const FACTS_CACHE_TTL_DAYS = 7;
 
-    public function __construct(private GroqService $groq, private EvidenceService $evidence) {}
+    public function __construct(private GroqService $groq, private EvidenceService $evidence, private TriageService $triage) {}
 
     /**
      * Main entry point.
@@ -45,6 +46,11 @@ class MediCoreAiService
 
         if (empty($input)) {
             return $this->errorPayload('Input kosong. Tolong ketik gejala atau pertanyaan medis kamu.', $resolvedLang);
+        }
+
+        // Rule-based warning signs first: instant, and works if the AI service is down.
+        if ($alert = $this->triage->emergencyFromText($input, $resolvedLang)) {
+            return $this->buildEmergencyPayload(['emergency_message' => $alert['meaning']], $resolvedLang, $alert);
         }
 
         try {
@@ -167,8 +173,7 @@ class MediCoreAiService
               . '"detected_entities":{"symptoms":[],"medications":[],"medical_concepts":[]},'
               . '"summary_title":"Short descriptive title of the topic (max 8 words)",'
               . '"is_emergency":false,'
-              . '"emergency_message":"Only fill if is_emergency=true: clear instructions to call emergency services immediately",'
-              . '"emergency_numbers":{"id":"119","international":"112"}}'
+              . '"emergency_message":"Only fill if is_emergency=true: clear instructions to call emergency services immediately, without phone numbers"}'
             ],
         ], ['temperature' => 0.1, 'max_tokens' => 1500, 'reasoning_effort' => 'low', 'response_format' => ['type' => 'json_object']]);
 
@@ -295,7 +300,7 @@ class MediCoreAiService
 
     // Emergency
 
-    private function buildEmergencyPayload(array $classifyResult, string $lang): array
+    private function buildEmergencyPayload(array $classifyResult, string $lang, ?array $triage = null): array
     {
         $isId = $lang === 'id';
 
@@ -311,7 +316,7 @@ class MediCoreAiService
                     ? 'Gejala yang Anda laporkan mengindikasikan potensi kondisi medis darurat. Harap segera hubungi layanan darurat atau menuju IGD rumah sakit terdekat.'
                     : 'The symptoms you reported indicate a potential medical emergency. Please contact emergency services or proceed to the nearest emergency department immediately.'
                 ),
-                'emergency_numbers' => $classifyResult['emergency_numbers'] ?? ['id' => '119', 'international' => '112'],
+                'emergency_numbers' => ['id' => '119', 'international' => '112'],
                 'actions'           => $isId
                     ? ['Hubungi 119 (Indonesia)', 'Pergi ke UGD terdekat', 'Minta seseorang menemani Anda']
                     : ['Call 112 or local emergency number', 'Go to nearest Emergency Room', 'Do not drive alone'],
@@ -324,6 +329,7 @@ class MediCoreAiService
             'medical_facts_payload' => null,
             'screening_payload'     => null,
             'conclusions'           => null,
+            'triage'                => $triage,
         ];
     }
 
