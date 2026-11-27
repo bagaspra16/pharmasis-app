@@ -12,6 +12,7 @@ class EncryptCookies extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        //
+        // Written by the consent banner in the browser, so it is not encrypted.
+        'pharmasis_consent',
     ];
 }

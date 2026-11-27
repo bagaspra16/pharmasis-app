@@ -61,8 +61,8 @@ class GeoIpService
                 Log::warning("GeoIpService: ipapi.co lookup failed for {$ip}", ['error' => $e->getMessage()]);
             }
 
-            // Ultimate fallback
-            return 'Jakarta, Jakarta, Indonesia';
+            // Unknown stays unknown: a guessed country would show the wrong emergency number.
+            return '';
         });
     }
 

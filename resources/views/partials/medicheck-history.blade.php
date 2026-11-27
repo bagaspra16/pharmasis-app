@@ -144,8 +144,6 @@
                     id: item.id,
                     savedAt: new Date().toISOString(), // Update timestamp so it doesn't expire immediately
                     symptoms: item.preview,
-                    location: item.nearbyLocation,
-                    nearbyProviders: item.nearbyProviders,
                     result: item.result
                 };
                 localStorage.setItem('ceksehatCurrentResult', JSON.stringify(payload));
@@ -273,8 +271,6 @@
                 const r = item.result;
                 const dateStr = new Date(item.date).toLocaleString();
                 const symptoms = r.symptoms || 'N/A';
-                const loc = item.nearbyLocation || null;
-                const nearby = item.nearbyProviders || null;
                 let html = '';
 
                 html += '<div style="text-align:center;margin-bottom:2rem;border-bottom:2px solid #3EAEB1;padding-bottom:1rem;">';
@@ -370,22 +366,6 @@
                     }
                     if (r.step4.follow_up) html += '<div style="background:#f8fafc;border-radius:0.5rem;padding:0.75rem;margin-bottom:0.5rem;"><p style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;margin:0 0 0.25rem;">Follow-up</p><p style="font-size:0.8rem;color:#334155;margin:0;">' + this._esc(r.step4.follow_up) + '</p></div>';
                     if (r.step4.disclaimer) html += '<p style="font-size:0.75rem;color:#94a3b8;font-style:italic;margin:1rem 0 0;border-top:1px solid #e2e8f0;padding-top:0.75rem;">' + this._esc(r.step4.disclaimer) + '</p>';
-                }
-
-                if (nearby?.providers?.length) {
-                    html += '<h2 style="font-size:1rem;font-weight:700;color:#0f172a;margin:1.5rem 0 0.75rem;border-left:3px solid #3EAEB1;padding-left:0.5rem;">Nearby Healthcare Providers</h2>';
-                    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">';
-                    nearby.providers.forEach(p => {
-                        html += '<div style="border:1px solid #e2e8f0;border-radius:0.5rem;padding:0.75rem;background:#fff;">';
-                        html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;">';
-                        html += '<p style="font-size:0.85rem;font-weight:700;color:#0f172a;margin:0;">' + this._esc(p.name) + '</p>';
-                        html += '<span style="font-size:0.6rem;padding:0.1rem 0.35rem;border-radius:0.25rem;background:#f1f5f9;color:#475569;font-weight:600;">' + this._esc(p.type) + '</span>';
-                        html += '</div>';
-                        html += '<p style="font-size:0.75rem;color:#475569;margin:0 0 0.5rem;">' + this._esc(p.address) + '</p>';
-                        html += '</div>';
-                    });
-                    html += '</div>';
-                    if (nearby.emergency_numbers) html += '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:0.5rem;padding:0.75rem;margin-top:0.75rem;display:flex;align-items:center;gap:0.5rem;"><span style="width:1.25rem;height:1.25rem;border-radius:0.25rem;background:#fee2e2;color:#dc2626;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;flex-shrink:0;">!</span><p style="font-size:0.8rem;color:#991b1b;font-weight:700;margin:0;">' + this._esc(nearby.emergency_numbers) + '</p></div>';
                 }
 
                 html += '<div style="margin-top:2rem;padding-top:1rem;border-top:2px solid #3EAEB1;text-align:center;">';

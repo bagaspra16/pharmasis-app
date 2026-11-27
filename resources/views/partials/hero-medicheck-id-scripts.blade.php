@@ -242,10 +242,7 @@
             mediaRecorder: null,
             audioChunks: [],
 
-            /* ── Nearby providers ── */
-            nearbyProviders: null,
-            nearbyLoading: false,
-            nearbyLocation: '{{ $userLocation ?? "" }}',
+
 
             /* ── Report actions ── */
             copyFeedback: '',
@@ -311,8 +308,6 @@
                             this.role = parsed.result.role || null;
                             this.result = parsed.result;
                             this.conclusion = parsed.result.conclusion || null;
-                            this.nearbyLocation = parsed.location || '';
-                            this.nearbyProviders = parsed.nearbyProviders || null;
                             this.phase = 'result';
                             this.scheduleKiosk();
                             this.$nextTick(() => setTimeout(() => this.scrollToResult('auto'), 100));
@@ -625,17 +620,6 @@
                 this.currentStep = 0;
                 this.$nextTick(() => setTimeout(() => this.scrollToEl('screening-panel', 'smooth'), 80));
 
-                // Fetch geolocation for the patient "nearby facilities" section.
-                if (window.cookieConsentAccepted && window.cookieConsentAccepted()) {
-                    try {
-                        const locRes = await fetch('https://ipapi.co/json/');
-                        if (locRes.ok) {
-                            const l = await locRes.json();
-                            if (l && l.city) this.nearbyLocation = `${l.city}, ${l.region}, ${l.country_name}`;
-                        }
-                    } catch (e) { /* ignore */ }
-                }
-
                 const stepTimer = this.animateSteps();
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
                 try {
@@ -685,12 +669,6 @@
                         }
 
                         this.$nextTick(() => setTimeout(() => this.scrollToResult('smooth'), 800));
-
-                        // Patient branch → find nearby healthcare facilities.
-                        if (this.role === 'patient' && this.nearbyLocation) {
-                            const cond = this.conclusion?.assumed_condition?.name || '';
-                            this.fetchNearbyProviders(historyId, this.nearbyLocation, this.firstPrompt, cond);
-                        }
                     }
                 } catch (e) {
                     clearInterval(stepTimer);
@@ -854,32 +832,6 @@
                 return m[k] || v;
             },
 
-            /* ══════════════ Nearby providers ══════════════ */
-            async fetchNearbyProviders(historyId, location, symptoms, conditions) {
-                this.nearbyLoading = true;
-                this.nearbyProviders = null;
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-                try {
-                    const body = new FormData();
-                    body.append('location', location);
-                    if (symptoms) body.append('symptoms', symptoms.substring(0, 300));
-                    if (conditions) body.append('conditions', conditions);
-                    const res = await fetch('/medicheck/nearby', {
-                        method: 'POST',
-                        headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                        body
-                    });
-                    const data = await res.json();
-                    this.nearbyProviders = data;
-                    this.patchHistoryNearby(historyId, data);
-                } catch (e) {
-                    const q = encodeURIComponent('hospitals clinics near ' + location);
-                    this.nearbyProviders = { success: false, providers: [], maps_search_url: `https://www.google.com/maps/search/${q}` };
-                } finally {
-                    this.nearbyLoading = false;
-                }
-            },
-
             /* ══════════════ Scroll helpers ══════════════ */
             scrollToEl(id, behavior) {
                 const el = document.getElementById(id);
@@ -939,8 +891,6 @@
                         id: 'cs_' + Date.now(),
                         savedAt: new Date().toISOString(),
                         firstPrompt: this.firstPrompt || '',
-                        location: this.nearbyLocation || null,
-                        nearbyProviders: this.nearbyProviders || null,
                         result: this.result
                     }));
                 } catch (e) { /* ignore */ }
@@ -958,8 +908,6 @@
                         preview: (resultData.symptoms || '').substring(0, 80) + ((resultData.symptoms || '').length > 80 ? '...' : ''),
                         conditions: conds,
                         role: resultData.role,
-                        nearbyLocation: this.nearbyLocation || null,
-                        nearbyProviders: null,
                         result: resultData
                     };
                     history.unshift(rec);
@@ -967,14 +915,6 @@
                     localStorage.setItem('ceksehatHistory', JSON.stringify(history));
                     return rec.id;
                 } catch (e) { return null; }
-            },
-            patchHistoryNearby(recordId, nearbyData) {
-                if (!recordId) return;
-                try {
-                    let history = JSON.parse(localStorage.getItem('ceksehatHistory') || '[]');
-                    const idx = history.findIndex(h => h.id === recordId);
-                    if (idx !== -1) { history[idx].nearbyProviders = nearbyData; localStorage.setItem('ceksehatHistory', JSON.stringify(history)); }
-                } catch (e) { /* ignore */ }
             },
 
             /* ══════════════ Plain-text report ══════════════ */

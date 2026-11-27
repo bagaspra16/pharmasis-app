@@ -44,8 +44,8 @@
                         </svg>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <p class="text-sm font-semibold text-slate-800">Device Location for Nearby Medical Centers</p>
-                        <p class="text-xs text-slate-500 leading-relaxed mt-0.5">Uses your device's IP-based location to find and display nearby hospitals, clinics, and pharmacies when you run a MediCheck analysis, so you can get help quickly when needed.</p>
+                        <p class="text-sm font-semibold text-slate-800">Approximate Location for Emergency Numbers</p>
+                        <p class="text-xs text-slate-500 leading-relaxed mt-0.5">Uses your approximate IP-based location to show the right emergency number for your country. Facility search is separate: it only uses your position when you press the button or type an address.</p>
                         <div class="flex items-center gap-2 mt-2">
                             <span class="text-[9px] font-semibold px-2 py-0.5 rounded-full" style="background:rgba(5,150,105,0.08);color:#059669;">IP Geolocation</span>
                             <span class="text-[9px] font-semibold px-2 py-0.5 rounded-full" style="background:rgba(5,150,105,0.08);color:#059669;">First-party</span>
@@ -71,7 +71,7 @@
                 <div class="flex-1 min-w-0">
                     <h3 class="text-sm font-bold text-slate-800 mb-1">Your privacy matters</h3>
                     <p class="text-xs text-slate-500 leading-relaxed">
-                        We use cookies to store your <strong class="text-slate-700">MediCheck consultation history</strong> and check your <strong class="text-slate-700">device location</strong> to find nearby medical centers. No tracking or advertising cookies ever.
+                        We use cookies to store your <strong class="text-slate-700">MediCheck consultation history</strong> and estimate your <strong class="text-slate-700">country from your IP address</strong> for emergency numbers. No tracking or advertising cookies ever.
                         <button @click="showDetail = !showDetail" class="text-primary font-semibold hover:underline ml-1 inline-flex items-center gap-0.5">
                             <span x-text="showDetail ? 'Hide details' : 'Learn more'"></span>
                             <svg class="w-3 h-3 transition-transform duration-200" :class="showDetail ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -110,6 +110,8 @@ document.addEventListener('alpine:init', () => {
 
         init() {
             const status = localStorage.getItem('cookie_consent_status');
+            // Earlier consent is mirrored to the cookie the server reads.
+            if (status === 'accepted') document.cookie = 'pharmasis_consent=accepted;path=/;max-age=31536000;SameSite=Lax';
             // Show banner if: never answered, or previously denied
             if (!status || status === 'denied') {
                 this.showBanner = true;
@@ -118,6 +120,7 @@ document.addEventListener('alpine:init', () => {
 
         accept() {
             localStorage.setItem('cookie_consent_status', 'accepted');
+            document.cookie = 'pharmasis_consent=accepted;path=/;max-age=31536000;SameSite=Lax';
             localStorage.setItem('cookie_consent_date', new Date().toISOString());
             this.showBanner = false;
             window.dispatchEvent(new CustomEvent('cookie-consent-changed', { detail: { status: 'accepted' } }));
@@ -125,6 +128,7 @@ document.addEventListener('alpine:init', () => {
 
         deny() {
             localStorage.setItem('cookie_consent_status', 'denied');
+            document.cookie = 'pharmasis_consent=;path=/;max-age=0';
             localStorage.setItem('cookie_consent_date', new Date().toISOString());
             // Clear stored data since user declined
             localStorage.removeItem('medicheckHistory');

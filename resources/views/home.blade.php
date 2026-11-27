@@ -1218,6 +1218,7 @@
 
 @push('scripts')
     @include('partials.hero-medicheck-id-scripts')
+    @include('partials.facility-finder-script')
 
     <script>
         // ── Pre-fill symptom text and scroll smoothly ──
