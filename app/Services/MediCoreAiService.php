@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Services\Evidence\EvidenceService;
+use App\Services\Quality\ResponseQuality;
 use App\Services\Triage\TriageService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -29,7 +30,7 @@ class MediCoreAiService
     // medi_check / medi_combo are never cached (personal + contextual).
     private const FACTS_CACHE_TTL_DAYS = 7;
 
-    public function __construct(private GroqService $groq, private EvidenceService $evidence, private TriageService $triage) {}
+    public function __construct(private GroqService $groq, private EvidenceService $evidence, private TriageService $triage, private ResponseQuality $quality) {}
 
     /**
      * Main entry point.
@@ -73,7 +74,7 @@ class MediCoreAiService
             $screeningPayload = null;
             $conclusions      = null;
 
-            $cacheKey = 'medicore_facts_v2_' . md5($input . '_' . $resolvedLang);
+            $cacheKey = 'medicore_facts_v2_' . md5($input . '_' . $resolvedLang) . ($this->quality->isActive() ? '_q1' : '');
 
             if ($classification === 'medi_facts' && Cache::has($cacheKey)) {
                 return Cache::get($cacheKey);
@@ -81,7 +82,7 @@ class MediCoreAiService
 
             // Sources are retrieved first so the answer can be written from them.
             $grounding = $this->evidence->ground($input);
-            $grounded  = trim($langInstr . "\n\n" . $grounding['block']);
+            $grounded  = trim($langInstr . "\n\n" . $grounding['block'] . "\n\n" . $this->quality->rules());
 
             if ($classification === 'medi_facts') {
                 $factsPayload = $this->generateFactsPayload($input, $grounded);
@@ -92,6 +93,16 @@ class MediCoreAiService
             } else {
                 // medi_combo: dual processing
                 [$factsPayload, $screeningPayload, $conclusions] = $this->generateComboPayload($input, $grounded);
+            }
+
+            $report = null;
+            if ($this->quality->isActive()) {
+                [$checked, $report] = $this->quality->apply(
+                    ['facts' => $factsPayload, 'conclusions' => $conclusions],
+                    $input, [], $resolvedLang, general: $classification === 'medi_facts'
+                );
+                $factsPayload = $checked['facts'] ?? null;
+                $conclusions  = $checked['conclusions'] ?? null;
             }
 
             // Phase 3: Assemble final structured payload
@@ -112,6 +123,10 @@ class MediCoreAiService
                 $resolvedLang,
                 grounding: $grounding
             );
+
+            if ($report) {
+                $result['quality'] = $report;
+            }
 
             // An unchecked answer is not cached, so the next request retries the check.
             if ($classification === 'medi_facts' && $result['evidence']['status'] !== 'unavailable') {

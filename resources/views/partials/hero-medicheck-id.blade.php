@@ -463,6 +463,8 @@
                     </div>
                 </template>
 
+                @include('partials.quality-card', ['expr' => 'mcData?.quality'])
+
                 @include('partials.evidence-panel', ['expr' => 'mcData?.evidence'])
 
                 <p class="text-center text-[10px] text-slate-400 leading-relaxed px-2" data-i18n="mc_disclaimer_notice">
@@ -807,6 +809,8 @@
             {{-- ════════════════════════════════════════════════════════════════ --}}
             @include('partials.triage-card', ['expr' => 'conclusion?.triage'])
 
+            @include('partials.quality-card', ['expr' => 'conclusion?.quality'])
+
             {{-- ════════════════════════ EVIDENCE ═══════════════════════════════ --}}
             @include('partials.evidence-panel', ['expr' => 'conclusion?.evidence'])
 
@@ -1007,11 +1011,13 @@
                         <p class="text-[11px] font-bold text-primary uppercase tracking-widest mb-1.5" data-i18n="result_likely_condition">Likely Condition</p>
                         <h3 class="text-xl font-bold text-slate-800 mb-2" x-text="conclusion.assumed_condition?.name">
                         </h3>
+                        <p x-show="conclusion.quality" class="text-xs font-semibold text-slate-600 mb-2" x-text="conclusion.quality?.labels.possibility"></p>
                         <p class="text-sm text-slate-600 leading-relaxed"
                             x-text="conclusion.assumed_condition?.plain_explanation"></p>
                     </div>
 
                     {{-- Self-care + Lifestyle --}}
+                    <p x-show="conclusion.quality" class="text-xs font-semibold text-slate-600" x-text="conclusion.quality?.labels.recommendation"></p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div x-show="conclusion.self_care?.length" class="glass-card rounded-3xl p-6">
                             <h3 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">

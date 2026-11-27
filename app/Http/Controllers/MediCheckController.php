@@ -10,6 +10,7 @@ use App\Services\GroqService;
 use App\Services\Intake\IntakeService;
 use App\Services\MediCoreAiService;
 use App\Services\MedicalPipelineService;
+use App\Services\Quality\ResponseQuality;
 use App\Services\ScreeningService;
 use App\Services\Triage\TriageService;
 use Illuminate\Http\Request;
@@ -25,7 +26,8 @@ class MediCheckController extends Controller
         private MediCoreAiService $mediCore,
         private EvidenceService $evidence,
         private TriageService $triage,
-        private IntakeService $intake
+        private IntakeService $intake,
+        private ResponseQuality $quality
     ) {}
 
     /**
@@ -360,7 +362,8 @@ class MediCheckController extends Controller
             }
 
             $grounding = $this->evidence->ground($symptoms . "\n" . implode("\n", array_filter(array_column($qa, 'answer'))));
-            $conclusion = $this->screening->conclude($symptoms, $qa, $role, $lang, $grounding['block']);
+            $reference = trim($grounding['block'] . "\n\n" . $this->quality->rules($triage));
+            $conclusion = $this->screening->conclude($symptoms, $qa, $role, $lang, $reference);
 
             if ($triage) {
                 $conclusion['triage'] = $triage;
@@ -375,8 +378,17 @@ class MediCheckController extends Controller
                 $this->crossReferenceDrugs($conclusion['drugs']);
             }
 
+            // Wording is checked before evidence, so removed sentences are not counted as claims.
+            $report = null;
+            if ($this->quality->isActive()) {
+                [$conclusion, $report] = $this->quality->apply($conclusion, $symptoms, $qa ?? [], $this->resolveLang($lang, $symptoms), $triage);
+            }
+
             // Kept inside the conclusion so history and exports carry the references.
             $conclusion['evidence'] = $this->evidence->assess($conclusion, $symptoms, $this->resolveLang($lang, $symptoms), grounding: $grounding);
+            if ($report) {
+                $conclusion['quality'] = $report;
+            }
 
             $result = [
                 'symptoms'   => $symptoms,

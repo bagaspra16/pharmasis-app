@@ -1035,6 +1035,12 @@
                     t += `\n${tri.labels.heading.toUpperCase()}: ${tri.title}\n${tri.meaning}\n`;
                     [...tri.next_steps, ...tri.missing, tri.watch_for, tri.labels.not_diagnosis].filter(Boolean).forEach(x => t += `- ${x}\n`);
                 }
+                const qr = c.quality;
+                if (qr) {
+                    t += `\n${qr.labels.title.toUpperCase()}\n`;
+                    if (r.role !== 'doctor') t += `- ${qr.labels.possibility}\n- ${qr.labels.recommendation}\n`;
+                    [...qr.notices, ...qr.limits].forEach(x => t += `- ${x}\n`);
+                }
                 const ev = c.evidence;
                 if (ev) {
                     t += `\n${ev.labels.title.toUpperCase()}\n${ev.labels.status[ev.status]}\n`;
@@ -1152,6 +1158,13 @@
                     if (c.which_doctor) html += '<p style="font-size:0.85rem;margin:0.5rem 0;"><strong>You should see:</strong> ' + this._esc(c.which_doctor) + '</p>';
                     list('What to Ask Your Doctor', c.what_to_ask_doctor);
                     if (c.disclaimer) html += '<p style="font-size:0.75rem;color:#94a3b8;font-style:italic;margin:1rem 0 0;border-top:1px solid #e2e8f0;padding-top:0.75rem;">' + this._esc(c.disclaimer) + '</p>';
+                }
+
+                const qr = c.quality;
+                if (qr) {
+                    html += '<h2 style="font-size:1rem;color:#0f172a;margin:1rem 0 0.4rem;">' + this._esc(qr.labels.title) + '</h2>';
+                    const extra = r.role !== 'doctor' ? [qr.labels.possibility, qr.labels.recommendation] : [];
+                    [...extra, ...qr.notices, ...qr.limits].forEach(x => html += '<p style="font-size:0.82rem;color:#475569;margin:0 0 0.25rem;">• ' + this._esc(x) + '</p>');
                 }
 
                 const tri = c.triage;
