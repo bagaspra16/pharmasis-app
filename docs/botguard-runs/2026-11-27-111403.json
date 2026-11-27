@@ -1,0 +1,139 @@
+{
+    "summary": {
+        "legitimate_profiles": 9,
+        "legitimate_profiles_stopped": 0,
+        "legitimate_requests_stopped": "0\/817",
+        "automated_profiles": 11,
+        "automated_profiles_stopped_at_all": 8,
+        "automated_requests_stopped": "290\/530",
+        "added_latency_ms": {
+            "median": 18.8,
+            "p95": 38.4,
+            "max": 137.6
+        }
+    },
+    "legitimate": [
+        {
+            "profile": "one consultation",
+            "requests": 7,
+            "stopped": 0,
+            "first": "-"
+        },
+        {
+            "profile": "typing in drug search",
+            "requests": 30,
+            "stopped": 0,
+            "first": "-"
+        },
+        {
+            "profile": "quick tapping through questions",
+            "requests": 12,
+            "stopped": 0,
+            "first": "-"
+        },
+        {
+            "profile": "retrying after errors",
+            "requests": 6,
+            "stopped": 0,
+            "first": "-"
+        },
+        {
+            "profile": "privacy browser, no language",
+            "requests": 6,
+            "stopped": 0,
+            "first": "-"
+        },
+        {
+            "profile": "cookies blocked",
+            "requests": 6,
+            "stopped": 0,
+            "first": "-"
+        },
+        {
+            "profile": "40 people, one mobile network",
+            "requests": 120,
+            "stopped": 0,
+            "first": "-"
+        },
+        {
+            "profile": "150 people, one mobile network in 5 minutes",
+            "requests": 450,
+            "stopped": 0,
+            "first": "-"
+        },
+        {
+            "profile": "shared clinic tablet, 30 patients in an hour",
+            "requests": 180,
+            "stopped": 0,
+            "first": "-"
+        }
+    ],
+    "automated": [
+        {
+            "profile": "curl script",
+            "requests": 30,
+            "stopped": 30,
+            "first": "restrict at request 1"
+        },
+        {
+            "profile": "python scraper of search",
+            "requests": 60,
+            "stopped": 60,
+            "first": "challenge at request 1"
+        },
+        {
+            "profile": "no browser name",
+            "requests": 30,
+            "stopped": 30,
+            "first": "restrict at request 1"
+        },
+        {
+            "profile": "headless browser",
+            "requests": 30,
+            "stopped": 30,
+            "first": "challenge at request 1"
+        },
+        {
+            "profile": "script faking a browser, fast",
+            "requests": 60,
+            "stopped": 50,
+            "first": "challenge at request 9"
+        },
+        {
+            "profile": "script faking a browser, slow",
+            "requests": 60,
+            "stopped": 0,
+            "first": "-"
+        },
+        {
+            "profile": "replaying one message",
+            "requests": 60,
+            "stopped": 20,
+            "first": "limit at request 21"
+        },
+        {
+            "profile": "full browser imitation, slow",
+            "requests": 60,
+            "stopped": 0,
+            "first": "-"
+        },
+        {
+            "profile": "rotating addresses, slow",
+            "requests": 60,
+            "stopped": 0,
+            "first": "-"
+        },
+        {
+            "profile": "scanner then use",
+            "requests": 20,
+            "stopped": 20,
+            "first": "challenge at request 1"
+        },
+        {
+            "profile": "adding emergency words to get in",
+            "requests": 60,
+            "stopped": 50,
+            "first": "restrict at request 11"
+        }
+    ]
+}

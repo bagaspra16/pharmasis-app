@@ -14,5 +14,7 @@ class EncryptCookies extends Middleware
     protected $except = [
         // Written by the consent banner in the browser, so it is not encrypted.
         'pharmasis_consent',
+        // A random token checked on the server; read before cookie decryption.
+        'pharmasis_pass',
     ];
 }

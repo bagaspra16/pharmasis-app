@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BotChallengeController;
 use App\Http\Controllers\DrugController;
 use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\MediCheckController;
@@ -11,6 +12,9 @@ Route::get('/search', [DrugController::class , 'searchPage'])->name('drugs.searc
 Route::get('/drugs/{id}', [DrugController::class , 'show'])->name('drugs.show');
 Route::get('/drugs/fda/{slug}', [DrugController::class , 'showFda'])->name('drugs.show_fda');
 Route::get('/interactions', [DrugController::class , 'interactionPage'])->name('interactions.index');
+
+// ── Browser check ────────────────────────────────────────────────────────────
+Route::post('/bot/verify', [BotChallengeController::class, 'verify'])->name('bot.verify');
 
 // ── Nearby healthcare facilities ──────────────────────────────────────────────
 Route::get('/facilities', [FacilityController::class, 'index'])->name('facilities.index');

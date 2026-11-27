@@ -94,6 +94,7 @@
     <link rel="icon" href="{{ asset('images/icon.png') }}">
 
     <!-- Alpine.js -->
+    @include('partials.bot-check')
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <!-- Markdown renderer for AI output -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>

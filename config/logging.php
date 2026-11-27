@@ -52,6 +52,14 @@ return [
     */
 
     'channels' => [
+        // Bot protection events. See docs/BOTGUARD.md.
+        'security' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/security.log'),
+            'level' => 'info',
+            'days' => 30,
+        ],
+
         'stack' => [
             'driver' => 'stack',
             'channels' => ['single'],

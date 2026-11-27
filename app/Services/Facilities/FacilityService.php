@@ -107,7 +107,7 @@ class FacilityService
                 'wide'    => $this->distanceKm($box[0], $box[2], $box[1], $box[3]) > 2,
             ];
         }
-        Cache::put($key, $places, now()->addDays(7));
+        Cache::put($key, $places, now()->addDay());
 
         return $places;
     }

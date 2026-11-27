@@ -189,6 +189,18 @@ class FacilityTest extends TestCase
             ->assertJsonPath('places.1.wide', false);
     }
 
+    public function test_home_page_looks_up_the_visitor_address_only_with_consent(): void
+    {
+        Http::fake(['*' => Http::response(['status' => 'success', 'city' => 'Jakarta', 'regionName' => 'Jakarta', 'country' => 'Indonesia', 'results' => []])]);
+        $lookup = fn ($request) => str_contains($request->url(), 'ip-api.com');
+
+        $this->get('/')->assertOk();
+        Http::assertNotSent($lookup);
+
+        $this->withUnencryptedCookie('pharmasis_consent', 'accepted')->get('/')->assertOk();
+        Http::assertSent($lookup);
+    }
+
     public function test_pages_render_and_the_invented_list_route_is_gone(): void
     {
         $this->get('/facilities')->assertOk()->assertSee('facilityFinder', false);

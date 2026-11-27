@@ -1,0 +1,125 @@
+{
+    "summary": {
+        "distinct_records": 22,
+        "percent_with": {
+            "address": 81.8,
+            "phone": 13.6,
+            "opening_hours": 0,
+            "website": 27.3,
+            "services": 4.5,
+            "status_label": 100
+        },
+        "percent_stale": 72.7,
+        "searches_ok": "1\/15",
+        "first_search_ms": {
+            "median": 7891,
+            "p95": 7891,
+            "max": 7891
+        },
+        "repeat_search_ms_max": 1
+    },
+    "geocoding": {
+        "Monumen Nasional, Jakarta": {
+            "matches": 2,
+            "km_from_expected": 0
+        },
+        "Gedung Sate, Bandung": {
+            "matches": 5,
+            "km_from_expected": 0
+        },
+        "Tugu Pahlawan, Surabaya": {
+            "matches": 2,
+            "km_from_expected": 0
+        },
+        "Tugu Yogyakarta": {
+            "matches": 1,
+            "km_from_expected": 0
+        },
+        "Bandar Udara Komodo, Labuan Bajo": {
+            "matches": 1,
+            "km_from_expected": 0.69
+        }
+    },
+    "searches": [
+        {
+            "place": "Monumen Nasional, Jakarta",
+            "category": "care",
+            "error": "Facility data unavailable"
+        },
+        {
+            "place": "Monumen Nasional, Jakarta",
+            "category": "emergency",
+            "error": "Facility data unavailable"
+        },
+        {
+            "place": "Monumen Nasional, Jakarta",
+            "category": "pharmacy",
+            "error": "Facility data unavailable"
+        },
+        {
+            "place": "Gedung Sate, Bandung",
+            "category": "care",
+            "error": "Facility data unavailable"
+        },
+        {
+            "place": "Gedung Sate, Bandung",
+            "category": "emergency",
+            "error": "Facility data unavailable"
+        },
+        {
+            "place": "Gedung Sate, Bandung",
+            "category": "pharmacy",
+            "error": "Facility data unavailable"
+        },
+        {
+            "place": "Tugu Pahlawan, Surabaya",
+            "category": "care",
+            "error": "Facility data unavailable"
+        },
+        {
+            "place": "Tugu Pahlawan, Surabaya",
+            "category": "emergency",
+            "first_ms": 7891,
+            "repeat_ms": 1,
+            "total": 22,
+            "shown": 22,
+            "truncated": false,
+            "listed_emergency": 3
+        },
+        {
+            "place": "Tugu Pahlawan, Surabaya",
+            "category": "pharmacy",
+            "error": "Facility data unavailable"
+        },
+        {
+            "place": "Tugu Yogyakarta",
+            "category": "care",
+            "error": "Facility data unavailable"
+        },
+        {
+            "place": "Tugu Yogyakarta",
+            "category": "emergency",
+            "error": "Facility data unavailable"
+        },
+        {
+            "place": "Tugu Yogyakarta",
+            "category": "pharmacy",
+            "error": "Facility data unavailable"
+        },
+        {
+            "place": "Bandar Udara Komodo, Labuan Bajo",
+            "category": "care",
+            "error": "Facility data unavailable"
+        },
+        {
+            "place": "Bandar Udara Komodo, Labuan Bajo",
+            "category": "emergency",
+            "error": "Facility data unavailable"
+        },
+        {
+            "place": "Bandar Udara Komodo, Labuan Bajo",
+            "category": "pharmacy",
+            "error": "Facility data unavailable"
+        }
+    ]
+}
