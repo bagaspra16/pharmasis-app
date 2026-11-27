@@ -12,7 +12,7 @@
 
 - The AI can only add findings. It cannot remove one or choose the category.
 - Categories: Emergency, Urgent, Routine, Unable to assess.
-- Routine needs all of: a cold, sore throat or headache; age 5 to 64; duration given; every warning sign explicitly denied; no health condition; AI tagging succeeded and found nothing else; English or Indonesian.
+- Routine needs all of: a cold, sore throat or headache; age 5 to 64; duration given; every warning sign explicitly denied; no health condition; AI tagging succeeded and found nothing else; English or Indonesian; symptoms not reported as severe.
 - Anything missing gives Unable to assess.
 - Rules are in `resources/triage/rules.json`. Each has a source quote and states how it differs from the source.
 
@@ -42,7 +42,7 @@ Prepared by an AI assistant. A clinician must review severity and acceptability.
 | --- | --- | --- | --- |
 | Free text describes an emergency in unlisted words | Delayed care | Checklist asked first; AI tagging at conclusion; the existing AI router can still flag emergencies | **High.** Patterns alone caught about half of unseen phrasings |
 | AI service down or rate limited | Missed warning sign | Patterns and checklist work without it; routine is blocked | High for free text |
-| Emergency typed into a follow-up answer | Delay until the conclusion | Checked at the conclusion | Medium |
+| Emergency typed into a follow-up answer | Delay until the conclusion | Checked after each answer when intake is on (see INTAKE.md), otherwise at the conclusion | Medium |
 | False reassurance | Delayed care | Strict routine conditions; comforting opener removed unless routine | Medium. The AI-written conclusion text below the category is not constrained by it and may sound milder |
 | Informational question names a symptom ("what causes chest pain?") | Unnecessary alarm; the factual answer is not shown | Back button | **Likely to happen.** Needs a product and clinical decision |
 | Over-triage | Alarm fatigue, unnecessary visits | None | Not measured |

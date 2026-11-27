@@ -123,6 +123,9 @@ class TriageEngine
         if ($risk) {
             $missing[] = 'risk_condition';
         }
+        if (($context['severity'] ?? null) === 'severe') {
+            $missing[] = 'severe_symptoms';
+        }
 
         return $missing
             ? $this->result('unable_to_assess', [], $findings, $missing)

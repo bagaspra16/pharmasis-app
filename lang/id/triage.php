@@ -58,6 +58,7 @@ return [
         'recognised_complaint' => 'Keluhan ini tidak bisa dinilai "tidak mendesak" oleh alat ini.',
         'age_group_not_covered' => 'Alat ini tidak menilai kelompok usia ini sebagai tidak mendesak.',
         'risk_condition' => 'Ada kondisi kesehatan sehingga tidak aman dinilai tidak mendesak.',
+        'severe_symptoms' => 'Keluhan berat sehingga tidak aman dinilai tidak mendesak.',
         'language' => 'Alat ini tidak bisa menilai "tidak mendesak" dalam bahasa ini.',
     ],
 ];

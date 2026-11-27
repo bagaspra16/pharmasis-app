@@ -17,7 +17,7 @@ class ScreeningService
      *
      * @return array<int,array<string,mixed>>  List of question objects.
      */
-    public function generateQuestions(string $firstPrompt, string $lang = 'auto'): array
+    public function generateQuestions(string $firstPrompt, string $lang = 'auto', string $covered = ''): array
     {
         $resolvedLang = $lang === 'auto' ? $this->detectLang($firstPrompt) : $lang;
         $langInstr    = $this->langInstruction($resolvedLang);
@@ -35,6 +35,7 @@ class ScreeningService
               . "CRITICAL: Return ONLY valid JSON starting with { and ending with }. No conversational text.\n{$langInstr}"],
             ['role' => 'user', 'content' =>
                 "Patient's initial complaint: {$firstPrompt}\n\n"
+              . ($covered === '' ? '' : "Already asked or answered, do NOT ask again in any wording:\n{$covered}\n\n")
               . "Return JSON with EXACTLY this structure:\n"
               . '{"questions":[{'
               . '"id":"q1",'

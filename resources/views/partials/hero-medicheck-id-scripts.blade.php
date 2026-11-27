@@ -223,6 +223,8 @@
             analyzing: false,      // loading conclusion
             questions: [],
             currentQ: 0,
+            adaptive: false,
+            replanning: false,
             answers: {},           // { [questionId]: { chips: [], text: '' } }
             role: null,            // 'doctor' | 'patient'
             result: null,          // full server payload
@@ -462,6 +464,7 @@
                             this.answers[q.id] = { chips: [], text: '' };
                             return q;
                         });
+                        this.adaptive = !!data.adaptive;
                         this.currentQ = 0;
                         this.phase = 'questions';
                         this.$nextTick(() => setTimeout(() => this.scrollToEl('screening-panel', 'smooth'), 80));
@@ -509,13 +512,18 @@
                 } else {
                     a.chips = a.chips[0] === choice ? [] : [choice];
                 }
-                if (!q?.triage_key) return;
-                // "None of these" and a listed item cannot both be selected.
-                const none = q.choices[q.values.indexOf('none')];
-                if (none && q.allow_multiple && a.chips.includes(choice)) {
-                    a.chips = choice === none ? [none] : a.chips.filter(c => c !== none);
+                if (!q?.values) {
+                    return;
                 }
-                if (q.escalation && choice !== none && a.chips.includes(choice)) {
+                // "None", "don't know" and "prefer not to say" exclude every other choice.
+                const solo = ['none', 'unknown', 'declined'];
+                const value = q.values[q.choices.indexOf(choice)];
+                if (q.allow_multiple && a.chips.includes(choice)) {
+                    a.chips = solo.includes(value)
+                        ? [choice]
+                        : a.chips.filter(c => !solo.includes(q.values[q.choices.indexOf(c)]));
+                }
+                if (q.escalation && !solo.includes(value) && a.chips.includes(choice)) {
                     this.showEmergency(q.escalation);
                 }
             },
@@ -528,7 +536,56 @@
                 const a = this.answers[q.id] || { chips: [], text: '' };
                 return a.chips.length > 0 || (a.text || '').trim().length > 0;
             },
-            nextQ() {
+            /* Safety answers as fixed codes, not translated text. */
+            appendTriage(body) {
+                this.questions.filter(q => q.triage_key).forEach(q => {
+                    const values = (this.answers[q.id]?.chips || []).map(c => q.values[q.choices.indexOf(c)]).filter(Boolean);
+                    if (q.allow_multiple) values.forEach(v => body.append(`triage[${q.triage_key}][]`, v));
+                    else if (values.length) body.append(`triage[${q.triage_key}]`, values[0]);
+                });
+            },
+
+            /* Ask the server to re-plan. On any failure, keep the current questions. */
+            async replan() {
+                const body = new FormData();
+                body.append('symptoms', this.firstPrompt);
+                body.append('lang', (window.PharmasisI18n ? window.PharmasisI18n.getLanguage() : 'id'));
+                this.buildQaPayload().slice(0, this.currentQ + 1).forEach((pair, i) => {
+                    body.append(`qa[${i}][question]`, pair.question);
+                    body.append(`qa[${i}][answer]`, pair.answer);
+                });
+                this.appendTriage(body);
+                try {
+                    const res = await fetch('/medicheck/next', {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content, 'Accept': 'application/json' },
+                        body
+                    });
+                    const data = await res.json();
+                    if (!res.ok || !data.success) return true;
+                    if (data.triage?.category === 'emergency') {
+                        this.showEmergency(data.triage);
+                        return false;
+                    }
+                    const done = this.questions.slice(0, this.currentQ + 1);
+                    const ids = new Set(done.map(q => q.id));
+                    const planned = data.questions.filter(q => !ids.has(q.id));
+                    const extra = this.questions.slice(this.currentQ + 1)
+                        .filter(q => !q.is_role && !/^(triage|intake)_/.test(q.id));
+                    planned.forEach(q => { if (!this.answers[q.id]) this.answers[q.id] = { chips: [], text: '' }; });
+                    this.questions = [...done, ...planned, ...extra, ...this.questions.filter(q => q.is_role && !ids.has(q.id))];
+                } catch (e) { /* keep current questions */ }
+                return true;
+            },
+
+            async nextQ() {
+                if (this.replanning) return;
+                if (this.adaptive) {
+                    this.replanning = true;
+                    const carryOn = await this.replan();
+                    this.replanning = false;
+                    if (!carryOn) return;
+                }
                 if (!this.isLastQuestion) {
                     this.currentQ++;
                     this.$nextTick(() => this.scrollToEl('screening-panel', 'smooth'));
@@ -549,7 +606,7 @@
             /* ══════════════ Phase 3 → 4: conclude ══════════════ */
             buildQaPayload() {
                 return this.questions
-                    .filter(q => !q.is_role && !q.triage_key)
+                    .filter(q => !q.is_role)
                     .map(q => {
                         const a = this.answers[q.id] || { chips: [], text: '' };
                         const parts = [];
@@ -590,12 +647,8 @@
                         body.append(`qa[${i}][question]`, pair.question);
                         body.append(`qa[${i}][answer]`, pair.answer);
                     });
-                    // Safety answers are sent as fixed codes, not as translated text.
-                    this.questions.filter(q => q.triage_key).forEach(q => {
-                        const values = (this.answers[q.id]?.chips || []).map(c => q.values[q.choices.indexOf(c)]).filter(Boolean);
-                        if (q.allow_multiple) values.forEach(v => body.append(`triage[${q.triage_key}][]`, v));
-                        else if (values.length) body.append(`triage[${q.triage_key}]`, values[0]);
-                    });
+                    this.appendTriage(body);
+
 
                     const res = await fetch('/medicheck/conclude', {
                         method: 'POST',

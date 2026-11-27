@@ -58,6 +58,7 @@ return [
         'recognised_complaint' => 'The complaint is not one this tool can rate as routine.',
         'age_group_not_covered' => 'This tool does not rate this age group as routine.',
         'risk_condition' => 'A health condition makes a routine rating unsafe.',
+        'severe_symptoms' => 'Severe symptoms make a routine rating unsafe.',
         'language' => 'This tool cannot rate urgency as routine in this language.',
     ],
 ];

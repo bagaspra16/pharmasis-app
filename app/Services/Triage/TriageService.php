@@ -40,27 +40,57 @@ class TriageService
     }
 
     /**
+     * Emergency check during questioning: patterns and structured answers only.
+     *
+     * @param array<int,array{question?:string,answer?:string}> $qa
+     */
+    public function emergencyFromAnswers(string $complaint, array $qa, array $answers, string $lang): ?array
+    {
+        [$findings, $context] = $this->collect($complaint, $qa, $answers);
+        $result = $this->engine->assess($findings, $context);
+
+        return $result['category'] === 'emergency' ? $this->present($result, $lang) : null;
+    }
+
+    /** @return array{0:string[],1:array} Findings and context from the user's own input. */
+    private function collect(string $complaint, array $qa, array $answers): array
+    {
+        // Only the user's words are matched: questions mention symptoms the user may not have.
+        // The medicine answer is skipped: "seizure medicine" is not a seizure.
+        $medicine = [trans('intake.questions.meds', [], 'en'), trans('intake.questions.meds', [], 'id')];
+        $said = $complaint;
+        foreach ($qa as $pair) {
+            if (!in_array($pair['question'] ?? '', $medicine, true)) {
+                $said .= "\n" . ($pair['answer'] ?? '');
+            }
+        }
+
+        $redFlags = array_values((array) ($answers['red_flags'] ?? []));
+        $findings = array_merge(
+            $this->engine->match($said),
+            array_diff($redFlags, ['none']),
+            (array) ($answers['associated'] ?? [])
+        );
+
+        $risk = array_values(array_intersect((array) ($answers['risk'] ?? []), self::RISKS));
+
+        return [$findings, [
+            'age'      => in_array($answers['age'] ?? null, self::AGES, true) ? $answers['age'] : null,
+            'duration' => in_array($answers['duration'] ?? null, self::DURATIONS, true) ? $answers['duration'] : null,
+            'risk'     => $risk ? array_values(array_diff($risk, ['none'])) : null,
+            'severity' => $answers['severity'] ?? null,
+            // Denial must be explicit. A skipped or "don't know" answer is not a "no".
+            'denied_warning_signs' => $redFlags === ['none'],
+        ]];
+    }
+
+    /**
      * @param array<int,array{question?:string,answer?:string}> $qa
      * @param array{red_flags?:string[],age?:string,duration?:string,risk?:string[]} $answers
      */
     public function assess(string $complaint, array $qa, array $answers, string $lang): array
     {
-        // Only the user's words are matched: questions mention symptoms the user may not have.
-        $said = $complaint . "\n" . implode("\n", array_column($qa, 'answer'));
-        $findings = $this->engine->match($said);
-
-        $redFlags = array_values((array) ($answers['red_flags'] ?? []));
-        $selected = array_diff($redFlags, ['none']);
-        $findings = array_merge($findings, $selected);
-
-        $risk = array_values(array_intersect((array) ($answers['risk'] ?? []), self::RISKS));
-        $context = [
-            'age'      => in_array($answers['age'] ?? null, self::AGES, true) ? $answers['age'] : null,
-            'duration' => in_array($answers['duration'] ?? null, self::DURATIONS, true) ? $answers['duration'] : null,
-            'risk'     => $risk ? array_values(array_diff($risk, ['none'])) : null,
-            // Denial must be explicit. A skipped question is not a "no".
-            'denied_warning_signs' => $redFlags === ['none'],
-        ];
+        [$findings, $context] = $this->collect($complaint, $qa, $answers);
 
         $result = $this->engine->assess($findings, $context);
         if ($result['category'] !== 'emergency') {

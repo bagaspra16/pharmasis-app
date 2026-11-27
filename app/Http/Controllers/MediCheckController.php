@@ -7,6 +7,7 @@ use App\Models\FdaDrug;
 use App\Services\AnalyticsRecorder;
 use App\Services\Evidence\EvidenceService;
 use App\Services\GroqService;
+use App\Services\Intake\IntakeService;
 use App\Services\MediCoreAiService;
 use App\Services\MedicalPipelineService;
 use App\Services\ScreeningService;
@@ -23,7 +24,8 @@ class MediCheckController extends Controller
         private ScreeningService $screening,
         private MediCoreAiService $mediCore,
         private EvidenceService $evidence,
-        private TriageService $triage
+        private TriageService $triage,
+        private IntakeService $intake
     ) {}
 
     /**
@@ -228,7 +230,19 @@ class MediCheckController extends Controller
                 return response()->json(['success' => true, 'questions' => [], 'triage' => $alert]);
             }
 
-            if ($this->triage->isActive()) {
+            $adaptive = $this->intake->isActive();
+            if ($adaptive) {
+                $questions = $this->intake->plan($symptoms, [], $resolved);
+                // AI-written questions only when no complaint group covers the concern.
+                if (!$this->intake->groups($symptoms)) {
+                    try {
+                        $extra = $this->screening->generateQuestions($symptoms, $lang, implode("\n", array_column($questions, 'question')));
+                        $questions = array_merge($questions, array_slice($extra, 0, config('intake.max_ai_questions')));
+                    } catch (\RuntimeException $e) {
+                        Log::warning('MediCheck screen: follow-up questions unavailable', ['message' => $e->getMessage()]);
+                    }
+                }
+            } elseif ($this->triage->isActive()) {
                 // The safety questions do not depend on the AI service being up.
                 try {
                     $generated = $this->screening->generateQuestions($symptoms, $lang);
@@ -248,7 +262,7 @@ class MediCheckController extends Controller
                 'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
             ]);
 
-            return response()->json(['success' => true, 'questions' => $questions]);
+            return response()->json(['success' => true, 'questions' => $questions] + ($adaptive ? ['adaptive' => true] : []));
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
@@ -264,6 +278,42 @@ class MediCheckController extends Controller
     }
 
     /**
+     * Re-plan the remaining questions after an answer. No model call.
+     * POST /medicheck/next
+     */
+    public function next(Request $request)
+    {
+        abort_unless($this->intake->isActive(), 404);
+
+        $data = $request->validate([
+            'symptoms'      => 'required|string|max:2000',
+            'lang'          => 'nullable|in:en,id,ja,es,zh,ar,fr,de,ko,pt,ru,auto',
+            'qa'            => 'nullable|array|max:15',
+            'qa.*.question' => 'nullable|string|max:1000',
+            'qa.*.answer'   => 'nullable|string|max:2000',
+            'triage'        => 'nullable|array',
+        ]);
+
+        $symptoms = trim($data['symptoms']);
+        $lang = $this->resolveLang($data['lang'] ?? 'auto', $symptoms);
+        $answers = $this->intakeAnswers($request, $symptoms);
+
+        if ($alert = $this->triage->emergencyFromAnswers($symptoms, $data['qa'] ?? [], $answers, $lang)) {
+            return response()->json(['success' => true, 'questions' => [], 'triage' => $alert]);
+        }
+
+        return response()->json(['success' => true, 'questions' => $this->intake->plan($symptoms, $answers, $lang)]);
+    }
+
+    private function intakeAnswers(Request $request, string $symptoms): array
+    {
+        $answers = $request->input('triage');
+        $answers = is_array($answers) ? $answers : [];
+
+        return $this->intake->isActive() ? $answers + $this->intake->known($symptoms) : $answers;
+    }
+
+    /**
      * Produce the final conclusion from the screening transcript, branched by
      * the user's role (doctor vs patient).
      * POST /medicheck/conclude
@@ -273,7 +323,7 @@ class MediCheckController extends Controller
         $startedAt = microtime(true);
         $request->validate([
             'symptoms'      => 'required|string|max:2000',
-            'qa'            => 'nullable|array|max:10',
+            'qa'            => 'nullable|array|max:15',
             'qa.*.question' => 'nullable|string|max:1000',
             'qa.*.answer'   => 'nullable|string|max:2000',
             'role'          => 'required|in:doctor,patient',
@@ -285,6 +335,9 @@ class MediCheckController extends Controller
             'triage.duration'  => 'nullable|string|max:20',
             'triage.risk'      => 'nullable|array|max:5',
             'triage.risk.*'    => 'string|max:20',
+            'triage.severity'  => 'nullable|string|max:20',
+            'triage.associated' => 'nullable|array|max:20',
+            'triage.associated.*' => 'string|max:40',
         ]);
 
         try {
@@ -294,7 +347,7 @@ class MediCheckController extends Controller
             $qa       = $request->input('qa', []);
 
             $triage = $this->triage->isActive()
-                ? $this->triage->assess($symptoms, $qa ?? [], $request->input('triage', []) ?? [], $this->resolveLang($lang, $symptoms))
+                ? $this->triage->assess($symptoms, $qa ?? [], $this->intakeAnswers($request, $symptoms), $this->resolveLang($lang, $symptoms))
                 : null;
             // An emergency returns at once, without waiting for the written conclusion.
             if (($triage['category'] ?? null) === 'emergency') {
