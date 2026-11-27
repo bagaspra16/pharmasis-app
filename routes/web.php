@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\BotChallengeController;
 use App\Http\Controllers\DrugController;
+use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\MediCheckController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,13 +13,21 @@ Route::get('/drugs/{id}', [DrugController::class , 'show'])->name('drugs.show');
 Route::get('/drugs/fda/{slug}', [DrugController::class , 'showFda'])->name('drugs.show_fda');
 Route::get('/interactions', [DrugController::class , 'interactionPage'])->name('interactions.index');
 
+// ── Browser check ────────────────────────────────────────────────────────────
+Route::post('/bot/verify', [BotChallengeController::class, 'verify'])->name('bot.verify');
+
+// ── Nearby healthcare facilities ──────────────────────────────────────────────
+Route::get('/facilities', [FacilityController::class, 'index'])->name('facilities.index');
+Route::post('/facilities/geocode', [FacilityController::class, 'geocode'])->middleware('throttle:20,1,geocode')->name('facilities.geocode');
+Route::post('/facilities/search', [FacilityController::class, 'search'])->middleware('throttle:30,1,facilities')->name('facilities.search');
+
 // ── MediCheck AI ─────────────────────────────────────────────────────────────
 Route::post('/medicheck/route', [MediCheckController::class, 'route'])->name('medicheck.route');
 Route::post('/medicheck/analyze', [MediCheckController::class, 'analyze'])->name('medicheck.analyze');
 Route::post('/medicheck/transcribe', [MediCheckController::class, 'transcribe'])->name('medicheck.transcribe');
 Route::post('/medicheck/screen', [MediCheckController::class, 'screen'])->name('medicheck.screen');
+Route::post('/medicheck/next', [MediCheckController::class, 'next'])->name('medicheck.next');
 Route::post('/medicheck/conclude', [MediCheckController::class, 'conclude'])->name('medicheck.conclude');
-Route::post('/medicheck/nearby', [MediCheckController::class, 'nearby'])->name('medicheck.nearby');
 Route::get('/medicheck/history', [MediCheckController::class, 'history'])->name('medicheck.history');
 Route::get('/medicheck/history/{id}', [MediCheckController::class, 'historyItem'])->name('medicheck.history.item');
 

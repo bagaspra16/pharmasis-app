@@ -44,9 +44,12 @@ class DrugController extends Controller
             $featured = collect(array_map(fn($d) => DrugDTO::fromArray($d), $fdaData));
         }
 
-        $userLocation = $this->geoIpService->resolveLocation(request()->ip());
+        // Only with consent. The cached result picks the emergency number shown by TriageService.
+        if (request()->cookie('pharmasis_consent') === 'accepted') {
+            $this->geoIpService->resolveLocation(request()->ip());
+        }
 
-        return view('home', compact('featured', 'alphaIndex', 'dbOffline', 'fdaMode', 'userLocation'));
+        return view('home', compact('featured', 'alphaIndex', 'dbOffline', 'fdaMode'));
     }
 
     // ─── Social Project Homepage (Bahasa Indonesia + kiosk) ────────────────────

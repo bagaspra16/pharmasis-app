@@ -21,6 +21,8 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        // After input trimming, before analytics, so refused requests are not counted as visits.
+        \App\Http\Middleware\GuardAgainstBots::class,
         \App\Http\Middleware\TrackTraffic::class,
     ];
 

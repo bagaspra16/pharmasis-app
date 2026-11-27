@@ -31,6 +31,9 @@ return [
 
     'env' => env('APP_ENV', 'production'),
 
+    // Comma-separated proxy addresses. Empty keeps the previous behaviour of trusting any.
+    'trusted_proxies' => env('TRUSTED_PROXIES'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Debug Mode

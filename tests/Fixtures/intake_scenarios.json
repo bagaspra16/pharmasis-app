@@ -1,0 +1,12 @@
+[
+    {"id": "fever-en", "lang": "en", "text": "I have had a fever for four days", "ask": ["red_flags", "age", "associated", "severity", "risk", "meds"], "skip": ["duration"]},
+    {"id": "fever-id", "lang": "id", "text": "Demam sudah 4 hari, umur saya 30 tahun", "ask": ["red_flags", "associated", "severity", "risk", "meds"], "skip": ["age", "duration"]},
+    {"id": "cold-en", "lang": "en", "text": "Mild runny nose since yesterday, I am 25 years old", "ask": ["red_flags", "associated", "risk", "meds"], "skip": ["age", "duration", "severity"]},
+    {"id": "stomach-id", "lang": "id", "text": "Perut mual dan diare", "ask": ["red_flags", "age", "duration", "associated", "severity", "risk", "meds"], "skip": []},
+    {"id": "headache-en", "lang": "en", "text": "Severe headache for 2 days", "ask": ["red_flags", "age", "associated", "risk", "meds"], "skip": ["duration", "severity"]},
+    {"id": "urine-id", "lang": "id", "text": "Perih saat kencing sejak kemarin", "ask": ["red_flags", "age", "associated", "severity", "risk", "meds"], "skip": ["duration"]},
+    {"id": "skin-en", "lang": "en", "text": "An itchy rash on my skin for 2 weeks", "ask": ["red_flags", "age", "associated", "severity", "risk", "meds"], "skip": ["duration"]},
+    {"id": "unknown-en", "lang": "en", "text": "My knee has been clicking", "ask": ["red_flags", "age", "duration", "severity", "risk", "meds"], "skip": ["associated"]},
+    {"id": "child-id", "lang": "id", "text": "Anak saya batuk, umur 3 tahun", "ask": ["red_flags", "duration", "associated", "severity", "risk", "meds"], "skip": ["age"]},
+    {"id": "years-not-age", "lang": "en", "text": "I have had a cough for 2 years", "ask": ["red_flags", "age", "associated", "severity", "risk", "meds"], "skip": ["duration"]}
+]

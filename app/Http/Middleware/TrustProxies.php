@@ -15,6 +15,17 @@ class TrustProxies extends Middleware
     protected $proxies = '*';
 
     /**
+     * Set TRUSTED_PROXIES to the real proxy addresses. With '*', a server reachable
+     * without a proxy lets visitors forge their address and dodge rate limits.
+     */
+    protected function proxies()
+    {
+        $set = config('app.trusted_proxies');
+
+        return $set ? array_map('trim', explode(',', $set)) : $this->proxies;
+    }
+
+    /**
      * The headers that should be used to detect proxies.
      *
      * @var int

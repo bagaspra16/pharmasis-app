@@ -1,0 +1,255 @@
+{
+    "summary": {
+        "ruleset": "0.1-draft be37d49edb457b3d",
+        "cases": 40,
+        "ai": false,
+        "ai_failures": 0,
+        "emergency_sensitivity": "20\/20 (100%)",
+        "urgent_sensitivity": "8\/10 (80%)",
+        "exact_agreement": "36\/40",
+        "false_reassurance": 0,
+        "expert_agreement": "not measured: expected categories were not set by a clinician"
+    },
+    "rows": [
+        {
+            "id": "E01",
+            "expect": "emergency",
+            "got": "emergency",
+            "text": "I have crushing chest pain spreading to my left arm"
+        },
+        {
+            "id": "E02",
+            "expect": "emergency",
+            "got": "emergency",
+            "text": "My chest feels really tight and heavy, like someone is sitting on it"
+        },
+        {
+            "id": "E03",
+            "expect": "emergency",
+            "got": "emergency",
+            "text": "Dada saya sakit sekali dan menjalar ke rahang"
+        },
+        {
+            "id": "E04",
+            "expect": "emergency",
+            "got": "emergency",
+            "text": "I can't breathe properly and my lips are turning blue"
+        },
+        {
+            "id": "E05",
+            "expect": "emergency",
+            "got": "emergency",
+            "text": "Napas saya sesak berat, susah bicara"
+        },
+        {
+            "id": "E06",
+            "expect": "emergency",
+            "got": "emergency",
+            "text": "My dad's face is drooping on one side and his speech is slurred"
+        },
+        {
+            "id": "E07",
+            "expect": "emergency",
+            "got": "emergency",
+            "text": "Ibu saya tiba-tiba pelo dan tangan kanannya lemas tidak bisa diangkat"
+        },
+        {
+            "id": "E08",
+            "expect": "emergency",
+            "got": "emergency",
+            "text": "She passed out and is not waking up"
+        },
+        {
+            "id": "E09",
+            "expect": "emergency",
+            "got": "emergency",
+            "text": "Anak saya kejang"
+        },
+        {
+            "id": "E10",
+            "expect": "emergency",
+            "got": "emergency",
+            "text": "The cut on my leg won't stop bleeding even with pressure"
+        },
+        {
+            "id": "E11",
+            "expect": "emergency",
+            "got": "emergency",
+            "text": "I have been vomiting blood since this morning"
+        },
+        {
+            "id": "E12",
+            "expect": "emergency",
+            "got": "emergency",
+            "text": "Saya ingin bunuh diri"
+        },
+        {
+            "id": "E13",
+            "expect": "emergency",
+            "got": "emergency",
+            "text": "I don't want to be alive anymore and I have been thinking about ending it"
+        },
+        {
+            "id": "E14",
+            "expect": "emergency",
+            "got": "emergency",
+            "text": "After eating shrimp my throat is swelling and it is hard to swallow"
+        },
+        {
+            "id": "E15",
+            "expect": "emergency",
+            "got": "emergency",
+            "text": "This is the worst headache of my life, it came on suddenly"
+        },
+        {
+            "id": "E16",
+            "expect": "emergency",
+            "got": "emergency",
+            "text": "My toddler swallowed a bottle of pills"
+        },
+        {
+            "id": "E17",
+            "expect": "emergency",
+            "got": "emergency",
+            "text": "I hit my head hard falling off a ladder and now I keep vomiting and feel confused"
+        },
+        {
+            "id": "E18",
+            "expect": "emergency",
+            "got": "emergency",
+            "text": "No fever, but I have chest pain and I am sweating a lot"
+        },
+        {
+            "id": "E19",
+            "expect": "emergency",
+            "got": "emergency",
+            "text": "Demam berdarah, sekarang gusi berdarah dan muntah terus menerus"
+        },
+        {
+            "id": "E20",
+            "expect": "emergency",
+            "got": "emergency",
+            "text": "Severe stomach pain that came suddenly and my belly is hard"
+        },
+        {
+            "id": "U01",
+            "expect": "urgent",
+            "got": "unable_to_assess",
+            "text": "I have had a high fever for four days"
+        },
+        {
+            "id": "U02",
+            "expect": "urgent",
+            "got": "unable_to_assess",
+            "text": "Demam tinggi sudah 4 hari"
+        },
+        {
+            "id": "U03",
+            "expect": "urgent",
+            "got": "urgent",
+            "text": "I have been vomiting and cannot keep any fluids down since yesterday"
+        },
+        {
+            "id": "U04",
+            "expect": "urgent",
+            "got": "urgent",
+            "text": "Diarrhea for three days and I feel very dizzy and barely urinate"
+        },
+        {
+            "id": "U05",
+            "expect": "urgent",
+            "got": "urgent",
+            "text": "It burns when I pee and I have pain in my lower back with fever"
+        },
+        {
+            "id": "U06",
+            "expect": "urgent",
+            "got": "urgent",
+            "text": "A dog bit my hand and the skin is broken"
+        },
+        {
+            "id": "U07",
+            "expect": "urgent",
+            "got": "urgent",
+            "text": "The wound on my foot is red, hot, swollen and has pus"
+        },
+        {
+            "id": "U08",
+            "expect": "urgent",
+            "got": "urgent",
+            "text": "I am pregnant and have had a headache since yesterday"
+        },
+        {
+            "id": "U09",
+            "expect": "urgent",
+            "got": "emergency",
+            "text": "Bayi saya umur 2 bulan demam"
+        },
+        {
+            "id": "U10",
+            "expect": "urgent",
+            "got": "emergency",
+            "text": "My eye is very painful and my vision is blurry since this morning"
+        },
+        {
+            "id": "R01",
+            "expect": "routine",
+            "got": "routine",
+            "text": "I have a runny nose and mild sore throat since yesterday"
+        },
+        {
+            "id": "R02",
+            "expect": "routine",
+            "got": "routine",
+            "text": "Pilek dan tenggorokan agak gatal sejak kemarin"
+        },
+        {
+            "id": "R03",
+            "expect": "routine",
+            "got": "routine",
+            "text": "Mild headache after working on the computer all day"
+        },
+        {
+            "id": "N01",
+            "expect": "unable_to_assess",
+            "got": "unable_to_assess",
+            "text": "I feel weird"
+        },
+        {
+            "id": "N02",
+            "expect": "unable_to_assess",
+            "got": "unable_to_assess",
+            "text": "badan tidak enak"
+        },
+        {
+            "id": "N03",
+            "expect": "unable_to_assess",
+            "got": "unable_to_assess",
+            "text": "I have a runny nose and mild sore throat"
+        },
+        {
+            "id": "N04",
+            "expect": "unable_to_assess",
+            "got": "unable_to_assess",
+            "text": "Mild headache"
+        },
+        {
+            "id": "N05",
+            "expect": "unable_to_assess",
+            "got": "unable_to_assess",
+            "text": "Mild headache"
+        },
+        {
+            "id": "N06",
+            "expect": "unable_to_assess",
+            "got": "unable_to_assess",
+            "text": "My knee has been clicking"
+        },
+        {
+            "id": "N07",
+            "expect": "unable_to_assess",
+            "got": "unable_to_assess",
+            "text": "asdf qwerty"
+        }
+    ]
+}

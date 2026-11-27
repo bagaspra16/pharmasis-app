@@ -223,6 +223,8 @@
             analyzing: false,      // loading conclusion
             questions: [],
             currentQ: 0,
+            adaptive: false,
+            replanning: false,
             answers: {},           // { [questionId]: { chips: [], text: '' } }
             role: null,            // 'doctor' | 'patient'
             result: null,          // full server payload
@@ -240,10 +242,7 @@
             mediaRecorder: null,
             audioChunks: [],
 
-            /* ── Nearby providers ── */
-            nearbyProviders: null,
-            nearbyLoading: false,
-            nearbyLocation: '{{ $userLocation ?? "" }}',
+
 
             /* ── Report actions ── */
             copyFeedback: '',
@@ -309,8 +308,6 @@
                             this.role = parsed.result.role || null;
                             this.result = parsed.result;
                             this.conclusion = parsed.result.conclusion || null;
-                            this.nearbyLocation = parsed.location || '';
-                            this.nearbyProviders = parsed.nearbyProviders || null;
                             this.phase = 'result';
                             this.scheduleKiosk();
                             this.$nextTick(() => setTimeout(() => this.scrollToResult('auto'), 100));
@@ -448,7 +445,9 @@
                         body
                     });
                     const data = await res.json();
-                    if (!res.ok || !data.success) {
+                    if (data.triage?.category === 'emergency') {
+                        this.showEmergency(data.triage);
+                    } else if (!res.ok || !data.success) {
                         let errMsg = 'Failed to prepare questions. Please try again.';
                         if (typeof data.error === 'string') errMsg = data.error;
                         else if (typeof data.message === 'string') errMsg = data.message;
@@ -460,6 +459,7 @@
                             this.answers[q.id] = { chips: [], text: '' };
                             return q;
                         });
+                        this.adaptive = !!data.adaptive;
                         this.currentQ = 0;
                         this.phase = 'questions';
                         this.$nextTick(() => setTimeout(() => this.scrollToEl('screening-panel', 'smooth'), 80));
@@ -470,6 +470,15 @@
                 } finally {
                     this.screening = false;
                 }
+            },
+
+            /* Rule-based emergency: show guidance at once, ask nothing more. */
+            showEmergency(triage) {
+                this.mcData = { classification: 'emergency_alert', triage };
+                this.screening = false;
+                this.analyzing = false;
+                this.phase = 'emergency';
+                this.$nextTick(() => setTimeout(() => this.scrollToEl('mc-triage-panel', 'smooth'), 80));
             },
 
             /* Reset from medicore/emergency panel back to intake */
@@ -498,6 +507,20 @@
                 } else {
                     a.chips = a.chips[0] === choice ? [] : [choice];
                 }
+                if (!q?.values) {
+                    return;
+                }
+                // "None", "don't know" and "prefer not to say" exclude every other choice.
+                const solo = ['none', 'unknown', 'declined'];
+                const value = q.values[q.choices.indexOf(choice)];
+                if (q.allow_multiple && a.chips.includes(choice)) {
+                    a.chips = solo.includes(value)
+                        ? [choice]
+                        : a.chips.filter(c => !solo.includes(q.values[q.choices.indexOf(c)]));
+                }
+                if (q.escalation && !solo.includes(value) && a.chips.includes(choice)) {
+                    this.showEmergency(q.escalation);
+                }
             },
             chipSelected(qId, choice) {
                 return (this.answers[qId]?.chips || []).includes(choice);
@@ -508,7 +531,56 @@
                 const a = this.answers[q.id] || { chips: [], text: '' };
                 return a.chips.length > 0 || (a.text || '').trim().length > 0;
             },
-            nextQ() {
+            /* Safety answers as fixed codes, not translated text. */
+            appendTriage(body) {
+                this.questions.filter(q => q.triage_key).forEach(q => {
+                    const values = (this.answers[q.id]?.chips || []).map(c => q.values[q.choices.indexOf(c)]).filter(Boolean);
+                    if (q.allow_multiple) values.forEach(v => body.append(`triage[${q.triage_key}][]`, v));
+                    else if (values.length) body.append(`triage[${q.triage_key}]`, values[0]);
+                });
+            },
+
+            /* Ask the server to re-plan. On any failure, keep the current questions. */
+            async replan() {
+                const body = new FormData();
+                body.append('symptoms', this.firstPrompt);
+                body.append('lang', (window.PharmasisI18n ? window.PharmasisI18n.getLanguage() : 'id'));
+                this.buildQaPayload().slice(0, this.currentQ + 1).forEach((pair, i) => {
+                    body.append(`qa[${i}][question]`, pair.question);
+                    body.append(`qa[${i}][answer]`, pair.answer);
+                });
+                this.appendTriage(body);
+                try {
+                    const res = await fetch('/medicheck/next', {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content, 'Accept': 'application/json' },
+                        body
+                    });
+                    const data = await res.json();
+                    if (!res.ok || !data.success) return true;
+                    if (data.triage?.category === 'emergency') {
+                        this.showEmergency(data.triage);
+                        return false;
+                    }
+                    const done = this.questions.slice(0, this.currentQ + 1);
+                    const ids = new Set(done.map(q => q.id));
+                    const planned = data.questions.filter(q => !ids.has(q.id));
+                    const extra = this.questions.slice(this.currentQ + 1)
+                        .filter(q => !q.is_role && !/^(triage|intake)_/.test(q.id));
+                    planned.forEach(q => { if (!this.answers[q.id]) this.answers[q.id] = { chips: [], text: '' }; });
+                    this.questions = [...done, ...planned, ...extra, ...this.questions.filter(q => q.is_role && !ids.has(q.id))];
+                } catch (e) { /* keep current questions */ }
+                return true;
+            },
+
+            async nextQ() {
+                if (this.replanning) return;
+                if (this.adaptive) {
+                    this.replanning = true;
+                    const carryOn = await this.replan();
+                    this.replanning = false;
+                    if (!carryOn) return;
+                }
                 if (!this.isLastQuestion) {
                     this.currentQ++;
                     this.$nextTick(() => this.scrollToEl('screening-panel', 'smooth'));
@@ -548,17 +620,6 @@
                 this.currentStep = 0;
                 this.$nextTick(() => setTimeout(() => this.scrollToEl('screening-panel', 'smooth'), 80));
 
-                // Fetch geolocation for the patient "nearby facilities" section.
-                if (window.cookieConsentAccepted && window.cookieConsentAccepted()) {
-                    try {
-                        const locRes = await fetch('https://ipapi.co/json/');
-                        if (locRes.ok) {
-                            const l = await locRes.json();
-                            if (l && l.city) this.nearbyLocation = `${l.city}, ${l.region}, ${l.country_name}`;
-                        }
-                    } catch (e) { /* ignore */ }
-                }
-
                 const stepTimer = this.animateSteps();
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
                 try {
@@ -570,6 +631,8 @@
                         body.append(`qa[${i}][question]`, pair.question);
                         body.append(`qa[${i}][answer]`, pair.answer);
                     });
+                    this.appendTriage(body);
+
 
                     const res = await fetch('/medicheck/conclude', {
                         method: 'POST',
@@ -579,6 +642,10 @@
                     const data = await res.json();
 
                     clearInterval(stepTimer);
+                    if (data.data?.conclusion?.triage?.category === 'emergency') {
+                        this.showEmergency(data.data.conclusion.triage);
+                        return;
+                    }
                     await this.finishSteps();
 
                     if (!res.ok || !data.success) {
@@ -602,12 +669,6 @@
                         }
 
                         this.$nextTick(() => setTimeout(() => this.scrollToResult('smooth'), 800));
-
-                        // Patient branch → find nearby healthcare facilities.
-                        if (this.role === 'patient' && this.nearbyLocation) {
-                            const cond = this.conclusion?.assumed_condition?.name || '';
-                            this.fetchNearbyProviders(historyId, this.nearbyLocation, this.firstPrompt, cond);
-                        }
                     }
                 } catch (e) {
                     clearInterval(stepTimer);
@@ -771,32 +832,6 @@
                 return m[k] || v;
             },
 
-            /* ══════════════ Nearby providers ══════════════ */
-            async fetchNearbyProviders(historyId, location, symptoms, conditions) {
-                this.nearbyLoading = true;
-                this.nearbyProviders = null;
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-                try {
-                    const body = new FormData();
-                    body.append('location', location);
-                    if (symptoms) body.append('symptoms', symptoms.substring(0, 300));
-                    if (conditions) body.append('conditions', conditions);
-                    const res = await fetch('/medicheck/nearby', {
-                        method: 'POST',
-                        headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                        body
-                    });
-                    const data = await res.json();
-                    this.nearbyProviders = data;
-                    this.patchHistoryNearby(historyId, data);
-                } catch (e) {
-                    const q = encodeURIComponent('hospitals clinics near ' + location);
-                    this.nearbyProviders = { success: false, providers: [], maps_search_url: `https://www.google.com/maps/search/${q}` };
-                } finally {
-                    this.nearbyLoading = false;
-                }
-            },
-
             /* ══════════════ Scroll helpers ══════════════ */
             scrollToEl(id, behavior) {
                 const el = document.getElementById(id);
@@ -856,8 +891,6 @@
                         id: 'cs_' + Date.now(),
                         savedAt: new Date().toISOString(),
                         firstPrompt: this.firstPrompt || '',
-                        location: this.nearbyLocation || null,
-                        nearbyProviders: this.nearbyProviders || null,
                         result: this.result
                     }));
                 } catch (e) { /* ignore */ }
@@ -875,8 +908,6 @@
                         preview: (resultData.symptoms || '').substring(0, 80) + ((resultData.symptoms || '').length > 80 ? '...' : ''),
                         conditions: conds,
                         role: resultData.role,
-                        nearbyLocation: this.nearbyLocation || null,
-                        nearbyProviders: null,
                         result: resultData
                     };
                     history.unshift(rec);
@@ -884,14 +915,6 @@
                     localStorage.setItem('ceksehatHistory', JSON.stringify(history));
                     return rec.id;
                 } catch (e) { return null; }
-            },
-            patchHistoryNearby(recordId, nearbyData) {
-                if (!recordId) return;
-                try {
-                    let history = JSON.parse(localStorage.getItem('ceksehatHistory') || '[]');
-                    const idx = history.findIndex(h => h.id === recordId);
-                    if (idx !== -1) { history[idx].nearbyProviders = nearbyData; localStorage.setItem('ceksehatHistory', JSON.stringify(history)); }
-                } catch (e) { /* ignore */ }
             },
 
             /* ══════════════ Plain-text report ══════════════ */
@@ -946,6 +969,17 @@
                     if (c.which_doctor) t += `YOU SHOULD SEE: ${c.which_doctor}\n`;
                     if (c.what_to_ask_doctor?.length) { t += 'WHAT TO ASK YOUR DOCTOR:\n'; c.what_to_ask_doctor.forEach(s => t += `- ${s}\n`); }
                     if (c.disclaimer) t += `\n${c.disclaimer}\n`;
+                }
+                const tri = c.triage;
+                if (tri) {
+                    t += `\n${tri.labels.heading.toUpperCase()}: ${tri.title}\n${tri.meaning}\n`;
+                    [...tri.next_steps, ...tri.missing, tri.watch_for, tri.labels.not_diagnosis].filter(Boolean).forEach(x => t += `- ${x}\n`);
+                }
+                const qr = c.quality;
+                if (qr) {
+                    t += `\n${qr.labels.title.toUpperCase()}\n`;
+                    if (r.role !== 'doctor') t += `- ${qr.labels.possibility}\n- ${qr.labels.recommendation}\n`;
+                    [...qr.notices, ...qr.limits].forEach(x => t += `- ${x}\n`);
                 }
                 const ev = c.evidence;
                 if (ev) {
@@ -1066,6 +1100,19 @@
                     if (c.disclaimer) html += '<p style="font-size:0.75rem;color:#94a3b8;font-style:italic;margin:1rem 0 0;border-top:1px solid #e2e8f0;padding-top:0.75rem;">' + this._esc(c.disclaimer) + '</p>';
                 }
 
+                const qr = c.quality;
+                if (qr) {
+                    html += '<h2 style="font-size:1rem;color:#0f172a;margin:1rem 0 0.4rem;">' + this._esc(qr.labels.title) + '</h2>';
+                    const extra = r.role !== 'doctor' ? [qr.labels.possibility, qr.labels.recommendation] : [];
+                    [...extra, ...qr.notices, ...qr.limits].forEach(x => html += '<p style="font-size:0.82rem;color:#475569;margin:0 0 0.25rem;">• ' + this._esc(x) + '</p>');
+                }
+
+                const tri = c.triage;
+                if (tri) {
+                    html += '<h2 style="font-size:1rem;color:#0f172a;margin:1rem 0 0.4rem;">' + this._esc(tri.labels.heading + ': ' + tri.title) + '</h2>';
+                    [tri.meaning, ...tri.next_steps, ...tri.missing, tri.watch_for, tri.labels.not_diagnosis].filter(Boolean)
+                        .forEach(x => html += '<p style="font-size:0.8rem;color:#334155;margin:0 0 0.3rem;">' + this._esc(x) + '</p>');
+                }
                 const ev = c.evidence;
                 if (ev) {
                     const small = 'font-size:0.75rem;color:#334155;margin:0 0 0.3rem;word-break:break-word;';

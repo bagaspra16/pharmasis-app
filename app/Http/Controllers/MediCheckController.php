@@ -7,9 +7,12 @@ use App\Models\FdaDrug;
 use App\Services\AnalyticsRecorder;
 use App\Services\Evidence\EvidenceService;
 use App\Services\GroqService;
+use App\Services\Intake\IntakeService;
 use App\Services\MediCoreAiService;
 use App\Services\MedicalPipelineService;
+use App\Services\Quality\ResponseQuality;
 use App\Services\ScreeningService;
+use App\Services\Triage\TriageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -21,7 +24,10 @@ class MediCheckController extends Controller
         private MedicalPipelineService $pipeline,
         private ScreeningService $screening,
         private MediCoreAiService $mediCore,
-        private EvidenceService $evidence
+        private EvidenceService $evidence,
+        private TriageService $triage,
+        private IntakeService $intake,
+        private ResponseQuality $quality
     ) {}
 
     /**
@@ -220,8 +226,37 @@ class MediCheckController extends Controller
             $symptoms = trim($request->input('symptoms'));
             $lang     = $request->input('lang', 'auto');
 
-            $questions = $this->screening->generateQuestions($symptoms, $lang);
-            $questions[] = $this->roleQuestion($this->resolveLang($lang, $symptoms));
+            $resolved = $this->resolveLang($lang, $symptoms);
+            // Emergency signs: escalate now and ask nothing.
+            if ($alert = $this->triage->emergencyFromText($symptoms, $resolved)) {
+                return response()->json(['success' => true, 'questions' => [], 'triage' => $alert]);
+            }
+
+            $adaptive = $this->intake->isActive();
+            if ($adaptive) {
+                $questions = $this->intake->plan($symptoms, [], $resolved);
+                // AI-written questions only when no complaint group covers the concern.
+                if (!$this->intake->groups($symptoms)) {
+                    try {
+                        $extra = $this->screening->generateQuestions($symptoms, $lang, implode("\n", array_column($questions, 'question')));
+                        $questions = array_merge($questions, array_slice($extra, 0, config('intake.max_ai_questions')));
+                    } catch (\RuntimeException $e) {
+                        Log::warning('MediCheck screen: follow-up questions unavailable', ['message' => $e->getMessage()]);
+                    }
+                }
+            } elseif ($this->triage->isActive()) {
+                // The safety questions do not depend on the AI service being up.
+                try {
+                    $generated = $this->screening->generateQuestions($symptoms, $lang);
+                } catch (\RuntimeException $e) {
+                    Log::warning('MediCheck screen: follow-up questions unavailable', ['message' => $e->getMessage()]);
+                    $generated = [];
+                }
+                $questions = array_merge($this->triage->questions($resolved), $generated);
+            } else {
+                $questions = $this->screening->generateQuestions($symptoms, $lang);
+            }
+            $questions[] = $this->roleQuestion($resolved);
 
             AnalyticsRecorder::medicheck($request, 'screen', [
                 'questions_generated' => count($questions),
@@ -229,7 +264,7 @@ class MediCheckController extends Controller
                 'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
             ]);
 
-            return response()->json(['success' => true, 'questions' => $questions]);
+            return response()->json(['success' => true, 'questions' => $questions] + ($adaptive ? ['adaptive' => true] : []));
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
@@ -245,6 +280,42 @@ class MediCheckController extends Controller
     }
 
     /**
+     * Re-plan the remaining questions after an answer. No model call.
+     * POST /medicheck/next
+     */
+    public function next(Request $request)
+    {
+        abort_unless($this->intake->isActive(), 404);
+
+        $data = $request->validate([
+            'symptoms'      => 'required|string|max:2000',
+            'lang'          => 'nullable|in:en,id,ja,es,zh,ar,fr,de,ko,pt,ru,auto',
+            'qa'            => 'nullable|array|max:15',
+            'qa.*.question' => 'nullable|string|max:1000',
+            'qa.*.answer'   => 'nullable|string|max:2000',
+            'triage'        => 'nullable|array',
+        ]);
+
+        $symptoms = trim($data['symptoms']);
+        $lang = $this->resolveLang($data['lang'] ?? 'auto', $symptoms);
+        $answers = $this->intakeAnswers($request, $symptoms);
+
+        if ($alert = $this->triage->emergencyFromAnswers($symptoms, $data['qa'] ?? [], $answers, $lang)) {
+            return response()->json(['success' => true, 'questions' => [], 'triage' => $alert]);
+        }
+
+        return response()->json(['success' => true, 'questions' => $this->intake->plan($symptoms, $answers, $lang)]);
+    }
+
+    private function intakeAnswers(Request $request, string $symptoms): array
+    {
+        $answers = $request->input('triage');
+        $answers = is_array($answers) ? $answers : [];
+
+        return $this->intake->isActive() ? $answers + $this->intake->known($symptoms) : $answers;
+    }
+
+    /**
      * Produce the final conclusion from the screening transcript, branched by
      * the user's role (doctor vs patient).
      * POST /medicheck/conclude
@@ -254,11 +325,21 @@ class MediCheckController extends Controller
         $startedAt = microtime(true);
         $request->validate([
             'symptoms'      => 'required|string|max:2000',
-            'qa'            => 'nullable|array|max:10',
+            'qa'            => 'nullable|array|max:15',
             'qa.*.question' => 'nullable|string|max:1000',
             'qa.*.answer'   => 'nullable|string|max:2000',
             'role'          => 'required|in:doctor,patient',
             'lang'          => 'nullable|in:en,id,ja,es,zh,ar,fr,de,ko,pt,ru,auto',
+            'triage'           => 'nullable|array',
+            'triage.red_flags' => 'nullable|array|max:20',
+            'triage.red_flags.*' => 'string|max:40',
+            'triage.age'       => 'nullable|string|max:20',
+            'triage.duration'  => 'nullable|string|max:20',
+            'triage.risk'      => 'nullable|array|max:5',
+            'triage.risk.*'    => 'string|max:20',
+            'triage.severity'  => 'nullable|string|max:20',
+            'triage.associated' => 'nullable|array|max:20',
+            'triage.associated.*' => 'string|max:40',
         ]);
 
         try {
@@ -267,16 +348,47 @@ class MediCheckController extends Controller
             $lang     = $request->input('lang', 'auto');
             $qa       = $request->input('qa', []);
 
+            $triage = $this->triage->isActive()
+                ? $this->triage->assess($symptoms, $qa ?? [], $this->intakeAnswers($request, $symptoms), $this->resolveLang($lang, $symptoms))
+                : null;
+            // An emergency returns at once, without waiting for the written conclusion.
+            if (($triage['category'] ?? null) === 'emergency') {
+                AnalyticsRecorder::medicheck($request, 'conclude', ['role' => $role, 'success' => true]);
+
+                return response()->json(['success' => true, 'data' => [
+                    'symptoms' => $symptoms, 'lang' => $lang, 'role' => $role, 'qa' => $qa,
+                    'conclusion' => ['mode' => $role, 'triage' => $triage], 'timestamp' => now()->toISOString(),
+                ]]);
+            }
+
             $grounding = $this->evidence->ground($symptoms . "\n" . implode("\n", array_filter(array_column($qa, 'answer'))));
-            $conclusion = $this->screening->conclude($symptoms, $qa, $role, $lang, $grounding['block']);
+            $reference = trim($grounding['block'] . "\n\n" . $this->quality->rules($triage));
+            $conclusion = $this->screening->conclude($symptoms, $qa, $role, $lang, $reference);
+
+            if ($triage) {
+                $conclusion['triage'] = $triage;
+                // No comforting opener unless the rules found the picture routine.
+                if ($triage['category'] !== 'routine') {
+                    unset($conclusion['reassurance']);
+                }
+            }
 
             // Cross-reference clinical drug list with the DB (doctor branch only).
             if ($role === 'doctor' && isset($conclusion['drugs']) && is_array($conclusion['drugs'])) {
                 $this->crossReferenceDrugs($conclusion['drugs']);
             }
 
+            // Wording is checked before evidence, so removed sentences are not counted as claims.
+            $report = null;
+            if ($this->quality->isActive()) {
+                [$conclusion, $report] = $this->quality->apply($conclusion, $symptoms, $qa ?? [], $this->resolveLang($lang, $symptoms), $triage);
+            }
+
             // Kept inside the conclusion so history and exports carry the references.
             $conclusion['evidence'] = $this->evidence->assess($conclusion, $symptoms, $this->resolveLang($lang, $symptoms), grounding: $grounding);
+            if ($report) {
+                $conclusion['quality'] = $report;
+            }
 
             $result = [
                 'symptoms'   => $symptoms,
@@ -496,88 +608,5 @@ class MediCheckController extends Controller
             }
         }
         return response()->json(['error' => 'History item not found.'], 404);
-    }
-    /**
-     * Find nearby healthcare providers based on location + conditions.
-     * POST /medicheck/nearby
-     */
-    public function nearby(Request $request)
-    {
-        $startedAt = microtime(true);
-        $request->validate([
-            'location'   => 'required|string|max:200',
-            'symptoms'   => 'nullable|string|max:500',
-            'conditions' => 'nullable|string|max:500',
-        ]);
-
-        try {
-            $location   = $request->input('location');
-            $symptoms   = $request->input('symptoms', '');
-            $conditions = $request->input('conditions', '');
-
-            // Build Google Maps search URLs as guaranteed fallback
-            $searchQuery = urlencode("hospital clinic near {$location}");
-            $mapsUrl = "https://www.google.com/maps/search/{$searchQuery}";
-
-            // Use Groq to suggest real facility names + addresses
-            $prompt = "The patient is located in: {$location}.\n";
-            if ($symptoms) $prompt .= "Symptoms: {$symptoms}\n";
-            if ($conditions) $prompt .= "Likely conditions: {$conditions}\n";
-            $prompt .= "\nSuggest 4 real hospitals or clinics in that exact city/area. "
-                     . "Return JSON: {\"providers\":[{\"name\":\"...\",\"type\":\"Hospital|Clinic|Specialist\",\"address\":\"...\",\"contact\":\"phone or website if known, otherwise empty\"}],\"emergency_numbers\":\"local emergency number\"}";
-
-            $raw = $this->groq->chat(
-                'openai/gpt-oss-120b',
-                [
-                    ['role' => 'system', 'content' => 'You are a local healthcare directory assistant. Return ONLY valid JSON. No conversational text.'],
-                    ['role' => 'user',   'content' => $prompt],
-                ],
-                ['temperature' => 0.4, 'max_tokens' => 800]
-            );
-
-            // Parse the JSON, extract providers
-            $clean = preg_replace('/```(?:json)?\s*([\s\S]*?)```/i', '$1', trim($raw ?? ''));
-            $parsed = json_decode(trim($clean), true);
-
-            // Attach a Google Maps search link to each provider
-            $providers = $parsed['providers'] ?? [];
-            foreach ($providers as &$p) {
-                $q = urlencode(($p['name'] ?? '') . ' ' . ($p['address'] ?? '') . ' ' . $location);
-                $p['maps_url'] = "https://www.google.com/maps/search/{$q}";
-                // If no contact, leave empty — frontend will show Maps link
-                if (empty($p['contact'])) {
-                    $p['contact'] = '';
-                }
-            }
-
-            AnalyticsRecorder::medicheck($request, 'nearby', [
-                'providers_returned' => count($providers),
-                'success'            => true,
-                'duration_ms'        => (int) round((microtime(true) - $startedAt) * 1000),
-            ]);
-
-            return response()->json([
-                'success'          => true,
-                'providers'        => $providers,
-                'emergency_numbers'=> $parsed['emergency_numbers'] ?? null,
-                'maps_search_url'  => $mapsUrl,
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('MediCheck nearby error', ['message' => $e->getMessage()]);
-            AnalyticsRecorder::medicheck($request, 'nearby', [
-                'providers_returned' => 0,
-                'success'            => false,
-                'error_code'         => 'unexpected',
-                'duration_ms'        => (int) round((microtime(true) - $startedAt) * 1000),
-            ]);
-            // Return empty so frontend can still show Maps link
-            $q = urlencode("hospital clinic near " . $request->input('location', ''));
-            return response()->json([
-                'success'          => false,
-                'providers'        => [],
-                'maps_search_url'  => "https://www.google.com/maps/search/{$q}",
-            ]);
-        }
     }
 }

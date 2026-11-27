@@ -463,6 +463,8 @@
                     </div>
                 </template>
 
+                @include('partials.quality-card', ['expr' => 'mcData?.quality'])
+
                 @include('partials.evidence-panel', ['expr' => 'mcData?.evidence'])
 
                 <p class="text-center text-[10px] text-slate-400 leading-relaxed px-2" data-i18n="mc_disclaimer_notice">
@@ -471,7 +473,17 @@
             </div>
 
             {{-- ══════════════ EMERGENCY PANEL (phase: emergency) ══════════════ --}}
-            <div id="mc-result-panel" x-show="phase === 'emergency'" x-cloak class="w-full max-w-2xl mx-auto mt-8"
+            <div id="mc-triage-panel" x-show="phase === 'emergency' && mcData?.triage" x-cloak class="w-full max-w-2xl mx-auto mt-8">
+                @include('partials.triage-card', ['expr' => 'mcData?.triage'])
+                <template x-if="phase === 'emergency' && mcData?.triage">
+                    <div class="mt-3">
+                        @include('partials.facility-finder', ['category' => 'emergency', 'numberExpr' => 'mcData.triage.number'])
+                    </div>
+                </template>
+                <button type="button" @click="resetMcPanel()" class="mt-3 px-5 py-2.5 border border-slate-300 text-slate-700 text-sm font-semibold rounded-full" data-i18n="mc_back">Back</button>
+            </div>
+
+            <div id="mc-result-panel" x-show="phase === 'emergency' && !mcData?.triage" x-cloak class="w-full max-w-2xl mx-auto mt-8"
                 x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-y-6"
                 x-transition:enter-end="opacity-100 translate-y-0">
                 <div class="rounded-3xl overflow-hidden"
@@ -511,6 +523,11 @@
                         </div>
                     </div>
                 </div>
+                <template x-if="phase === 'emergency' && mcData && !mcData.triage">
+                    <div class="mt-3">
+                        @include('partials.facility-finder', ['category' => 'emergency'])
+                    </div>
+                </template>
             </div>
 
 
@@ -800,6 +817,10 @@
             </div>
 
             {{-- ════════════════════════════════════════════════════════════════ --}}
+            @include('partials.triage-card', ['expr' => 'conclusion?.triage'])
+
+            @include('partials.quality-card', ['expr' => 'conclusion?.quality'])
+
             {{-- ════════════════════════ EVIDENCE ═══════════════════════════════ --}}
             @include('partials.evidence-panel', ['expr' => 'conclusion?.evidence'])
 
@@ -1000,11 +1021,13 @@
                         <p class="text-[11px] font-bold text-primary uppercase tracking-widest mb-1.5" data-i18n="result_likely_condition">Likely Condition</p>
                         <h3 class="text-xl font-bold text-slate-800 mb-2" x-text="conclusion.assumed_condition?.name">
                         </h3>
+                        <p x-show="conclusion.quality" class="text-xs font-semibold text-slate-600 mb-2" x-text="conclusion.quality?.labels.possibility"></p>
                         <p class="text-sm text-slate-600 leading-relaxed"
                             x-text="conclusion.assumed_condition?.plain_explanation"></p>
                     </div>
 
                     {{-- Self-care + Lifestyle --}}
+                    <p x-show="conclusion.quality" class="text-xs font-semibold text-slate-600" x-text="conclusion.quality?.labels.recommendation"></p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div x-show="conclusion.self_care?.length" class="glass-card rounded-3xl p-6">
                             <h3 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
@@ -1090,92 +1113,12 @@
             </template>
 
             {{-- ════════════════ NEARBY FACILITIES (patient branch) ════════════════ --}}
-            <div id="mc-faskes" class="glass-card rounded-3xl overflow-hidden"
-                x-show="nearbyLoading || nearbyProviders">
-                <div class="px-6 py-4 flex items-center justify-between"
-                    style="border-bottom: 1px solid rgba(62,174,177,0.1); background: linear-gradient(90deg,rgba(62,174,177,0.06),transparent);">
-                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                        <span
-                            class="w-9 h-9 bg-primary/15 rounded-2xl flex items-center justify-center text-lg flex-shrink-0">📍</span>
-                        <span data-i18n="result_facilities_title">Nearby Healthcare Facilities</span>
-                    </h3>
-                    <div x-show="nearbyLoading" class="flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 text-primary animate-spin" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" />
-                            <path class="opacity-80" fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                        </svg>
-                        <span class="text-[10px] text-primary font-medium">Searching...</span>
-                    </div>
+            {{-- Recreated per result, so a position never carries over to the next person. --}}
+            <template x-if="phase === 'result' && !isDoctor && conclusion">
+                <div id="mc-faskes">
+                    @include('partials.facility-finder', ['category' => 'care', 'numberExpr' => 'conclusion?.triage?.number || null'])
                 </div>
-                <div class="p-5">
-                    <template x-if="nearbyLoading">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <template x-for="n in [1,2,3,4]" :key="n">
-                                <div class="bg-white rounded-xl p-3 border border-slate-100 animate-pulse">
-                                    <div class="h-3 bg-slate-200 rounded w-3/4 mb-2"></div>
-                                    <div class="h-2.5 bg-slate-100 rounded w-full mb-1"></div>
-                                    <div class="h-2.5 bg-slate-100 rounded w-2/3 mb-3"></div>
-                                    <div class="h-6 bg-slate-100 rounded w-1/3"></div>
-                                </div>
-                            </template>
-                        </div>
-                    </template>
-                    <template x-if="!nearbyLoading && nearbyProviders">
-                        <div>
-                            <div x-show="nearbyProviders.providers?.length"
-                                class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <template x-for="provider in (nearbyProviders.providers||[])" :key="provider.name">
-                                    <div
-                                        class="bg-white rounded-xl p-3 border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                                        <div class="flex items-start justify-between mb-1.5">
-                                            <p class="text-sm font-bold text-slate-800 leading-tight"
-                                                x-text="provider.name"></p>
-                                            <span
-                                                class="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold uppercase truncate max-w-[80px] ml-2 flex-shrink-0"
-                                                x-text="provider.type"></span>
-                                        </div>
-                                        <p class="text-xs text-slate-500 mb-2 line-clamp-2" x-text="provider.address">
-                                        </p>
-                                        <div class="flex gap-1.5 flex-wrap">
-                                            <a x-show="provider.contact"
-                                                :href="provider.contact && provider.contact.includes('http') ? provider.contact : 'tel:' + provider.contact"
-                                                target="_blank"
-                                                class="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded inline-block hover:bg-primary/20 transition-colors"
-                                                x-text="provider.contact && provider.contact.includes('http') ? 'Website ↗' : 'Call'"></a>
-                                            <a :href="provider.maps_url" target="_blank"
-                                                class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded inline-block hover:bg-slate-200 transition-colors">Map
-                                                ↗</a>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
-                            <div x-show="nearbyProviders.emergency_numbers"
-                                class="bg-red-50 border border-red-100 rounded-xl p-3 flex items-start gap-3 mt-3">
-                                <div
-                                    class="w-6 h-6 rounded bg-red-100 text-red-600 flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
-                                    !</div>
-                                <div>
-                                    <p class="text-[9px] font-bold text-red-600 uppercase tracking-wider mb-0.5">Local
-                                        Emergency Numbers</p>
-                                    <p class="text-sm text-red-800 font-bold"
-                                        x-text="nearbyProviders.emergency_numbers"></p>
-                                </div>
-                            </div>
-                            <a :href="nearbyProviders.maps_search_url" target="_blank"
-                                class="mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors text-sm font-semibold text-slate-700">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                Find More on Google Maps ↗
-                            </a>
-                        </div>
-                    </template>
-                </div>
-            </div>{{-- /mc-faskes --}}
+            </template>
 
             {{-- Watermark --}}
             <div class="text-center pt-4">
