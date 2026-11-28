@@ -117,7 +117,15 @@
                     return;
                 }
                 try {
-                    this.history = JSON.parse(localStorage.getItem('medicheckHistory') || '[]');
+                    const oldHistory = localStorage.getItem('ceksehatHistory');
+                    if (oldHistory && !localStorage.getItem('medicheckHistory')) {
+                        localStorage.setItem('medicheckHistory', oldHistory);
+                        localStorage.removeItem('ceksehatHistory');
+                    }
+                    const raw = JSON.parse(localStorage.getItem('medicheckHistory') || '[]');
+                    this.history = Array.isArray(raw)
+                        ? raw.filter(item => item && typeof item === 'object' && item.id && item.result && typeof item.result === 'object')
+                        : [];
                 } catch (e) {
                     this.history = [];
                 }
@@ -134,19 +142,22 @@
 
             confirmClearHistory() {
                 localStorage.removeItem('medicheckHistory');
+                localStorage.removeItem('ceksehatHistory');
                 this.history = [];
                 this.showClearConfirm = false;
             },
 
             restoreSession(item) {
-                // Restore item to ceksehatCurrentResult so the main UI picks it up
+                if (!item || !item.result) return;
+                // Restore item to medicheckCurrentResult so the main UI picks it up
                 const payload = {
                     id: item.id,
                     savedAt: new Date().toISOString(), // Update timestamp so it doesn't expire immediately
-                    symptoms: item.preview,
+                    firstPrompt: item.firstPrompt || item.result?.symptoms || item.preview || '',
+                    factsData: item.factsData || item.result?.factsData || null,
                     result: item.result
                 };
-                localStorage.setItem('ceksehatCurrentResult', JSON.stringify(payload));
+                localStorage.setItem('medicheckCurrentResult', JSON.stringify(payload));
                 // Reload page to let the main component initialize and scroll to output
                 window.location.href = '/#medicheck-output-page';
                 window.location.reload();
@@ -170,7 +181,41 @@
                 text += '        PHARMASIS MEDCHECK REPORT\n';
                 text += '\n';
                 text += `Date: ${new Date(item.date).toLocaleString()}\n`;
-                text += `Symptoms: ${r.symptoms || 'N/A'}\n\n`;
+                text += `Symptoms: ${r.symptoms || item.firstPrompt || 'N/A'}\n\n`;
+
+                // Active conclusion schema
+                if (r.conclusion) {
+                    const c = r.conclusion;
+                    if (r.role === 'doctor') {
+                        if (c.differential?.length) {
+                            text += 'DIFFERENTIAL DIAGNOSIS\n';
+                            c.differential.forEach(d => { text += `[${d.likelihood}] ${d.name}\n  ${d.rationale}\n`; });
+                            text += '\n';
+                        }
+                        if (c.drugs?.length) {
+                            text += 'PHARMACOLOGIC REGIMEN\n';
+                            c.drugs.forEach(d => { text += `${d.name} (${d.generic || ''}) — ${d.dose || ''}, ${d.frequency || ''}, ${d.duration || ''}\n`; });
+                            text += '\n';
+                        }
+                        if (c.management?.length) {
+                            text += 'MANAGEMENT\n';
+                            c.management.forEach(m => { text += `- ${m}\n`; });
+                            text += '\n';
+                        }
+                        if (c.clinical_summary) text += `Clinical Summary: ${c.clinical_summary}\n\n`;
+                    } else {
+                        if (c.reassurance) text += `${c.reassurance}\n\n`;
+                        if (c.assumed_condition?.name) text += `LIKELY CONDITION: ${c.assumed_condition.name}\n${c.assumed_condition.plain_explanation || ''}\n\n`;
+                        if (c.self_care?.length) {
+                            text += 'SELF-CARE\n';
+                            c.self_care.forEach(s => { text += `- ${s}\n`; });
+                            text += '\n';
+                        }
+                        if (c.when_to_seek_care) text += `WHEN TO SEEK MEDICAL CARE: ${c.when_to_seek_care}\n\n`;
+                    }
+                    text += watermark;
+                    return text;
+                }
 
                 if (r.step1?.conditions?.length) {
                     text += 'DIFFERENTIAL DIAGNOSIS\n';
@@ -270,7 +315,7 @@
                 if (!item || !item.result) return '';
                 const r = item.result;
                 const dateStr = new Date(item.date).toLocaleString();
-                const symptoms = r.symptoms || 'N/A';
+                const symptoms = r.symptoms || item.firstPrompt || 'N/A';
                 let html = '';
 
                 html += '<div style="text-align:center;margin-bottom:2rem;border-bottom:2px solid #3EAEB1;padding-bottom:1rem;">';
@@ -282,6 +327,42 @@
                 html += '<p style="font-size:0.7rem;font-weight:700;color:#3EAEB1;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 0.5rem;">Symptoms</p>';
                 html += '<p style="font-size:0.9rem;color:#334155;margin:0;font-style:italic;">"' + this._esc(symptoms) + '"</p>';
                 html += '</div>';
+
+                // Active conclusion schema
+                if (r.conclusion) {
+                    const c = r.conclusion;
+                    if (r.role === 'doctor') {
+                        if (c.differential?.length) {
+                            html += '<h2 style="font-size:1rem;font-weight:700;color:#0f172a;margin:1.5rem 0 0.75rem;border-left:3px solid #3EAEB1;padding-left:0.5rem;">Differential Diagnosis</h2>';
+                            c.differential.forEach(d => {
+                                html += '<p style="font-size:0.82rem;margin:0 0 0.35rem;"><strong>[' + this._esc(d.likelihood) + ']</strong> ' + this._esc(d.name) + ': ' + this._esc(d.rationale) + '</p>';
+                            });
+                        }
+                        if (c.drugs?.length) {
+                            html += '<h2 style="font-size:1rem;font-weight:700;color:#0f172a;margin:1.5rem 0 0.75rem;border-left:3px solid #3EAEB1;padding-left:0.5rem;">Pharmacologic Regimen</h2>';
+                            c.drugs.forEach(d => {
+                                html += '<p style="font-size:0.82rem;margin:0 0 0.35rem;"><strong>' + this._esc(d.name) + '</strong> (' + this._esc(d.generic || '') + ') &mdash; ' + this._esc(d.dose || '') + ', ' + this._esc(d.frequency || '') + ', ' + this._esc(d.duration || '') + '</p>';
+                            });
+                        }
+                        if (c.clinical_summary) html += '<p style="font-size:0.85rem;color:#334155;margin:1rem 0 0;">' + this._esc(c.clinical_summary) + '</p>';
+                    } else {
+                        if (c.reassurance) html += '<p style="font-size:0.9rem;color:#134e4a;margin:0 0 1rem;">' + this._esc(c.reassurance) + '</p>';
+                        if (c.assumed_condition?.name) {
+                            html += '<h2 style="font-size:1rem;font-weight:700;color:#0f172a;margin:1rem 0 0.5rem;border-left:3px solid #3EAEB1;padding-left:0.5rem;">Likely Condition: ' + this._esc(c.assumed_condition.name) + '</h2>';
+                            html += '<p style="font-size:0.85rem;color:#475569;margin:0 0 0.75rem;">' + this._esc(c.assumed_condition.plain_explanation || '') + '</p>';
+                        }
+                        if (c.self_care?.length) {
+                            html += '<h3 style="font-size:0.85rem;color:#0f172a;margin:0.75rem 0 0.35rem;">Self-Care</h3>';
+                            c.self_care.forEach(s => { html += '<p style="font-size:0.82rem;color:#475569;margin:0 0 0.25rem;">&bull; ' + this._esc(s) + '</p>'; });
+                        }
+                        if (c.when_to_seek_care) html += '<p style="font-size:0.82rem;color:#78350f;margin:0.75rem 0;"><strong>When to Seek Medical Care:</strong> ' + this._esc(c.when_to_seek_care) + '</p>';
+                    }
+                    html += '<div style="margin-top:2rem;padding-top:1rem;border-top:2px solid #3EAEB1;text-align:center;">';
+                    html += '<p style="font-size:0.75rem;color:#3EAEB1;font-weight:600;margin:0;">Pharmasis — Know Your Medicine</p>';
+                    html += '<p style="font-size:0.65rem;color:#94a3b8;margin:0.25rem 0 0;">This report is for educational purposes only. Consult a healthcare professional for medical advice.</p>';
+                    html += '</div>';
+                    return html;
+                }
 
                 if (r.step1?.conditions?.length) {
                     html += '<h2 style="font-size:1rem;font-weight:700;color:#0f172a;margin:1.5rem 0 0.75rem;border-left:3px solid #3EAEB1;padding-left:0.5rem;">Differential Diagnosis</h2>';

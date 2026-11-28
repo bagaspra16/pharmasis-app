@@ -133,6 +133,8 @@ document.addEventListener('alpine:init', () => {
             // Clear stored data since user declined
             localStorage.removeItem('medicheckHistory');
             localStorage.removeItem('medicheckCurrentResult');
+            localStorage.removeItem('ceksehatHistory');
+            localStorage.removeItem('ceksehatCurrentResult');
             this.showBanner = false;
             window.dispatchEvent(new CustomEvent('cookie-consent-changed', { detail: { status: 'denied' } }));
         }

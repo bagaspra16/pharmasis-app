@@ -8,6 +8,7 @@ use App\Services\AnalyticsRecorder;
 use App\Services\Evidence\EvidenceService;
 use App\Services\GroqService;
 use App\Services\Intake\IntakeService;
+use App\Services\LanguageDetector;
 use App\Services\MediCoreAiService;
 use App\Services\MedicalPipelineService;
 use App\Services\Quality\ResponseQuality;
@@ -143,15 +144,17 @@ class MediCheckController extends Controller
     {
         $startedAt = microtime(true);
         $request->validate([
-            'input' => 'required|string|max:2000',
-            'lang'  => 'nullable|in:en,id,ja,es,zh,ar,fr,de,ko,pt,ru,auto',
+            'input'   => 'required|string|max:2000',
+            'lang'    => 'nullable|in:en,id,ja,es,zh,ar,fr,de,ko,pt,ru,auto',
+            'ui_lang' => 'nullable|in:en,id,ja,es,zh,ar,fr,de,ko,pt,ru',
         ]);
 
         try {
             $input  = trim($request->input('input'));
             $lang   = $request->input('lang', 'auto');
+            $uiLang = $request->input('ui_lang');
 
-            $payload = $this->mediCore->process($input, $lang);
+            $payload = $this->mediCore->process($input, $lang, $uiLang);
 
             AnalyticsRecorder::medicheck($request, 'route', [
                 'classification' => $payload['classification'] ?? 'unknown',
@@ -220,16 +223,18 @@ class MediCheckController extends Controller
         $request->validate([
             'symptoms' => 'required|string|max:2000',
             'lang'     => 'nullable|in:en,id,ja,es,zh,ar,fr,de,ko,pt,ru,auto',
+            'ui_lang'  => 'nullable|in:en,id,ja,es,zh,ar,fr,de,ko,pt,ru',
         ]);
 
         try {
             $symptoms = trim($request->input('symptoms'));
             $lang     = $request->input('lang', 'auto');
+            $uiLang   = $request->input('ui_lang');
 
-            $resolved = $this->resolveLang($lang, $symptoms);
+            $resolved = $this->resolveLang($lang, $symptoms, $uiLang);
             // Emergency signs: escalate now and ask nothing.
             if ($alert = $this->triage->emergencyFromText($symptoms, $resolved)) {
-                return response()->json(['success' => true, 'questions' => [], 'triage' => $alert]);
+                return response()->json(['success' => true, 'questions' => [], 'triage' => $alert, 'resolved_lang' => $resolved]);
             }
 
             $adaptive = $this->intake->isActive();
@@ -238,7 +243,7 @@ class MediCheckController extends Controller
                 // AI-written questions only when no complaint group covers the concern.
                 if (!$this->intake->groups($symptoms)) {
                     try {
-                        $extra = $this->screening->generateQuestions($symptoms, $lang, implode("\n", array_column($questions, 'question')));
+                        $extra = $this->screening->generateQuestions($symptoms, $resolved, implode("\n", array_column($questions, 'question')));
                         $questions = array_merge($questions, array_slice($extra, 0, config('intake.max_ai_questions')));
                     } catch (\RuntimeException $e) {
                         Log::warning('MediCheck screen: follow-up questions unavailable', ['message' => $e->getMessage()]);
@@ -247,14 +252,14 @@ class MediCheckController extends Controller
             } elseif ($this->triage->isActive()) {
                 // The safety questions do not depend on the AI service being up.
                 try {
-                    $generated = $this->screening->generateQuestions($symptoms, $lang);
+                    $generated = $this->screening->generateQuestions($symptoms, $resolved);
                 } catch (\RuntimeException $e) {
                     Log::warning('MediCheck screen: follow-up questions unavailable', ['message' => $e->getMessage()]);
                     $generated = [];
                 }
                 $questions = array_merge($this->triage->questions($resolved), $generated);
             } else {
-                $questions = $this->screening->generateQuestions($symptoms, $lang);
+                $questions = $this->screening->generateQuestions($symptoms, $resolved);
             }
             $questions[] = $this->roleQuestion($resolved);
 
@@ -264,7 +269,11 @@ class MediCheckController extends Controller
                 'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
             ]);
 
-            return response()->json(['success' => true, 'questions' => $questions] + ($adaptive ? ['adaptive' => true] : []));
+            return response()->json([
+                'success'       => true,
+                'questions'     => $questions,
+                'resolved_lang' => $resolved,
+            ] + ($adaptive ? ['adaptive' => true] : []));
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
@@ -290,6 +299,7 @@ class MediCheckController extends Controller
         $data = $request->validate([
             'symptoms'      => 'required|string|max:2000',
             'lang'          => 'nullable|in:en,id,ja,es,zh,ar,fr,de,ko,pt,ru,auto',
+            'ui_lang'       => 'nullable|in:en,id,ja,es,zh,ar,fr,de,ko,pt,ru',
             'qa'            => 'nullable|array|max:15',
             'qa.*.question' => 'nullable|string|max:1000',
             'qa.*.answer'   => 'nullable|string|max:2000',
@@ -297,7 +307,7 @@ class MediCheckController extends Controller
         ]);
 
         $symptoms = trim($data['symptoms']);
-        $lang = $this->resolveLang($data['lang'] ?? 'auto', $symptoms);
+        $lang = $this->resolveLang($data['lang'] ?? 'auto', $symptoms, $data['ui_lang'] ?? null);
         $answers = $this->intakeAnswers($request, $symptoms);
 
         if ($alert = $this->triage->emergencyFromAnswers($symptoms, $data['qa'] ?? [], $answers, $lang)) {
@@ -330,6 +340,7 @@ class MediCheckController extends Controller
             'qa.*.answer'   => 'nullable|string|max:2000',
             'role'          => 'required|in:doctor,patient',
             'lang'          => 'nullable|in:en,id,ja,es,zh,ar,fr,de,ko,pt,ru,auto',
+            'ui_lang'       => 'nullable|in:en,id,ja,es,zh,ar,fr,de,ko,pt,ru',
             'triage'           => 'nullable|array',
             'triage.red_flags' => 'nullable|array|max:20',
             'triage.red_flags.*' => 'string|max:40',
@@ -343,27 +354,29 @@ class MediCheckController extends Controller
         ]);
 
         try {
-            $symptoms = trim($request->input('symptoms'));
-            $role     = $request->input('role');
-            $lang     = $request->input('lang', 'auto');
-            $qa       = $request->input('qa', []);
+            $symptoms     = trim($request->input('symptoms'));
+            $role         = $request->input('role');
+            $lang         = $request->input('lang', 'auto');
+            $uiLang       = $request->input('ui_lang');
+            $qa           = $request->input('qa', []);
+            $resolvedLang = $this->resolveLang($lang, $symptoms, $uiLang);
 
             $triage = $this->triage->isActive()
-                ? $this->triage->assess($symptoms, $qa ?? [], $this->intakeAnswers($request, $symptoms), $this->resolveLang($lang, $symptoms))
+                ? $this->triage->assess($symptoms, $qa ?? [], $this->intakeAnswers($request, $symptoms), $resolvedLang)
                 : null;
             // An emergency returns at once, without waiting for the written conclusion.
             if (($triage['category'] ?? null) === 'emergency') {
                 AnalyticsRecorder::medicheck($request, 'conclude', ['role' => $role, 'success' => true]);
 
                 return response()->json(['success' => true, 'data' => [
-                    'symptoms' => $symptoms, 'lang' => $lang, 'role' => $role, 'qa' => $qa,
+                    'symptoms' => $symptoms, 'lang' => $resolvedLang, 'role' => $role, 'qa' => $qa,
                     'conclusion' => ['mode' => $role, 'triage' => $triage], 'timestamp' => now()->toISOString(),
                 ]]);
             }
 
             $grounding = $this->evidence->ground($symptoms . "\n" . implode("\n", array_filter(array_column($qa, 'answer'))));
             $reference = trim($grounding['block'] . "\n\n" . $this->quality->rules($triage));
-            $conclusion = $this->screening->conclude($symptoms, $qa, $role, $lang, $reference);
+            $conclusion = $this->screening->conclude($symptoms, $qa, $role, $resolvedLang, $reference);
 
             if ($triage) {
                 $conclusion['triage'] = $triage;
@@ -381,18 +394,18 @@ class MediCheckController extends Controller
             // Wording is checked before evidence, so removed sentences are not counted as claims.
             $report = null;
             if ($this->quality->isActive()) {
-                [$conclusion, $report] = $this->quality->apply($conclusion, $symptoms, $qa ?? [], $this->resolveLang($lang, $symptoms), $triage);
+                [$conclusion, $report] = $this->quality->apply($conclusion, $symptoms, $qa ?? [], $resolvedLang, $triage);
             }
 
             // Kept inside the conclusion so history and exports carry the references.
-            $conclusion['evidence'] = $this->evidence->assess($conclusion, $symptoms, $this->resolveLang($lang, $symptoms), grounding: $grounding);
+            $conclusion['evidence'] = $this->evidence->assess($conclusion, $symptoms, $resolvedLang, grounding: $grounding);
             if ($report) {
                 $conclusion['quality'] = $report;
             }
 
             $result = [
                 'symptoms'   => $symptoms,
-                'lang'       => $lang,
+                'lang'       => $resolvedLang,
                 'role'       => $role,
                 'qa'         => $qa,
                 'conclusion' => $conclusion,
@@ -435,26 +448,11 @@ class MediCheckController extends Controller
     }
 
     /**
-     * Resolve 'auto' to a known language code with heuristic on input text.
+     * Resolve 'auto' to a known language code using the shared LanguageDetector.
      */
-    private function resolveLang(string $lang, string $text): string
+    private function resolveLang(string $lang, string $text, ?string $uiLang = null): string
     {
-        $supported = ['en', 'id', 'ja', 'es', 'zh', 'ar', 'fr', 'de', 'ko', 'pt', 'ru'];
-        if (in_array($lang, $supported, true)) {
-            return $lang;
-        }
-
-        $t = ' ' . mb_strtolower($text) . ' ';
-        $idHits = 0;
-        foreach ([
-            ' saya ', ' aku ', ' yang ', ' dan ', ' tidak ', ' dengan ', ' sakit ',
-            ' demam ', ' batuk ', ' sejak ', ' nyeri ', ' hari ', ' terasa ', ' sudah ',
-            ' kepala ', ' perut ', ' badan ', ' mual ', ' pusing ', ' sesak ', ' lemas ',
-            ' minum ', ' obat ', ' dokter ', ' tolong ', ' bantu ', ' ada ', ' juga ',
-        ] as $w) {
-            if (str_contains($t, $w)) $idHits++;
-        }
-        return $idHits >= 1 ? 'id' : 'en';
+        return LanguageDetector::resolve($lang, $text, $uiLang);
     }
 
     /**

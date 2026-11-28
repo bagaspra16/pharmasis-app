@@ -158,23 +158,11 @@ class ScreeningService
     }
 
     /**
-     * Detect dominant language from free text using a simple keyword heuristic.
-     * Returns 'id' for Bahasa Indonesia, 'en' otherwise.
+     * Detect dominant language from free text via shared LanguageDetector.
      */
     private function detectLang(string $text): string
     {
-        $t = ' ' . mb_strtolower($text) . ' ';
-        $idWords = [
-            ' saya ', ' aku ', ' yang ', ' dan ', ' tidak ', ' dengan ', ' sakit ',
-            ' demam ', ' batuk ', ' sejak ', ' nyeri ', ' hari ', ' terasa ', ' sudah ',
-            ' kepala ', ' perut ', ' badan ', ' mual ', ' pusing ', ' sesak ', ' lemas ',
-            ' minum ', ' obat ', ' dokter ', ' tolong ', ' bantu ', ' ada ', ' juga ',
-        ];
-        $hits = 0;
-        foreach ($idWords as $w) {
-            if (str_contains($t, $w)) $hits++;
-        }
-        return $hits >= 1 ? 'id' : 'en';
+        return LanguageDetector::resolve('auto', $text);
     }
 
     /**

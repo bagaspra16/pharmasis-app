@@ -425,16 +425,16 @@
                             </template>
                             <template x-if="mcData.conclusions.clinician_mode.pathophysiology">
                                 <div class="px-6 py-4" style="border-bottom:1px solid rgba(124,58,237,0.08);">
-                                    <p class="text-[10px] font-bold text-violet-600 uppercase tracking-widest mb-1">
-                                        Patofisiologi</p>
+                                    <p class="text-[10px] font-bold text-violet-600 uppercase tracking-widest mb-1" data-i18n="mc_pathophysiology">
+                                        Pathophysiology</p>
                                     <p class="text-xs text-slate-700 leading-relaxed"
                                         x-text="mcData.conclusions.clinician_mode.pathophysiology"></p>
                                 </div>
                             </template>
                             <template x-if="mcData.conclusions.clinician_mode.recommended_workup?.length">
-                                <div class="px-6 py-4">
-                                    <p class="text-[10px] font-bold text-violet-600 uppercase tracking-widest mb-2">
-                                        Rekomendasi Workup</p>
+                                <div class="px-6 py-4" style="border-bottom:1px solid rgba(124,58,237,0.08);">
+                                    <p class="text-[10px] font-bold text-violet-600 uppercase tracking-widest mb-2" data-i18n="mc_workup">
+                                        Recommended Workup</p>
                                     <ul class="space-y-1">
                                         <template x-for="wu in mcData.conclusions.clinician_mode.recommended_workup"
                                             :key="wu">
@@ -442,6 +442,22 @@
                                                 <span
                                                     class="w-1.5 h-1.5 rounded-full bg-violet-400 flex-shrink-0"></span>
                                                 <span x-text="wu"></span>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </div>
+                            </template>
+                            <template x-if="mcData.conclusions.clinician_mode.drug_regimen_considerations?.length">
+                                <div class="px-6 py-4">
+                                    <p class="text-[10px] font-bold text-violet-600 uppercase tracking-widest mb-2" data-i18n="mc_drug_regimen">
+                                        Drug Regimen Considerations</p>
+                                    <ul class="space-y-1">
+                                        <template x-for="dr in mcData.conclusions.clinician_mode.drug_regimen_considerations"
+                                            :key="dr">
+                                            <li class="text-xs text-slate-600 flex items-center gap-2">
+                                                <span
+                                                    class="w-1.5 h-1.5 rounded-full bg-violet-400 flex-shrink-0"></span>
+                                                <span x-text="dr"></span>
                                             </li>
                                         </template>
                                     </ul>
@@ -508,7 +524,7 @@
                             </template>
                         </div>
                         <div class="flex gap-3 flex-wrap">
-                            <a href="tel:119"
+                            <a :href="'tel:' + (mcData?.emergency_alert?.emergency_number || '119')"
                                 class="flex items-center gap-2 px-5 py-2.5 bg-red-500 text-white text-sm font-bold rounded-full hover:bg-red-600 transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -542,6 +558,38 @@
             <div id="screening-panel" x-show="phase === 'questions' || phase === 'concluding'" x-cloak
                 class="mt-8 max-w-xl mx-auto text-left" x-transition:enter="transition ease-out duration-500"
                 x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+
+                {{-- ── Preserved Medical Facts Brief for medi_combo during screening ── --}}
+                <template x-if="factsData?.medical_facts_payload">
+                    <div class="mb-4 rounded-2xl overflow-hidden"
+                        style="background:rgba(255,255,255,0.92); backdrop-filter:blur(20px); border:1px solid rgba(124,58,237,0.18); box-shadow:0 4px 20px rgba(124,58,237,0.08);">
+                        <button type="button" @click="factsBriefOpen = !factsBriefOpen"
+                            class="w-full px-5 py-3 flex items-center justify-between text-left hover:bg-violet-50/40 transition-colors">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-white flex-shrink-0"
+                                    style="background:linear-gradient(135deg,#7c3aed,#6d28d9);" data-i18n="mc_facts_brief">Medical Facts Brief</span>
+                                <span class="text-xs font-semibold text-slate-700 truncate" x-text="factsData.summary_title || factsData.medical_facts_payload.core_explanation"></span>
+                            </div>
+                            <svg class="w-4 h-4 text-violet-600 flex-shrink-0 transition-transform duration-200"
+                                :class="factsBriefOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div x-show="factsBriefOpen" x-collapse x-cloak class="px-5 pb-4 pt-1 border-t border-violet-100/70 space-y-2.5">
+                            <p class="text-xs text-slate-700 leading-relaxed" x-text="factsData.medical_facts_payload.core_explanation"></p>
+                            <template x-if="factsData.medical_facts_payload.key_points?.length">
+                                <div class="space-y-1.5 pt-1">
+                                    <template x-for="(kp, idx) in factsData.medical_facts_payload.key_points" :key="idx">
+                                        <div class="bg-violet-50/50 rounded-xl px-3.5 py-2">
+                                            <p class="text-[10px] font-bold text-violet-700 uppercase tracking-wider" x-text="kp.heading"></p>
+                                            <p class="text-xs text-slate-600 leading-relaxed mt-0.5" x-text="kp.content"></p>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
 
                 {{-- ── QUESTIONS ── --}}
                 <div x-show="phase === 'questions'" class="rounded-3xl overflow-hidden"
@@ -815,6 +863,33 @@
                     </template>
                 </div>
             </div>
+
+            {{-- ── Preserved Medical Facts Brief (medi_combo) ── --}}
+            <template x-if="factsData?.medical_facts_payload">
+                <div class="rounded-3xl overflow-hidden"
+                    style="background:rgba(255,255,255,0.95); backdrop-filter:blur(24px); border:1px solid rgba(124,58,237,0.18); box-shadow:0 8px 32px rgba(124,58,237,0.08);">
+                    <div class="px-6 py-4"
+                        style="background:linear-gradient(135deg,rgba(124,58,237,0.08),rgba(62,174,177,0.06)); border-bottom:1px solid rgba(124,58,237,0.1);">
+                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-white"
+                                style="background:linear-gradient(135deg,#7c3aed,#6d28d9);" data-i18n="mc_facts_brief">Medical Facts Brief</span>
+                            <span class="text-[11px] font-medium text-violet-700" data-i18n="mc_facts_in_screening">Educational context from your query</span>
+                        </div>
+                        <p class="mt-2.5 text-sm font-medium text-slate-800 leading-relaxed"
+                            x-text="factsData.medical_facts_payload.core_explanation"></p>
+                    </div>
+                    <template x-if="factsData.medical_facts_payload.key_points?.length">
+                        <div class="divide-y divide-slate-100/80">
+                            <template x-for="(kp, i) in factsData.medical_facts_payload.key_points" :key="i">
+                                <div class="px-6 py-3.5">
+                                    <p class="text-[10px] font-bold text-primary uppercase tracking-widest mb-1" x-text="kp.heading"></p>
+                                    <p class="text-xs text-slate-600 leading-relaxed" x-text="kp.content"></p>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+            </template>
 
             {{-- ════════════════════════════════════════════════════════════════ --}}
             @include('partials.triage-card', ['expr' => 'conclusion?.triage'])
