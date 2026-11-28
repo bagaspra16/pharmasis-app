@@ -41,162 +41,6 @@
         };
     }
 
-    /* ══════════════ MediCore AI — Adaptive Intent Router Component ══════════════ */
-    function mediCoreRouter() {
-        return {
-            // State
-            mcInput: '',
-            mcPhase: 'input',   // 'input' | 'routing' | 'result'
-            mcLoading: false,
-            mcData: null,
-            mcAnswers: {},       // { [questionId]: string[] }
-            mcShowClinician: false,
-            mcRoutingStep: 'Analyzing your input...',
-
-            // Routing step messages for UX feedback (i18n-aware)
-            _routingSteps: [],
-
-            _getRoutingSteps() {
-                const i18n = window.PharmasisI18n;
-                return [
-                    i18n ? i18n.t('routing_analyzing', 'Analyzing your input...') : 'Analyzing your input...',
-                    i18n ? i18n.t('routing_classifying', 'Classifying medical intent...') : 'Classifying medical intent...',
-                    i18n ? i18n.t('routing_routing', 'Routing to the right pipeline...') : 'Routing to the right pipeline...',
-                    i18n ? i18n.t('routing_processing', 'Processing medical knowledge...') : 'Processing medical knowledge...',
-                    i18n ? i18n.t('routing_preparing', 'Preparing results for you...') : 'Preparing results for you...',
-                ];
-            },
-            _routingInterval: null,
-
-            handleMcEnter(e) {
-                if (!e.shiftKey && this.mcInput.trim()) {
-                    e.preventDefault();
-                    this.runMediCore();
-                }
-            },
-
-            async runMediCore() {
-                if (!this.mcInput.trim() || this.mcLoading) return;
-                this.mcLoading = true;
-                this.mcPhase = 'routing';
-                this.mcData = null;
-                this.mcAnswers = {};
-                this.mcShowClinician = false;
-
-                // Cycle through routing step messages for UX
-                const steps = this._getRoutingSteps();
-                let stepIdx = 0;
-                this.mcRoutingStep = steps[0];
-                this._routingInterval = setInterval(() => {
-                    stepIdx = (stepIdx + 1) % steps.length;
-                    this.mcRoutingStep = steps[stepIdx];
-                }, 1800);
-
-                try {
-                    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-                    const csrf = csrfMeta ? csrfMeta.getAttribute('content') : '';
-
-                    const res = await fetch('/medicheck/route', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': csrf,
-                        },
-                        body: JSON.stringify({ 
-                            input: this.mcInput, 
-                            lang: (window.PharmasisI18n ? window.PharmasisI18n.getLanguage() : 'id') 
-                        }),
-                    });
-
-                    clearInterval(this._routingInterval);
-
-                    if (!res.ok) {
-                        const errJson = await res.json().catch(() => ({}));
-                        this.mcData = {
-                            classification: 'error',
-                            error: errJson.error || `Server error (${res.status}). Coba lagi.`,
-                        };
-                    } else {
-                        const json = await res.json();
-                        this.mcData = json.data || json;
-                    }
-                } catch (err) {
-                    clearInterval(this._routingInterval);
-                    this.mcData = { classification: 'error', error: 'Tidak dapat terhubung ke server. Periksa koneksi internet kamu.' };
-                }
-
-                this.mcLoading = false;
-                this.mcPhase = 'result';
-
-                // Auto-scroll to result panel
-                this.$nextTick(() => {
-                    const el = this.$el;
-                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                });
-            },
-
-            resetMC() {
-                if (this._routingInterval) clearInterval(this._routingInterval);
-                this.mcPhase = 'input';
-                this.mcData = null;
-                this.mcAnswers = {};
-                this.mcShowClinician = false;
-                this.mcInput = '';
-                this.mcLoading = false;
-            },
-
-            toggleMcAnswer(questionId, option) {
-                if (!this.mcAnswers[questionId]) this.mcAnswers[questionId] = [];
-                const idx = this.mcAnswers[questionId].indexOf(option);
-                if (idx >= 0) {
-                    this.mcAnswers[questionId].splice(idx, 1);
-                } else {
-                    this.mcAnswers[questionId] = [option]; // single-select by default
-                }
-            },
-
-            proceedToClassicScreen() {
-                // Hand off to classic mediCheckHeroId screening flow:
-                // Copy input as firstPrompt and initiate startScreening on parent
-                const heroEl = document.querySelector('[x-data*="mediCheckHeroId"]') ||
-                               document.getElementById('ceksehat-root')?.querySelector('[x-data]');
-                if (heroEl && heroEl._x_dataStack) {
-                    const heroComp = heroEl._x_dataStack[0];
-                    if (heroComp) {
-                        heroComp.symptoms = this.mcInput;
-                        heroComp.activeTab = 'text';
-                        heroComp.$nextTick(() => heroComp.startScreening());
-                        return;
-                    }
-                }
-                // Fallback: set tab & input manually
-                document.querySelector('[x-data*="mediCheckHeroId"] textarea')?.focus();
-            },
-
-            // UI helpers
-            mcClassLabel(cls) {
-                const map = {
-                    medi_facts: '📚 Fakta Medis',
-                    medi_check: '🩺 Screening Gejala',
-                    medi_combo: '🔬 Fakta + Screening',
-                    emergency_alert: '🚨 Darurat',
-                };
-                return map[cls] || cls;
-            },
-
-            mcClassColor(cls) {
-                const map = {
-                    medi_facts: 'background:linear-gradient(135deg,#0d9488,#0f766e)',
-                    medi_check: 'background:linear-gradient(135deg,#3EAEB1,#2d8a8d)',
-                    medi_combo: 'background:linear-gradient(135deg,#7c3aed,#6d28d9)',
-                    emergency_alert: 'background:#ef4444',
-                };
-                return map[cls] || 'background:#64748b';
-            },
-        };
-    }
-
     /* ══════════════ Concluding steps ══════════════ */
     const CONCLUDE_STEPS_ID = [
         { id: 'read',    icon: '1', label: 'Summarizing your answers', detail: 'Building the screening transcript · recognizing clinical entities' },
@@ -232,8 +76,11 @@
 
             /* ── MediCore AI result (medi_facts / medi_combo / emergency_alert) ── */
             mcData: null,
+            factsData: null,
+            factsBriefOpen: false,
+            journeyKind: 'check',  // 'check' | 'facts' | 'combo' | 'emergency'
+            conversationLang: null,
             mcShowClinician: false,
-            mcAnswers: {},
             /* ── Concluding step animation ── */
             currentStep: -1,
             completedSteps: [],
@@ -299,15 +146,29 @@
 
             init() {
                 try {
-                    const stored = localStorage.getItem('ceksehatCurrentResult');
+                    // Migrate legacy ceksehat* localStorage keys to canonical medicheck* keys
+                    const oldHistory = localStorage.getItem('ceksehatHistory');
+                    if (oldHistory && !localStorage.getItem('medicheckHistory')) {
+                        localStorage.setItem('medicheckHistory', oldHistory);
+                        localStorage.removeItem('ceksehatHistory');
+                    }
+                    const oldCurrent = localStorage.getItem('ceksehatCurrentResult');
+                    if (oldCurrent && !localStorage.getItem('medicheckCurrentResult')) {
+                        localStorage.setItem('medicheckCurrentResult', oldCurrent);
+                        localStorage.removeItem('ceksehatCurrentResult');
+                    }
+
+                    const stored = localStorage.getItem('medicheckCurrentResult');
                     if (stored) {
                         const parsed = JSON.parse(stored);
                         const age = Date.now() - new Date(parsed.savedAt).getTime();
                         if (age < 30 * 60 * 1000 && parsed.result) {
-                            this.firstPrompt = parsed.firstPrompt || '';
+                            this.firstPrompt = parsed.firstPrompt || parsed.symptoms || parsed.result.symptoms || '';
                             this.role = parsed.result.role || null;
                             this.result = parsed.result;
                             this.conclusion = parsed.result.conclusion || null;
+                            this.factsData = parsed.factsData || parsed.result.factsData || null;
+                            this.journeyKind = this.factsData ? 'combo' : 'check';
                             this.phase = 'result';
                             this.scheduleKiosk();
                             this.$nextTick(() => setTimeout(() => this.scrollToResult('auto'), 100));
@@ -379,11 +240,15 @@
                 this.firstPrompt = prompt;
                 this.screening = true;
                 this.mcData = null;
+                this.factsData = null;
+                this.factsBriefOpen = false;
+                this.journeyKind = 'check';
+                this.conversationLang = null;
                 this.mcShowClinician = false;
-                this.mcAnswers = {};
                 this.cancelKiosk();
 
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+                const uiLang = window.PharmasisI18n ? window.PharmasisI18n.getLanguage() : 'en';
 
                 // ── Step 1: Classify intent via MediCore AI ──────────────────────
                 let classification = 'medi_check'; // safe default
@@ -395,9 +260,10 @@
                             'Accept': 'application/json',
                             'X-CSRF-TOKEN': csrfToken,
                         },
-                        body: JSON.stringify({ 
-                            input: prompt, 
-                            lang: (window.PharmasisI18n ? window.PharmasisI18n.getLanguage() : 'id') 
+                        body: JSON.stringify({
+                            input: prompt,
+                            lang: 'auto',
+                            ui_lang: uiLang,
                         }),
                     });
                     if (routeRes.ok) {
@@ -405,6 +271,9 @@
                         const routeData = routeJson.data || routeJson;
                         classification = routeData.classification || 'medi_check';
                         this.mcData = routeData;
+                        if (routeData.resolved_lang) {
+                            this.conversationLang = routeData.resolved_lang;
+                        }
                     }
                 } catch (e) {
                     // Network error during classification: fall through to medi_check
@@ -414,6 +283,7 @@
 
                 // ── Step 2: Route based on classification ────────────────────────
                 if (classification === 'emergency_alert') {
+                    this.journeyKind = 'emergency';
                     this.screening = false;
                     this.phase = 'emergency';
                     this.$nextTick(() => setTimeout(() => this.scrollToEl('mc-result-panel', 'smooth'), 80));
@@ -421,6 +291,7 @@
                 }
 
                 if (classification === 'medi_facts') {
+                    this.journeyKind = 'facts';
                     this.screening = false;
                     this.phase = 'medicore';
                     this.$nextTick(() => setTimeout(() => this.scrollToEl('mc-result-panel', 'smooth'), 80));
@@ -428,7 +299,9 @@
                 }
 
                 if (classification === 'medi_combo') {
-                    // Show fact card immediately, then ALSO generate screening questions below
+                    // Preserve factual analysis so it remains accessible during screening and in the final report
+                    this.factsData = this.mcData;
+                    this.journeyKind = 'combo';
                     this.phase = 'medicore';
                     this.$nextTick(() => setTimeout(() => this.scrollToEl('mc-result-panel', 'smooth'), 80));
                     // Fall through to screening to also load questions
@@ -438,13 +311,17 @@
                 try {
                     const body = new FormData();
                     body.append('symptoms', prompt);
-                    body.append('lang', (window.PharmasisI18n ? window.PharmasisI18n.getLanguage() : 'id'));
+                    body.append('lang', this.conversationLang || 'auto');
+                    body.append('ui_lang', uiLang);
                     const res = await fetch('/medicheck/screen', {
                         method: 'POST',
                         headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
                         body
                     });
                     const data = await res.json();
+                    if (data.resolved_lang) {
+                        this.conversationLang = data.resolved_lang;
+                    }
                     if (data.triage?.category === 'emergency') {
                         this.showEmergency(data.triage);
                     } else if (!res.ok || !data.success) {
@@ -475,6 +352,7 @@
             /* Rule-based emergency: show guidance at once, ask nothing more. */
             showEmergency(triage) {
                 this.mcData = { classification: 'emergency_alert', triage };
+                this.journeyKind = 'emergency';
                 this.screening = false;
                 this.analyzing = false;
                 this.phase = 'emergency';
@@ -485,16 +363,11 @@
             resetMcPanel() {
                 this.phase = 'intake';
                 this.mcData = null;
+                this.factsData = null;
+                this.factsBriefOpen = false;
+                this.journeyKind = 'check';
+                this.conversationLang = null;
                 this.mcShowClinician = false;
-                this.mcAnswers = {};
-            },
-
-            /* Toggle a quick-answer chip on MediCore screening questions */
-            toggleMcChip(questionId, option) {
-                if (!this.mcAnswers[questionId]) this.mcAnswers[questionId] = [];
-                const idx = this.mcAnswers[questionId].indexOf(option);
-                if (idx >= 0) this.mcAnswers[questionId].splice(idx, 1);
-                else this.mcAnswers[questionId] = [option];
             },
 
             /* ══════════════ Phase 2: question stepper ══════════════ */
@@ -544,7 +417,8 @@
             async replan() {
                 const body = new FormData();
                 body.append('symptoms', this.firstPrompt);
-                body.append('lang', (window.PharmasisI18n ? window.PharmasisI18n.getLanguage() : 'id'));
+                body.append('lang', this.conversationLang || 'auto');
+                body.append('ui_lang', window.PharmasisI18n ? window.PharmasisI18n.getLanguage() : 'en');
                 this.buildQaPayload().slice(0, this.currentQ + 1).forEach((pair, i) => {
                     body.append(`qa[${i}][question]`, pair.question);
                     body.append(`qa[${i}][answer]`, pair.answer);
@@ -626,7 +500,8 @@
                     const body = new FormData();
                     body.append('symptoms', this.firstPrompt);
                     body.append('role', this.role);
-                    body.append('lang', (window.PharmasisI18n ? window.PharmasisI18n.getLanguage() : 'id'));
+                    body.append('lang', this.conversationLang || 'auto');
+                    body.append('ui_lang', window.PharmasisI18n ? window.PharmasisI18n.getLanguage() : 'en');
                     this.buildQaPayload().forEach((pair, i) => {
                         body.append(`qa[${i}][question]`, pair.question);
                         body.append(`qa[${i}][answer]`, pair.answer);
@@ -835,7 +710,14 @@
             /* ══════════════ Scroll helpers ══════════════ */
             scrollToEl(id, behavior) {
                 const el = document.getElementById(id);
-                if (el) {
+                if (!el) return;
+                const wrapper = document.getElementById('scroll-wrapper');
+                if (wrapper) {
+                    const elTop = el.getBoundingClientRect().top;
+                    const wrapperTop = wrapper.getBoundingClientRect().top;
+                    const offset = Math.max(0, elTop - wrapperTop + wrapper.scrollTop - 24);
+                    wrapper.scrollTo({ top: offset, behavior: behavior || 'smooth' });
+                } else {
                     const y = el.getBoundingClientRect().top + window.scrollY - 20;
                     window.scrollTo({ top: y, behavior: behavior || 'smooth' });
                 }
@@ -843,7 +725,7 @@
             scrollToResult(behavior) {
                 const el = document.getElementById('medicheck-output-page');
                 if (!el) return;
-                el.scrollIntoView({ behavior: behavior || 'smooth', block: 'start' });
+                this.scrollToEl('medicheck-output-page', behavior || 'smooth');
                 // Focus the element so screen readers and keyboard nav follow along
                 if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
                 el.focus({ preventScroll: true });
@@ -852,6 +734,8 @@
             /* ══════════════ Kiosk popup ══════════════ */
             scheduleKiosk() {
                 this.cancelKiosk();
+                const isKiosk = new URLSearchParams(window.location.search).has('kiosk');
+                if (!isKiosk) return;
                 this._kioskAppear = setTimeout(() => {
                     if (this.phase === 'result') this.startKioskCountdown();
                 }, this.kioskDelay * 1000);
@@ -873,6 +757,7 @@
             },
             resetKiosk() {
                 this.cancelKiosk();
+                localStorage.removeItem('medicheckCurrentResult');
                 localStorage.removeItem('ceksehatCurrentResult');
                 window.location.reload();
             },
@@ -887,17 +772,19 @@
             saveToStorage() {
                 if (!this.result) return;
                 try {
-                    localStorage.setItem('ceksehatCurrentResult', JSON.stringify({
+                    localStorage.setItem('medicheckCurrentResult', JSON.stringify({
                         id: 'cs_' + Date.now(),
                         savedAt: new Date().toISOString(),
                         firstPrompt: this.firstPrompt || '',
+                        factsData: this.factsData || null,
                         result: this.result
                     }));
                 } catch (e) { /* ignore */ }
             },
             saveToHistory(resultData) {
                 try {
-                    let history = JSON.parse(localStorage.getItem('ceksehatHistory') || '[]');
+                    let history = JSON.parse(localStorage.getItem('medicheckHistory') || '[]');
+                    if (!Array.isArray(history)) history = [];
                     const c = resultData.conclusion || {};
                     const conds = resultData.role === 'doctor'
                         ? (c.differential || []).map(d => d.name).slice(0, 2)
@@ -905,14 +792,17 @@
                     const rec = {
                         id: 'cs_' + Date.now(),
                         date: new Date().toISOString(),
+                        firstPrompt: this.firstPrompt || resultData.symptoms || '',
                         preview: (resultData.symptoms || '').substring(0, 80) + ((resultData.symptoms || '').length > 80 ? '...' : ''),
                         conditions: conds,
                         role: resultData.role,
+                        factsData: this.factsData || null,
                         result: resultData
                     };
                     history.unshift(rec);
                     if (history.length > 10) history = history.slice(0, 10);
-                    localStorage.setItem('ceksehatHistory', JSON.stringify(history));
+                    localStorage.setItem('medicheckHistory', JSON.stringify(history));
+                    window.dispatchEvent(new CustomEvent('medicheck-history-updated'));
                     return rec.id;
                 } catch (e) { return null; }
             },
@@ -927,6 +817,14 @@
                 t += `Date: ${new Date().toLocaleString('en-US')}\n`;
                 t += `Role: ${r.role === 'doctor' ? 'Healthcare professional / Doctor' : 'Patient / General public'}\n`;
                 t += `Initial symptoms: ${r.symptoms || 'N/A'}\n\n`;
+
+                if (this.factsData?.medical_facts_payload) {
+                    const fp = this.factsData.medical_facts_payload;
+                    t += 'MEDICAL FACTS BRIEF\n';
+                    if (fp.core_explanation) t += `${fp.core_explanation}\n`;
+                    (fp.key_points || []).forEach(kp => { t += `- ${kp.heading}: ${kp.content}\n`; });
+                    t += '\n';
+                }
 
                 if ((r.qa || []).length) {
                     t += 'SCREENING RESULTS\n';
@@ -1053,6 +951,16 @@
                 html += '</div>';
 
                 html += '<p style="font-size:0.85rem;margin:0 0 0.75rem;"><strong>Initial symptoms:</strong> ' + this._esc(r.symptoms || 'N/A') + '</p>';
+                if (this.factsData?.medical_facts_payload) {
+                    const fp = this.factsData.medical_facts_payload;
+                    html += '<div style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:0.5rem;padding:0.75rem;margin-bottom:1rem;">';
+                    html += '<p style="font-size:0.7rem;font-weight:700;color:#0f766e;text-transform:uppercase;margin:0 0 0.35rem;">Medical Facts Brief</p>';
+                    if (fp.core_explanation) html += '<p style="font-size:0.8rem;color:#134e4a;margin:0 0 0.4rem;">' + this._esc(fp.core_explanation) + '</p>';
+                    (fp.key_points || []).forEach(kp => {
+                        html += '<p style="font-size:0.76rem;color:#334155;margin:0 0 0.25rem;"><strong>' + this._esc(kp.heading) + ':</strong> ' + this._esc(kp.content) + '</p>';
+                    });
+                    html += '</div>';
+                }
                 if ((r.qa || []).length) {
                     html += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:0.5rem;padding:0.75rem;margin-bottom:1rem;">';
                     html += '<p style="font-size:0.7rem;font-weight:700;color:' + accent + ';text-transform:uppercase;margin:0 0 0.4rem;">Screening Results</p>';

@@ -35,18 +35,22 @@ class MediCoreAiService
     /**
      * Main entry point.
      *
-     * @param  string $input  Raw user input (symptom description, question, or both)
-     * @param  string $lang   'en' | 'id' | 'auto'
-     * @return array          Structured MediCore JSON payload
+     * @param  string      $input   Raw user input (symptom description, question, or both)
+     * @param  string      $lang    'en' | 'id' | ... | 'auto'
+     * @param  string|null $uiLang  Optional UI language fallback when input text is language-neutral
+     * @return array                Structured MediCore JSON payload
      */
-    public function process(string $input, string $lang = 'auto'): array
+    public function process(string $input, string $lang = 'auto', ?string $uiLang = null): array
     {
         $input        = trim(substr(strip_tags($input), 0, 2000));
-        $resolvedLang = $lang === 'auto' ? $this->detectLang($input) : $lang;
+        $resolvedLang = LanguageDetector::resolve($lang, $input, $uiLang);
         $langInstr    = $this->langInstruction($resolvedLang);
 
         if (empty($input)) {
-            return $this->errorPayload('Input kosong. Tolong ketik gejala atau pertanyaan medis kamu.', $resolvedLang);
+            $emptyMsg = $resolvedLang === 'id'
+                ? 'Input kosong. Tolong ketik gejala atau pertanyaan medis kamu.'
+                : 'Empty input. Please enter your symptoms or medical question.';
+            return $this->errorPayload($emptyMsg, $resolvedLang);
         }
 
         // Rule-based warning signs first: instant, and works if the AI service is down.
@@ -64,42 +68,49 @@ class MediCoreAiService
             }
 
             $classification  = $classifyResult['classification'] ?? 'medi_check';
+            if (!in_array($classification, ['medi_facts', 'medi_check', 'medi_combo'], true)) {
+                $classification = 'medi_check';
+            }
             $confidence      = (float) ($classifyResult['confidence_score'] ?? 0.80);
             $summaryTitle    = $classifyResult['summary_title'] ?? '';
             $intentReasoning = $classifyResult['intent_reasoning'] ?? '';
             $entities        = $classifyResult['detected_entities'] ?? null;
 
-            // Phase 2: Branch-specific processing
-            $factsPayload     = null;
-            $screeningPayload = null;
-            $conclusions      = null;
+            // medi_check routes directly to the authoritative screening pipeline (/medicheck/screen + /medicheck/conclude).
+            // Skip duplicate screening/conclusion/evidence/quality LLM work here to avoid discarded calls and latency.
+            if ($classification === 'medi_check') {
+                return $this->assemblePayload(
+                    classification:   $classification,
+                    confidence:       $confidence,
+                    summaryTitle:     $summaryTitle,
+                    intentReasoning:  $intentReasoning,
+                    entities:         $entities,
+                    resolvedLang:     $resolvedLang,
+                );
+            }
 
-            $cacheKey = 'medicore_facts_v2_' . md5($input . '_' . $resolvedLang) . ($this->quality->isActive() ? '_q1' : '');
+            // Phase 2: Branch-specific factual knowledge processing (medi_facts & medi_combo)
+            $cacheKey = 'medicore_facts_v3_' . md5($input . '_' . $resolvedLang) . ($this->quality->isActive() ? '_q1' : '');
 
             if ($classification === 'medi_facts' && Cache::has($cacheKey)) {
                 return Cache::get($cacheKey);
             }
 
-            // Sources are retrieved first so the answer can be written from them.
+            // Sources are retrieved first so the factual answer can be written from them.
             $grounding = $this->evidence->ground($input);
             $grounded  = trim($langInstr . "\n\n" . $grounding['block'] . "\n\n" . $this->quality->rules());
 
-            if ($classification === 'medi_facts') {
-                $factsPayload = $this->generateFactsPayload($input, $grounded);
-                $conclusions  = $this->generateFactsConclusions($input, $grounded);
-            } elseif ($classification === 'medi_check') {
-                $screeningPayload = $this->generateScreeningPayload($input, $langInstr);
-                $conclusions      = $this->generateCheckConclusions($input, $grounded);
-            } else {
-                // medi_combo: dual processing
-                [$factsPayload, $screeningPayload, $conclusions] = $this->generateComboPayload($input, $grounded);
-            }
+            // Both medi_facts and medi_combo need grounded educational facts + dual-mode reference brief.
+            // For medi_combo, screening questions and personalized triage conclusions are handled authoritatively
+            // by /medicheck/screen and /medicheck/conclude (never generated twice here).
+            $factsPayload = $this->generateFactsPayload($input, $grounded);
+            $conclusions  = $this->generateFactsConclusions($input, $grounded);
 
             $report = null;
             if ($this->quality->isActive()) {
                 [$checked, $report] = $this->quality->apply(
                     ['facts' => $factsPayload, 'conclusions' => $conclusions],
-                    $input, [], $resolvedLang, general: $classification === 'medi_facts'
+                    $input, [], $resolvedLang, general: true
                 );
                 $factsPayload = $checked['facts'] ?? null;
                 $conclusions  = $checked['conclusions'] ?? null;
@@ -113,8 +124,9 @@ class MediCoreAiService
                 intentReasoning:  $intentReasoning,
                 entities:         $entities,
                 factsPayload:     $factsPayload,
-                screeningPayload: $screeningPayload,
+                screeningPayload: null,
                 conclusions:      $conclusions,
+                resolvedLang:     $resolvedLang,
             );
 
             $result['evidence'] = $this->evidence->assess(
@@ -140,7 +152,10 @@ class MediCoreAiService
             throw $e;
         } catch (\Exception $e) {
             Log::error('MediCoreAiService unexpected error', ['message' => $e->getMessage()]);
-            return $this->errorPayload('Terjadi kesalahan tidak terduga. Coba lagi nanti.', $resolvedLang);
+            $errMsg = $resolvedLang === 'id'
+                ? 'Terjadi kesalahan tidak terduga. Coba lagi nanti.'
+                : 'An unexpected error occurred. Please try again.';
+            return $this->errorPayload($errMsg, $resolvedLang);
         }
     }
 
@@ -250,69 +265,6 @@ class MediCoreAiService
         return $this->parseJson($raw, 'facts_conclusions');
     }
 
-    // Phase 2b: medi_check
-
-    private function generateScreeningPayload(string $input, string $langInstr): array
-    {
-        $raw = $this->groq->chat(self::MODEL, [
-            ['role' => 'system', 'content' =>
-                "You are a clinical intake specialist. Generate 3-5 targeted screening questions to gather "
-              . "clinical context (onset, severity, associated symptoms, history, triggers). "
-              . "Do NOT include a 'doctor vs patient' role question. "
-              . "CRITICAL: Return ONLY valid JSON.\n{$langInstr}",
-            ],
-            ['role' => 'user', 'content' =>
-                "Patient's active symptoms: \"{$input}\"\n\n"
-              . "Return JSON:\n"
-              . '{"transition_message":"Empathetic 1-sentence message acknowledging symptoms",'
-              . '"screening_questions":['
-              .   '{"id":"q1","question":"...","hint":"brief helper text","options":["option 1","option 2","option 3"]}'
-              . ']}'
-            ],
-        ], ['temperature' => 0.35, 'max_tokens' => 2500, 'reasoning_effort' => 'low', 'response_format' => ['type' => 'json_object']]);
-
-        return $this->parseJson($raw, 'screening_payload');
-    }
-
-    private function generateCheckConclusions(string $input, string $langInstr): array
-    {
-        $raw = $this->groq->chat(self::MODEL, [
-            ['role' => 'system', 'content' =>
-                "You are MediCore AI generating preliminary dual-mode conclusions based on reported symptoms. "
-              . "These are initial assessments before full screening. "
-              . "CRITICAL: Return ONLY valid JSON.\n{$langInstr}",
-            ],
-            ['role' => 'user', 'content' =>
-                "Reported symptoms: \"{$input}\"\n\n"
-              . "Return JSON:\n"
-              . '{"patient_mode":{'
-              .   '"explanation":"Warm, plain-language overview of what the symptoms might indicate",'
-              .   '"self_care_tips":["immediate self-care tip 1","tip 2"],'
-              .   '"recommended_specialist":"which type of doctor/clinic to visit"'
-              . '},'
-              . '"clinician_mode":{'
-              .   '"differential_diagnoses":[{"disease":"...","icd_10":"...","likelihood":"High|Moderate|Low"}],'
-              .   '"pathophysiology":"Pathophysiological rationale for the most likely differential",'
-              .   '"recommended_workup":["recommended diagnostic workup 1","workup 2"],'
-              .   '"drug_regimen_considerations":"Initial pharmacological considerations"'
-              . '}}'
-            ],
-        ], ['temperature' => 0.3, 'max_tokens' => 3000, 'reasoning_effort' => 'low', 'response_format' => ['type' => 'json_object']]);
-
-        return $this->parseJson($raw, 'check_conclusions');
-    }
-
-    // Phase 2c: medi_combo
-
-    private function generateComboPayload(string $input, string $langInstr): array
-    {
-        $factsPayload     = $this->generateFactsPayload($input, $langInstr);
-        $screeningPayload = $this->generateScreeningPayload($input, $langInstr);
-        $conclusions      = $this->generateCheckConclusions($input, $langInstr);
-
-        return [$factsPayload, $screeningPayload, $conclusions];
-    }
-
     // Emergency
 
     private function buildEmergencyPayload(array $classifyResult, string $lang, ?array $triage = null): array
@@ -321,6 +273,7 @@ class MediCoreAiService
 
         return [
             'classification'   => 'emergency_alert',
+            'resolved_lang'    => $lang,
             'confidence_score' => 1.0,
             'summary_title'    => $isId ? 'Kondisi Darurat Medis Terdeteksi' : 'Medical Emergency Detected',
             'is_emergency'     => true,
@@ -359,6 +312,7 @@ class MediCoreAiService
         ?array  $factsPayload = null,
         ?array  $screeningPayload = null,
         ?array  $conclusions = null,
+        string  $resolvedLang = 'en',
     ): array {
         $showFact      = in_array($classification, ['medi_facts', 'medi_combo']);
         $showScreening = in_array($classification, ['medi_check', 'medi_combo']);
@@ -371,6 +325,7 @@ class MediCoreAiService
 
         return [
             'classification'        => $classification,
+            'resolved_lang'         => $resolvedLang,
             'confidence_score'      => $confidence,
             'summary_title'         => $summaryTitle,
             'intent_reasoning'      => $intentReasoning,
@@ -393,6 +348,7 @@ class MediCoreAiService
     {
         return [
             'classification'        => 'error',
+            'resolved_lang'         => $lang,
             'confidence_score'      => 0.0,
             'summary_title'         => 'Error',
             'is_emergency'          => false,
@@ -402,23 +358,6 @@ class MediCoreAiService
             'screening_payload'     => null,
             'conclusions'           => null,
         ];
-    }
-
-    private function detectLang(string $text): string
-    {
-        $t = ' ' . mb_strtolower($text) . ' ';
-        $idWords = [
-            ' saya ', ' aku ', ' yang ', ' dan ', ' tidak ', ' dengan ', ' sakit ',
-            ' demam ', ' batuk ', ' sejak ', ' nyeri ', ' hari ', ' terasa ', ' sudah ',
-            ' kepala ', ' perut ', ' badan ', ' mual ', ' pusing ', ' sesak ', ' lemas ',
-            ' obat ', ' dokter ', ' tolong ', ' ada ', ' juga ', ' kenapa ', ' apa ',
-            ' berapa ', ' apakah ', ' bagaimana ', ' kondisi ', ' gejala ',
-        ];
-        $hits = 0;
-        foreach ($idWords as $w) {
-            if (str_contains($t, $w)) $hits++;
-        }
-        return $hits >= 1 ? 'id' : 'en';
     }
 
     private function langInstruction(string $lang): string

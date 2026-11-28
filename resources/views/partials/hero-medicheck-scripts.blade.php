@@ -430,33 +430,14 @@
             /* ── Async nearby providers loader ───────────────────────── */
             async fetchNearbyProviders(historyId, location, symptoms, conditions) {
                 this.nearbyLoading = true;
-                this.nearbyProviders = null;
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-                try {
-                    const body = new FormData();
-                    body.append('location', location);
-                    if (symptoms) body.append('symptoms', symptoms.substring(0, 300));
-                    if (conditions) body.append('conditions', conditions);
-
-                    const res = await fetch('/medicheck/nearby', {
-                        method: 'POST',
-                        headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                        body
-                    });
-                    const data = await res.json();
-                    this.nearbyProviders = data;
-                    this.patchHistoryNearby(historyId, data);
-                } catch (e) {
-                    console.warn('Nearby providers fetch failed:', e);
-                    const q = encodeURIComponent('hospital clinic near ' + location);
-                    this.nearbyProviders = {
-                        success: false,
-                        providers: [],
-                        maps_search_url: `https://www.google.com/maps/search/${q}`
-                    };
-                } finally {
-                    this.nearbyLoading = false;
-                }
+                const q = encodeURIComponent('hospital clinic near ' + (location || ''));
+                this.nearbyProviders = {
+                    success: false,
+                    providers: [],
+                    maps_search_url: `https://www.google.com/maps/search/${q}`
+                };
+                this.patchHistoryNearby(historyId, this.nearbyProviders);
+                this.nearbyLoading = false;
             },
             /* ── Drug auto-swap (Feature 5) ─────────────────────────── */
             applySubstitutions() {
